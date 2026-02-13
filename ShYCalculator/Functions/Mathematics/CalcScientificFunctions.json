@@ -1,0 +1,234 @@
+﻿[
+  {
+    "Name": "sin",
+    "Description": "Returns the sine value of a numeric parameter in radians.",
+    "Examples": [
+      "sin(0)",
+      "sin(3.14159 / 2)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter in radians."
+      }
+    ]
+  },
+  {
+    "Name": "cos",
+    "Description": "Returns the cosine value of a numeric parameter in radians.",
+    "Examples": [
+      "cos(0)",
+      "cos(3.14159)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter in radians."
+      }
+    ]
+  },
+  {
+    "Name": "tan",
+    "Description": "Returns the tangent value of a numeric parameter in radians.",
+    "Examples": [
+      "tan(0)",
+      "tan(3.14159 / 4)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter in radians."
+      }
+    ]
+  },
+  {
+    "Name": "cot",
+    "Description": "Returns the cotangent value of a numeric parameter in radians.",
+    "Examples": [
+      "cot(3.14159 / 4)",
+      "cot(1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter in radians."
+      }
+    ]
+  },
+  {
+    "Name": "ln",
+    "Description": "Returns the natural logarithm value of a numeric parameter.",
+    "Examples": [
+      "ln(2.71828)",
+      "ln(1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter to calculate the natural logarithm for."
+      }
+    ]
+  },
+  {
+    "Name": "log",
+    "Description": "Returns the logarithm with a specified base of a numeric parameter.",
+    "Examples": [
+      "log(100, 10)",
+      "log(8, 2)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter to calculate the logarithm for."
+      },
+      {
+        "Type": "number",
+        "Description": "The base of the logarithm."
+      }
+    ]
+  },
+  {
+    "Name": "log2",
+    "Description": "Returns the base-2 logarithm of a numeric parameter.",
+    "Examples": [
+      "log2(8)",
+      "log2(1024)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter to calculate the base-2 logarithm for."
+      }
+    ]
+  },
+  {
+    "Name": "log10",
+    "Description": "Returns the base-10 logarithm of a numeric parameter.",
+    "Examples": [
+      "log10(100)",
+      "log10(0.1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter to calculate the base-10 logarithm for."
+      }
+    ]
+  },
+  {
+    "Name": "sinh",
+    "Description": "Returns the hyperbolic sine of the specified angle in radians.",
+    "Examples": [
+      "sinh(0)",
+      "sinh(1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The angle in radians."
+      }
+    ]
+  },
+  {
+    "Name": "cosh",
+    "Description": "Returns the hyperbolic cosine of the specified angle in radians.",
+    "Examples": [
+      "cosh(0)",
+      "cosh(1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The angle in radians."
+      }
+    ]
+  },
+  {
+    "Name": "tanh",
+    "Description": "Returns the hyperbolic tangent of the specified angle in radians.",
+    "Examples": [
+      "tanh(0)",
+      "tanh(1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The angle in radians."
+      }
+    ]
+  },
+  {
+    "Name": "coth",
+    "Description": "Returns the hyperbolic cotangent of the specified angle in radians.",
+    "Examples": [
+      "coth(1)",
+      "coth(2)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The angle in radians."
+      }
+    ]
+  },
+  {
+    "Name": "asin",
+    "Description": "Returns the angle whose sine is the specified number, in radians.",
+    "Examples": [
+      "asin(0)",
+      "asin(1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A number representing a sine value between -1 and 1.",
+        "Min": -1,
+        "Max": 1
+      }
+    ]
+  },
+  {
+    "Name": "acos",
+    "Description": "Returns the angle whose cosine is the specified number, in radians.",
+    "Examples": [
+      "acos(1)",
+      "acos(0)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A number representing a cosine value between -1 and 1.",
+        "Min": -1,
+        "Max": 1
+      }
+    ]
+  },
+  {
+    "Name": "atan",
+    "Description": "Returns the angle whose tangent is the specified number, in radians.",
+    "Examples": [
+      "atan(0)",
+      "atan(1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A number representing a tangent value."
+      }
+    ]
+  },
+  {
+    "Name": "acot",
+    "Description": "Returns the angle whose cotangent is the specified number, in radians.",
+    "Examples": [
+      "acot(1)",
+      "acot(0)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A number representing a cotangent value."
+      }
+    ]
+  }
+]

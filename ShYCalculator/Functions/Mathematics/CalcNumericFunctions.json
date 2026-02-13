@@ -1,0 +1,244 @@
+[
+    {
+        "Name": "is_ascending",
+        "Description": "Checks if the numeric arguments are in ascending order.",
+        "Examples": [
+            "is_ascending(1, 2, 3)",
+            "is_ascending(3, 2, 1)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 1,
+                "Max": 10,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "is_ascending_loose",
+        "Description": "Checks if the numeric arguments are in ascending order, allowing equal adjacent numbers.",
+        "Examples": [
+            "is_ascending_loose(1, 2, 2, 3)",
+            "is_ascending_loose(1, 1, 1)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 1,
+                "Max": 10,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "is_descending",
+        "Description": "Checks if the numeric arguments are in descending order.",
+        "Examples": [
+            "is_descending(3, 2, 1)",
+            "is_descending(1, 2, 3)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 1,
+                "Max": 10,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "is_descending_loose",
+        "Description": "Checks if the numeric arguments are in descending order, allowing equal adjacent numbers.",
+        "Examples": [
+            "is_descending_loose(3, 2, 2, 1)",
+            "is_descending_loose(3, 3, 3)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 1,
+                "Max": 10,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "has_adjacent_equals",
+        "Description": "Checks if the numeric arguments contain any equal adjacent numbers.",
+        "Examples": [
+            "has_adjacent_equals(1, 2, 2, 3)",
+            "has_adjacent_equals(1, 2, 3)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 1,
+                "Max": 10,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "are_all_numbers",
+        "Description": "Checks if all arguments are numbers.",
+        "Examples": [
+            "are_all_numbers(1, 2, 3)",
+            "are_all_numbers(1, 'text', 3)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 1,
+                "Max": 10,
+                "Arguments": [
+                    {
+                        "Type": "any",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "median",
+        "Description": "Returns the median value from a list of numeric arguments.",
+        "Examples": [
+            "median(1, 3, 5)",
+            "median(1, 2, 3, 4)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 1,
+                "Max": 100,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "mode",
+        "Description": "Returns the mode (most frequent) value from a list of numeric arguments. If multiple modes exist, returns the smallest one.",
+        "Examples": [
+            "mode(1, 2, 2, 3)",
+            "mode(1, 1, 2, 2)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 1,
+                "Max": 100,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "stdev",
+        "Description": "Returns the sample standard deviation of a list of numeric arguments.",
+        "Examples": [
+            "stdev(2, 4, 4, 4, 5, 5, 7, 9)",
+            "stdev($list)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 2,
+                "Max": 100,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "var",
+        "Description": "Returns the sample variance of a list of numeric arguments.",
+        "Examples": [
+            "var(2, 4, 4, 4, 5, 5, 7, 9)",
+            "var($list)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of repeating numeric arguments.",
+                "Min": 2,
+                "Max": 100,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "count",
+        "Description": "Returns the number of arguments provided.",
+        "Examples": [
+            "count(1, 2, 3)",
+            "count($list)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of arguments.",
+                "Min": 0,
+                "Max": 100,
+                "Arguments": [
+                    {
+                        "Type": "any",
+                        "Description": "Any type of parameter."
+                    }
+                ]
+            }
+        ]
+    }
+]

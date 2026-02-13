@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>ShYCalculator WASM</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Dynamic Filename Resolver will find the importmap during publish -->
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="index.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">
+</head>
+
+<body>
+    <header class="app-banner">
+        <img src="nlo/nlo-banner.jpg" alt="nullzerovibe banner" />
+    </header>
+    <div id="status" class="status-badge">Initializing .NET WASM Expression Evaluator...</div>
+
+    <div id="app">
+        <div class="card">
+            <h1>ShYCalculator</h1>
+            <p class="subtitle">High-performance .NET WASM Expression Evaluator</p>
+            <div class="form-group" style="grid-template-columns: 1fr;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label for="exampleSelect" style="margin-bottom: 0;">Load Example</label>
+                    <button id="docsBtn" class="btn-small"
+                        style="width: auto; background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); padding: 0.25rem 0.75rem; margin: 0;"
+                        disabled>
+                        📖 Reference Guide
+                    </button>
+                </div>
+                <select id="exampleSelect">
+                    <option value="">-- Select an Example --</option>
+                    <optgroup label="Basic">
+                        <option value="1 + 2 * 3">Simple Arithmetic</option>
+                        <option value="10 / 2 + 5">Division & Addition</option>
+                        <option value="2 ^ 3">Power (2^3)</option>
+                    </optgroup>
+                    <optgroup label="Scientific">
+                        <option value="sin(0) + cos(0)">Trigonometry</option>
+                        <option value="log(100, 10)">Logarithm (base 10)</option>
+                        <option value="sqrt(16) + abs(-5)">Roots & Absolute</option>
+                    </optgroup>
+                    <optgroup label="Logic">
+                        <option value="if(5 > 3, 100, 0)">Simple If/Else</option>
+                        <option value="max(10, 20) + min(5, 1)">Max & Min</option>
+                        <option value="true ? 1 : 0">Ternary Operator</option>
+                    </optgroup>
+                    <optgroup label="Formulas (Uses Variables)">
+                        <option value="pi * r * r" data-vars='{"r": 5, "pi": 3.14159}'>Area of Circle</option>
+                        <option value="a * a + b * b" data-vars='{"a": 3, "b": 4}'>Pythagoras (a^2 + b^2)</option>
+                        <option value="offset + scale * x" data-vars='{"offset": 10, "scale": 2, "x": 5}'>Linear
+                            Equation</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="exprInput">Mathematical Expression</label>
+                <input id="exprInput" type="text" placeholder="e.g. 1 + 2 * sin(0)" value="1 + 2 * sin(0)" />
+            </div>
+
+            <!-- Variables Section -->
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label style="margin-bottom: 0;">Variables (Context)</label>
+                    <button class="btn-small" id="addVarBtn">+ Add</button>
+                </div>
+                <div id="variablesContainer" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <!-- Variable Rows will go here -->
+                </div>
+            </div>
+
+            <button id="calcBtn" disabled>Calculate</button>
+
+            <div class="result-container" id="resultBox">
+                <div class="result-value" id="output">---</div>
+                <div class="result-label" id="resultLabel">Result will appear here</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Corner Elements -->
+    <a href="https://github.com/nullzerovibe/ShYCalculator" target="_blank">
+        <img src="nlo/nlo-profile.png" alt="NullZeroVibe Logo" class="corner-logo" />
+    </a>
+
+    <div class="corner-contact">
+        <a href="mailto:nullzerovibe@gmail.com">
+            <svg class="contact-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+            </svg>
+            nullzerovibe@gmail.com
+        </a>
+        <a href="https://github.com/nullzerovibe" target="_blank">
+            <svg class="contact-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M12 2C6.47 2 2 6.47 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.65.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z" />
+            </svg>
+            github.com/nullzerovibe
+        </a>
+    </div>
+
+    <div id="docsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📚 Reference Guide</h2>
+                <button id="closeDocsBtn" class="close-btn">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="functions">Functions</button>
+                    <button class="tab-btn" data-tab="operators">Operators</button>
+                </div>
+
+                <div id="functionsTab" class="tab-content active">
+                    <div id="functionsList" class="docs-list">Loading...</div>
+                </div>
+
+                <div id="operatorsTab" class="tab-content">
+                    <div id="operatorsList" class="docs-list">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred. <a href="" class="reload">Reload</a>
+    </div>
+
+    <script>
+        // Global handler for the .NET instance
+        globalThis.shyCalculator = null;
+        globalThis.registerShYCalculator = (dotNetHelper) => {
+            console.log("ShYCalculator: .NET Instance Registered!", dotNetHelper);
+            globalThis.shyCalculator = dotNetHelper;
+        };
+        console.log(`%c
+N u l l Z e r o V i b e
+▄▀▀▄░█▀▀█░█▀▀▄░█▀▀ 
+█░░░░█░░█░█░░█░█▀▀ 
+▀▄▄▀░█▄▄█░█▄▄▀░█▄▄
+
+ ░▒▒▓▓ LIFETIME OF SYNTAX // AGENTIC EVOLUTION ▓▓▒▒░ 
+`, 'font-family: monospace; font-weight: bold; color: #00ffff;');
+    </script>
+    <script type="module">
+        // --- DYNAMIC FILENAME RESOLVER ---
+        // Automatically finds the fingerprinted blazor.webassembly.js from the importmap
+        globalThis.blazorInit = new Promise((resolve) => {
+            let retries = 0;
+            const maxRetries = 20;
+
+            const loadEngine = () => {
+                const mapTag = document.querySelector('script[type="importmap"]');
+                let url = "_framework/blazor.webassembly.js"; // Standard fallback
+
+                if (mapTag && mapTag.textContent.trim().length > 0) {
+                    try {
+                        const map = JSON.parse(mapTag.textContent);
+                        url = map.imports["./_framework/blazor.webassembly.js"] || url;
+                        console.log("ShYCalculator: Importmap found. Resolved URL:", url);
+                    } catch (e) {
+                        console.error("ShYCalculator: Failed to parse importmap:", e);
+                    }
+                } else if (retries < maxRetries) {
+                    retries++;
+                    setTimeout(loadEngine, 100);
+                    return;
+                } else {
+                    console.warn("ShYCalculator: Importmap not found/empty after timeout. Using fallback:", url);
+                }
+
+                console.log("ShYCalculator: Injecting script tag for:", url);
+                const script = document.createElement('script');
+                script.src = url;
+                script.type = "module";
+                script.setAttribute('autostart', 'false');
+                script.onload = () => {
+                    console.log("ShYCalculator: Script loaded. Starting Blazor...");
+                    resolve(Blazor.start());
+                };
+                script.onerror = (e) => console.error("ShYCalculator: Failed to load script:", url, e);
+                document.body.appendChild(script);
+            };
+            loadEngine();
+        });
+
+        async function getInterop() {
+            if (globalThis.shyCalculator) return globalThis.shyCalculator;
+            // Wait for registration
+            while (!globalThis.shyCalculator) {
+                await new Promise(r => setTimeout(r, 50));
+            }
+            return globalThis.shyCalculator;
+        }
+
+        // Initialize UI after Wasm is ready
+        await globalThis.blazorInit;
+        const status = document.getElementById('status');
+        const btn = document.getElementById('calcBtn');
+        const addVarBtn = document.getElementById('addVarBtn');
+        const variablesContainer = document.getElementById('variablesContainer');
+        const exampleSelect = document.getElementById('exampleSelect');
+        const exprInput = document.getElementById('exprInput');
+        const docsBtn = document.getElementById('docsBtn');
+        const docsModal = document.getElementById('docsModal');
+        const closeDocsBtn = document.getElementById('closeDocsBtn');
+
+        status.textContent = "Engine Ready";
+        status.classList.add('ready');
+
+        console.log("ShYCalculator: Waiting for interop registration...");
+        try {
+            const interop = await getInterop();
+            const pong = await interop.invokeMethodAsync('Ping');
+            console.log("ShYCalculator: Interop connection successful:", pong);
+
+            // Enable UI
+            btn.disabled = false;
+            docsBtn.disabled = false;
+        } catch (e) {
+            console.error("ShYCalculator: Interop Ping failed:", e);
+            status.textContent = "Engine Error";
+            status.style.background = "var(--error)";
+        }
+
+        // --- Documentation Logic ---
+        let docsLoaded = false;
+
+        function showDocs() {
+            docsModal.style.display = 'flex';
+            if (!docsLoaded) {
+                loadDocumentation();
+            }
+        }
+
+        function hideDocs() {
+            docsModal.style.display = 'none';
+        }
+
+        docsBtn.onclick = showDocs;
+        closeDocsBtn.onclick = hideDocs;
+        docsModal.onclick = (e) => {
+            if (e.target === docsModal) hideDocs();
+        };
+
+        // Tab Switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab + 'Tab').classList.add('active');
+            };
+        });
+
+        async function loadDocumentation() {
+            try {
+                const interop = await getInterop();
+                const json = await interop.invokeMethodAsync('GetDocumentation');
+                const docs = JSON.parse(json);
+                renderFunctions(docs.functions);
+                renderOperators(docs.operators);
+                docsLoaded = true;
+            } catch (e) {
+                console.error("Failed to load docs", e);
+                document.getElementById('functionsList').innerHTML = `<div class="error-msg">Failed to load documentation: ${e.message}</div>`;
+            }
+        }
+
+        function renderFunctions(funcs) {
+            const container = document.getElementById('functionsList');
+            container.innerHTML = funcs.map(f => `
+                <div class="doc-item">
+                    <div class="doc-header">
+                        <span class="doc-name">${f.Name}</span>
+                        <span class="doc-args">(${f.Arguments ? f.Arguments.join(', ') : ''})</span>
+                    </div>
+                    <div class="doc-desc">${f.Description || 'No description available.'}</div>
+                    ${f.Examples ? `
+                        <div class="doc-examples">
+                            ${f.Examples.map(ex => `<button class="example-chip" onclick="useExample('${ex.replace(/'/g, "\\'")}')">${ex}</button>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderOperators(ops) {
+            const container = document.getElementById('operatorsList');
+            container.innerHTML = `
+                <table class="ops-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Category</th>
+                            <th>Precedence</th>
+                            <th>Assoc</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${ops.map(o => `
+                            <tr>
+                                <td class="mono">${o.Symbol}</td>
+                                <td>${o.Category}</td>
+                                <td>${o.Precedence}</td>
+                                <td>${o.Associativity}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        window.useExample = (ex) => {
+            document.getElementById('exprInput').value = ex;
+            hideDocs();
+        };
+
+        // --- Variable UI Helper ---
+        function addVariableRow(key = '', val = '') {
+            const row = document.createElement('div');
+            row.className = 'var-row';
+            row.style.display = 'grid';
+            row.style.gridTemplateColumns = '1fr 1fr 30px';
+            row.style.gap = '0.5rem';
+
+            row.innerHTML = `
+                <input type="text" placeholder="Name (e.g. x)" class="var-key" value="${key}">
+                <input type="number" placeholder="Value" class="var-val" value="${val}">
+                <button class="remove-var">×</button>
+            `;
+
+            row.querySelector('.remove-var').onclick = () => row.remove();
+            variablesContainer.appendChild(row);
+        }
+
+        addVarBtn.onclick = () => addVariableRow();
+
+        // --- Example Loader ---
+        exampleSelect.onchange = () => {
+            const opt = exampleSelect.options[exampleSelect.selectedIndex];
+            if (!opt.value) return;
+
+            exprInput.value = opt.value;
+
+            // Clear and Load variables if any
+            variablesContainer.innerHTML = '';
+            if (opt.dataset.vars) {
+                try {
+                    const vars = JSON.parse(opt.dataset.vars);
+                    for (const [k, v] of Object.entries(vars)) {
+                        addVariableRow(k, v);
+                    }
+                } catch (e) { console.error("Bad var data", e); }
+            }
+        };
+
+        async function calculate() {
+            const output = document.getElementById('output');
+            const label = document.getElementById('resultLabel');
+            const expr = document.getElementById('exprInput').value;
+
+            // Simple client-side check
+            if (!expr.trim()) return;
+
+            output.textContent = "Calculating...";
+            label.textContent = "Processing...";
+            label.style.color = "";
+            output.style.color = "var(--text)";
+            btn.disabled = true;
+
+            try {
+                // Gather variables
+                const vars = {};
+                document.querySelectorAll('.var-row').forEach(row => {
+                    const k = row.querySelector('.var-key').value.trim();
+                    const v = Number.parseFloat(row.querySelector('.var-val').value);
+                    if (k && !Number.isNaN(v)) {
+                        vars[k] = v;
+                    }
+                });
+
+                const interop = await getInterop();
+                let result;
+                if (Object.keys(vars).length > 0) {
+                    // Call new overload with variables
+                    result = await interop.invokeMethodAsync('CalculateWithVars', expr, vars);
+                } else {
+                    // Call standard method
+                    result = await interop.invokeMethodAsync('Calculate', expr);
+                }
+
+                if (result.success) {
+                    let val;
+                    if (result.nvalue !== null) val = result.nvalue;
+                    else if (result.bvalue !== null) val = result.bvalue;
+                    else if (result.dvalue !== null) val = new Date(result.dvalue).toLocaleString();
+                    else val = result.svalue; // Fallback to string or null
+
+                    output.textContent = val;
+                    output.style.color = "var(--success)";
+                    label.textContent = "Calculation Successful";
+                    label.style.color = "";
+                } else {
+                    output.textContent = "Error";
+                    output.style.color = "var(--error)";
+                    label.textContent = result.message;
+                    label.style.color = "var(--error)";
+                }
+            } catch (err) {
+                console.error("Interop error:", err);
+                output.textContent = "System Error";
+                output.style.color = "var(--error)";
+                label.textContent = err.message;
+                label.style.color = "var(--error)";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('calcBtn').onclick = calculate;
+        document.getElementById('exprInput').onkeypress = (e) => {
+            if (e.key === 'Enter') calculate();
+        };
+    </script>
+</body>
+
+</html>
