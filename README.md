@@ -29,6 +29,9 @@
 
 **ShYCalculator** is a high-performance, thread-safe, and extensible mathematical expression evaluator for .NET, based on the Shunting-Yard algorithm.
 
+> **[👉 Try the Live WebAssembly Demo 👈](https://nullzerovibe.github.io/ShYCalculator/)**
+> *Runs entirely in your browser. Architecture by NullZeroVibe.*
+
 ## Features
 
 - 🚀 **High Performance**: Optimized for low allocation (Zero-Allocation paths where possible).
