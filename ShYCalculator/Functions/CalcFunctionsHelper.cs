@@ -237,7 +237,8 @@ internal static class CalcFunctionsHelper {
     internal static bool IsValidArgType(string type, Value value) {
         if (string.Equals(type, "number", StringComparison.OrdinalIgnoreCase)) return value.DataType.HasFlag(DataType.Number);
         if (string.Equals(type, "string", StringComparison.OrdinalIgnoreCase)) return value.DataType.HasFlag(DataType.String);
-        if (string.Equals(type, "date", StringComparison.OrdinalIgnoreCase)) return value.DataType.HasFlag(DataType.Date);
+        // Date can be provided as DataType.Date OR DataType.String (which will be parsed later)
+        if (string.Equals(type, "date", StringComparison.OrdinalIgnoreCase)) return value.DataType.HasFlag(DataType.Date) || value.DataType.HasFlag(DataType.String);
         if (string.Equals(type, "boolean", StringComparison.OrdinalIgnoreCase)) return value.DataType.HasFlag(DataType.Boolean);
         if (string.Equals(type, "any", StringComparison.OrdinalIgnoreCase)) return true;
         return false;

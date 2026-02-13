@@ -356,7 +356,14 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
         }
 
         if (value.Svalue != null) {
+            // Try configured format first
             if (DateTimeOffset.TryParseExact(value.Svalue, m_stringDateFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var parsedDate)) {
+                date = parsedDate;
+                return true;
+            }
+            
+            // Fallback to general parsing to support "10/25/2023" and other common formats
+            if (DateTimeOffset.TryParse(value.Svalue, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
                 date = parsedDate;
                 return true;
             }
