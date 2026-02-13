@@ -27,6 +27,11 @@ public readonly struct Operator {
     public DataType ValidDataTypes { get; init; }
     
     /// <summary>
+    /// Gets the friendly name of the operator (e.g., "Add", "Logical AND").
+    /// </summary>
+    public string Name { get; init; }
+
+    /// <summary>
     /// Gets the category of the operator (Arithmetic, Logical, etc.).
     /// </summary>
     public Category Category { get; init; }

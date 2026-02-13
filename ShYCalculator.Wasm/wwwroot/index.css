@@ -418,6 +418,7 @@ option {
     display: flex;
     flex-direction: column;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    position: relative;
 }
 
 .modal-header {
@@ -577,6 +578,11 @@ option {
     font-weight: 700;
 }
 
+.ops-table th:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+}
+
 /* Filter Controls */
 .modern-select {
     width: 100%;
@@ -607,4 +613,46 @@ option {
     text-align: center;
     color: var(--text-muted);
     font-style: italic;
+}
+
+/* Scroll Top Button */
+.scroll-top-btn {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+}
+
+.scroll-top-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.scroll-top-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+    background: #38bdf8;
+    /* Ensure consistent color */
+}
+
+.scroll-top-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
 }

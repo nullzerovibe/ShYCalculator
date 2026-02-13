@@ -106,6 +106,7 @@ public class ShYCalculatorInterop
             .Select(o => new
             {
                 Symbol = o.Key,
+                o.Value.Name,
                 o.Value.Precedence,
                 Associativity = o.Value.Associativity.ToString(),
                 Category = o.Value.Category.ToString()
