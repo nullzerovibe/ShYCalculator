@@ -27,7 +27,7 @@
 [![Live Demo](https://img.shields.io/badge/Demo-WASM-brightgreen)](https://nullzerovibe.github.io/ShYCalculator/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**ShYCalculator** is a high-performance, thread-safe, and extensible mathematical expression evaluator for .NET, based on the Shunting-Yard algorithm.
+**ShYCalculator** is a high-performance, thread-safe, and extensible mathematical expression evaluator for .NET, based on the [Shunting-Yard algorithm](https://en.wikipedia.org/wiki/Shunting_yard_algorithm).
 
 > **[👉 Try the Live WebAssembly Demo 👈](https://nullzerovibe.github.io/ShYCalculator/)**
 > *Runs entirely in your browser. Architecture by NullZeroVibe.*
