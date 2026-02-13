@@ -1,0 +1,139 @@
+[
+    {
+        "Name": "str_contains",
+        "Description": "Checks if the text contains the search term. Returns true if found, false otherwise.",
+        "Examples": [
+            "str_contains('Hello World', 'World')",
+            "str_contains('Hello World', 'world', true)"
+        ],
+        "Arguments": [
+            {
+                "Type": "string",
+                "Description": "The text to search within."
+            },
+            {
+                "Type": "string",
+                "Description": "The text to search for."
+            },
+            {
+                "Type": "boolean",
+                "Optional": true,
+                "Description": "If true, the search is case-sensitive. Default is false (case-insensitive)."
+            }
+        ]
+    },
+    {
+        "Name": "str_starts",
+        "Description": "Checks if the text starts with the specified search term.",
+        "Examples": [
+            "str_starts('Hello World', 'Hello')",
+            "str_starts('Hello World', 'hello', true)"
+        ],
+        "Arguments": [
+            {
+                "Type": "string",
+                "Description": "The text to check."
+            },
+            {
+                "Type": "string",
+                "Description": "The prefix to look for."
+            },
+            {
+                "Type": "boolean",
+                "Optional": true,
+                "Description": "If true, the check is case-sensitive. Default is false (case-insensitive)."
+            }
+        ]
+    },
+    {
+        "Name": "str_ends",
+        "Description": "Checks if the text ends with the specified search term.",
+        "Examples": [
+            "str_ends('Hello World', 'World')",
+            "str_ends('Hello World', 'world', true)"
+        ],
+        "Arguments": [
+            {
+                "Type": "string",
+                "Description": "The text to check."
+            },
+            {
+                "Type": "string",
+                "Description": "The suffix to look for."
+            },
+            {
+                "Type": "boolean",
+                "Optional": true,
+                "Description": "If true, the check is case-sensitive. Default is false (case-insensitive)."
+            }
+        ]
+    },
+    {
+        "Name": "str_equal",
+        "Description": "Checks if all provided strings are equal.",
+        "Examples": [
+            "str_equal('abc', 'abc')",
+            "str_equal('abc', 'ABC', true)"
+        ],
+        "Arguments": [
+            {
+                "Type": "string",
+                "Description": "The first string to compare."
+            },
+            {
+                "Type": "string",
+                "Description": "The second string to compare."
+            },
+            {
+                "Type": "boolean",
+                "Optional": true,
+                "Description": "If true, the comparison is case-sensitive. Default is false (case-insensitive)."
+            }
+        ]
+    },
+    {
+        "Name": "str_notequal",
+        "Description": "Checks if the provided strings are different.",
+        "Examples": [
+            "str_notequal('abc', 'def')",
+            "str_notequal('abc', 'ABC', true)"
+        ],
+        "Arguments": [
+            {
+                "Type": "string",
+                "Description": "The first string to compare."
+            },
+            {
+                "Type": "string",
+                "Description": "The second string to compare."
+            },
+            {
+                "Type": "boolean",
+                "Optional": true,
+                "Description": "If true, the comparison is case-sensitive. Default is false (case-insensitive)."
+            }
+        ]
+    },
+    {
+        "Name": "str_all",
+        "Description": "Checks if all provided arguments are non-null strings.",
+        "Examples": [
+            "str_all('a', 'b', 'c')",
+            "str_all($var1, $var2)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of strings to check.",
+                "Min": 1,
+                "Max": 10,
+                "Arguments": [
+                    {
+                        "Type": "any",
+                        "Description": "A string value to check."
+                    }
+                ]
+            }
+        ]
+    }
+]

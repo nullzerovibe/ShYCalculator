@@ -1,0 +1,377 @@
+[
+    {
+        "Name": "dt_create",
+        "Description": "Creates a date object from the specified year, month, day, and optionally time components.",
+        "Examples": [
+            "dt_create(2023, 10, 25)",
+            "dt_create(2023, 10, 25, 14, 30, 0)"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "Arguments list: [yyyy, MM, dd, hh, mm, ss]",
+                "Min": 0,
+                "Max": 6,
+                "Arguments": [
+                    {
+                        "Type": "number",
+                        "Description": "A single numeric parameter in the list."
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "dt_now",
+        "Description": "Gets the current date and time.",
+        "Examples": [
+            "dt_now()"
+        ],
+        "Arguments": []
+    },
+    {
+        "Name": "dt_today",
+        "Description": "Gets the current date with time set to midnight (00:00:00).",
+        "Examples": [
+            "dt_today()"
+        ],
+        "Arguments": []
+    },
+    {
+        "Name": "dt_dayofyear",
+        "Description": "Gets the day of the year (1-366) for the specified date.",
+        "Examples": [
+            "dt_dayofyear(dt_now())",
+            "dt_dayofyear(dt_create(2023, 1, 1))"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date for which the day of the year is calculated."
+            }
+        ]
+    },
+    {
+        "Name": "dt_dayofweek",
+        "Description": "Gets the day of the week (0-6, where 0 is Sunday) for the specified date.",
+        "Examples": [
+            "dt_dayofweek(dt_now())"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date for which the day of the week is calculated."
+            }
+        ]
+    },
+    {
+        "Name": "dt_year",
+        "Description": "Gets the year component of the specified date.",
+        "Examples": [
+            "dt_year(dt_now())"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date for which the year is retrieved."
+            }
+        ]
+    },
+    {
+        "Name": "dt_month",
+        "Description": "Gets the month component (1-12) of the specified date.",
+        "Examples": [
+            "dt_month(dt_now())"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date for which the month is retrieved."
+            }
+        ]
+    },
+    {
+        "Name": "dt_day",
+        "Description": "Gets the day of the month (1-31) of the specified date.",
+        "Examples": [
+            "dt_day(dt_now())"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date for which the day of the month is retrieved."
+            }
+        ]
+    },
+    {
+        "Name": "dt_hour",
+        "Description": "Gets the hour component (0-23) of the specified date.",
+        "Examples": [
+            "dt_hour(dt_now())"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date for which the hour is retrieved."
+            }
+        ]
+    },
+    {
+        "Name": "dt_minute",
+        "Description": "Gets the minute component (0-59) of the specified date.",
+        "Examples": [
+            "dt_minute(dt_now())"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date for which the minute is retrieved."
+            }
+        ]
+    },
+    {
+        "Name": "dt_second",
+        "Description": "Gets the second component (0-59) of the specified date.",
+        "Examples": [
+            "dt_second(dt_now())"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date for which the second is retrieved."
+            }
+        ]
+    },
+    {
+        "Name": "dt_add",
+        "Description": "Adds a specified interval string (e.g., '1y', '2m', '-16d') to a date.",
+        "Examples": [
+            "dt_add(dt_today(), '1y')",
+            "dt_add(dt_today(), '-1w')"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date to which interval is added."
+            },
+            {
+                "Type": "string",
+                "Description": "Interval string (e.g., '1y', '2m', '-5d')."
+            }
+        ]
+    },
+    {
+        "Name": "dt_addyears",
+        "Description": "Adds the specified number of years to the given date.",
+        "Examples": [
+            "dt_addyears(dt_today(), 1)",
+            "dt_addyears(dt_today(), -1)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date to which years are added."
+            },
+            {
+                "Type": "number",
+                "Description": "Number of years to add."
+            }
+        ]
+    },
+    {
+        "Name": "dt_addmonths",
+        "Description": "Adds the specified number of months to the given date.",
+        "Examples": [
+            "dt_addmonths(dt_today(), 1)",
+            "dt_addmonths(dt_today(), -6)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date to which months are added."
+            },
+            {
+                "Type": "number",
+                "Description": "Number of months to add."
+            }
+        ]
+    },
+    {
+        "Name": "dt_adddays",
+        "Description": "Adds the specified number of days to the given date.",
+        "Examples": [
+            "dt_adddays(dt_today(), 7)",
+            "dt_adddays(dt_today(), -1)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date to which days are added."
+            },
+            {
+                "Type": "number",
+                "Description": "Number of days to add."
+            }
+        ]
+    },
+    {
+        "Name": "dt_addhours",
+        "Description": "Adds the specified number of hours to the given date.",
+        "Examples": [
+            "dt_addhours(dt_now(), 2)",
+            "dt_addhours(dt_now(), -12)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date to which hours are added."
+            },
+            {
+                "Type": "number",
+                "Description": "Number of hours to add."
+            }
+        ]
+    },
+    {
+        "Name": "dt_addminutes",
+        "Description": "Adds the specified number of minutes to the given date.",
+        "Examples": [
+            "dt_addminutes(dt_now(), 30)",
+            "dt_addminutes(dt_now(), -15)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date to which minutes are added."
+            },
+            {
+                "Type": "number",
+                "Description": "Number of minutes to add."
+            }
+        ]
+    },
+    {
+        "Name": "dt_addseconds",
+        "Description": "Adds the specified number of seconds to the given date.",
+        "Examples": [
+            "dt_addseconds(dt_now(), 45)",
+            "dt_addseconds(dt_now(), -30)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "Date to which seconds are added."
+            },
+            {
+                "Type": "number",
+                "Description": "Number of seconds to add."
+            }
+        ]
+    },
+    {
+        "Name": "dt_before",
+        "Description": "Checks if the first date represents a time strictly before the second date.",
+        "Examples": [
+            "dt_before($date1, $date2)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "The date to check."
+            },
+            {
+                "Type": "date",
+                "Description": "The comparison reference date."
+            }
+        ]
+    },
+    {
+        "Name": "dt_after",
+        "Description": "Checks if the first date represents a time strictly after the second date.",
+        "Examples": [
+            "dt_after($date1, $date2)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "The date to check."
+            },
+            {
+                "Type": "date",
+                "Description": "The comparison reference date."
+            }
+        ]
+    },
+    {
+        "Name": "dt_equal",
+        "Description": "Checks if the first date represents the exact same time as the second date.",
+        "Examples": [
+            "dt_equal($date1, $date2)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "The date to check."
+            },
+            {
+                "Type": "date",
+                "Description": "The comparison reference date."
+            }
+        ]
+    },
+    {
+        "Name": "dt_before_equal",
+        "Description": "Checks if the first date is before or equal to the second date.",
+        "Examples": [
+            "dt_before_equal($date1, $date2)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "The date to check."
+            },
+            {
+                "Type": "date",
+                "Description": "The comparison reference date."
+            }
+        ]
+    },
+    {
+        "Name": "dt_after_equal",
+        "Description": "Checks if the first date is after or equal to the second date.",
+        "Examples": [
+            "dt_after_equal($date1, $date2)"
+        ],
+        "Arguments": [
+            {
+                "Type": "date",
+                "Description": "The date to check."
+            },
+            {
+                "Type": "date",
+                "Description": "The comparison reference date."
+            }
+        ]
+    },
+    {
+        "Name": "dt_all",
+        "Description": "Checks if all provided arguments are valid date values.",
+        "Examples": [
+            "dt_all($date1, $date2, dt_today())"
+        ],
+        "Arguments": [
+            {
+                "Type": "array",
+                "Description": "A list of arguments to check for date validity.",
+                "Min": 1,
+                "Max": 10,
+                "Arguments": [
+                    {
+                        "Type": "any",
+                        "Description": "A value to check."
+                    }
+                ]
+            }
+        ]
+    }
+]

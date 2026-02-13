@@ -1,0 +1,48 @@
+[
+    {
+        "Name": "hello_world",
+        "Description": "Returns a greeting.",
+        "Arguments": []
+    },
+    {
+        "Name": "add_one",
+        "Description": "Adds one to the input number.",
+        "Arguments": [
+            {
+                "Type": "number",
+                "Description": "Number to increment."
+            }
+        ]
+    },
+    {
+        "Name": "calculateSingleThing",
+        "Description": "just for testing",
+        "Arguments": [
+            {
+                "Type": "string",
+                "Description": "A fixed string parameter"
+            },
+            {
+                "Type": "number",
+                "Description": "A fixed number parameter"
+            },
+            {
+                "Type": "array",
+                "Description": "A group of repeating date and numeric Arguments",
+                "Min": 0,
+                "Max": 10,
+                "Optional": true,
+                "Arguments": [
+                    {
+                        "Type": "date",
+                        "Description": "A repeating date parameter"
+                    },
+                    {
+                        "Type": "number",
+                        "Description": "A repeating number parameter"
+                    }
+                ]
+            }
+        ]
+    }
+]
