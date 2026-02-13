@@ -12,8 +12,9 @@
 ` ░▒▒▓▓ LIFETIME OF SYNTAX // AGENTIC EVOLUTION ▓▓▒▒░ `
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![Vibe: Agentic](https://img.shields.io/badge/Vibe-Agentic-blueviolet)
-![Mode: Vibecoding](https://img.shields.io/badge/Mode-Vibecoding-cyan)
+[![Vibe: Agentic](https://img.shields.io/badge/Vibe-Agentic-blueviolet)](AGENTS.md)
+[![Mode: Vibecoding](https://img.shields.io/badge/Mode-Vibecoding-cyan)](VIBE.md)
+[![Powered By: Antigravity](https://img.shields.io/badge/Powered%20By-Antigravity-orange)](AGENTS.md)
 
 </div>
 
@@ -119,7 +120,9 @@ See the [Documentation Tests](ShYCalculator/ShYCalculator.Test/UT_Documentation_
 
 ## License
 
-MIT
+Distributed under the MIT License. See [`LICENSE`](./LICENSE) for more information.
+
+_For the vibe check, see [`VIBE.md`](./VIBE.md)._
 
 ---
 
