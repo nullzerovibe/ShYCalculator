@@ -31,14 +31,50 @@ public class ShYCalculatorInterop
 
     /// <summary>
     /// Calculates the result of a mathematical expression using provided variables.
+    /// Supports numbers, booleans, and strings.
     /// </summary>
     /// <param name="expression">The mathematical expression to evaluate.</param>
-    /// <param name="variables">A dictionary of variable names and their values.</param>
+    /// <param name="variables">A dictionary of variable names and their values (can be number, bool, string).</param>
     /// <returns>The result of the calculation.</returns>
     [JSInvokable]
-    public CalculationResult CalculateWithVars(string expression, Dictionary<string, double> variables)
+    public CalculationResult CalculateWithVars(string expression, Dictionary<string, object> variables)
     {
-        return _calculator.Calculate(expression, variables);
+        var context = new Dictionary<string, Value>();
+        
+        foreach (var kvp in variables)
+        {
+            context[kvp.Key] = ConvertToValue(kvp.Value);
+        }
+
+        return _calculator.Calculate(expression, context);
+    }
+
+    private Value ConvertToValue(object obj)
+    {
+        if (obj is System.Text.Json.JsonElement json)
+        {
+            switch (json.ValueKind)
+            {
+                case System.Text.Json.JsonValueKind.Number:
+                    return Value.Number(json.GetDouble());
+                case System.Text.Json.JsonValueKind.True:
+                    return Value.Boolean(true);
+                case System.Text.Json.JsonValueKind.False:
+                    return Value.Boolean(false);
+                case System.Text.Json.JsonValueKind.String:
+                    return Value.String(json.GetString()!);
+                default:
+                    return Value.String(json.ToString());
+            }
+        }
+        else if (obj is double d) return Value.Number(d);
+        else if (obj is float f) return Value.Number(f);
+        else if (obj is int i) return Value.Number(i);
+        else if (obj is long l) return Value.Number(l);
+        else if (obj is bool b) return Value.Boolean(b);
+        else if (obj is string s) return Value.String(s);
+        
+        return Value.String(obj?.ToString() ?? "");
     }
 
     /// <summary>
@@ -50,13 +86,18 @@ public class ShYCalculatorInterop
     {
         var functions = _calculator.Environment.Functions.Values
             .Distinct()
-            .SelectMany(ext => ext.GetFunctions())
-            .Select(f => new
+            .SelectMany(ext => {
+                // Extract category from extension name (e.g. CalcArithmeticalFunctions -> Arithmetical)
+                var category = ext.Name.Replace("Calc", "").Replace("Functions", "");
+                return ext.GetFunctions().Select(f => new { Func = f, Category = category });
+            })
+            .Select(x => new
             {
-                f.Name,
-                f.Description,
-                f.Examples,
-                Arguments = f.Arguments?.Select(a => $"{a.Type}{(a.Optional ? "?" : "")}").ToList()
+                x.Func.Name,
+                x.Func.Description,
+                x.Func.Examples,
+                Arguments = x.Func.Arguments?.Select(a => $"{a.Type}{(a.Optional ? "?" : "")}").ToList(),
+                x.Category
             })
             .OrderBy(f => f.Name)
             .ToList();

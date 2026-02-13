@@ -123,6 +123,11 @@
                 </div>
 
                 <div id="functionsTab" class="tab-content active">
+                    <div class="filter-controls" style="margin-bottom: 10px;">
+                        <select id="funcCategoryFilter" class="modern-select">
+                            <option value="">All Categories</option>
+                        </select>
+                    </div>
                     <div id="functionsList" class="docs-list">Loading...</div>
                 </div>
 
@@ -236,6 +241,7 @@ N u l l Z e r o V i b e
 
         // --- Documentation Logic ---
         let docsLoaded = false;
+        let allFunctions = []; // Store for filtering
 
         function showDocs() {
             docsModal.style.display = 'flex';
@@ -264,12 +270,32 @@ N u l l Z e r o V i b e
             };
         });
 
+        // Filter Logic
+        const categoryFilter = document.getElementById('funcCategoryFilter');
+        categoryFilter.onchange = () => {
+            const cat = categoryFilter.value;
+            const filtered = cat ? allFunctions.filter(f => f.Category === cat) : allFunctions;
+            renderFunctions(filtered);
+        };
+
         async function loadDocumentation() {
             try {
                 const interop = await getInterop();
                 const json = await interop.invokeMethodAsync('GetDocumentation');
                 const docs = JSON.parse(json);
-                renderFunctions(docs.functions);
+
+                allFunctions = docs.functions;
+
+                // Populate Categories
+                const categories = [...new Set(allFunctions.map(f => f.Category).filter(Boolean))].sort();
+                categories.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    categoryFilter.appendChild(opt);
+                });
+
+                renderFunctions(allFunctions);
                 renderOperators(docs.operators);
                 docsLoaded = true;
             } catch (e) {
@@ -280,11 +306,16 @@ N u l l Z e r o V i b e
 
         function renderFunctions(funcs) {
             const container = document.getElementById('functionsList');
+            if (funcs.length === 0) {
+                container.innerHTML = '<div class="empty-state">No functions found for this category.</div>';
+                return;
+            }
             container.innerHTML = funcs.map(f => `
                 <div class="doc-item">
                     <div class="doc-header">
                         <span class="doc-name">${f.Name}</span>
                         <span class="doc-args">(${f.Arguments ? f.Arguments.join(', ') : ''})</span>
+                        ${f.Category ? `<span class="doc-cat-tag">${f.Category}</span>` : ''}
                     </div>
                     <div class="doc-desc">${f.Description || 'No description available.'}</div>
                     ${f.Examples ? `
@@ -324,6 +355,23 @@ N u l l Z e r o V i b e
 
         window.useExample = (ex) => {
             document.getElementById('exprInput').value = ex;
+
+            // Clear existing variables to ensure clean slate
+            const variablesContainer = document.getElementById('variablesContainer');
+            variablesContainer.innerHTML = '';
+
+            // Auto-detect variables starting with $ (e.g. $current, $list)
+            const varRegex = /\$([a-zA-Z0-9_]+)/g;
+            const matches = ex.match(varRegex);
+
+            if (matches) {
+                // Deduplicate variables found in expression
+                const uniqueVars = new Set(matches);
+                uniqueVars.forEach(varName => {
+                    addVariableRow(varName, '');
+                });
+            }
+
             hideDocs();
         };
 
@@ -337,7 +385,7 @@ N u l l Z e r o V i b e
 
             row.innerHTML = `
                 <input type="text" placeholder="Name (e.g. x)" class="var-key" value="${key}">
-                <input type="number" placeholder="Value" class="var-val" value="${val}">
+                <input type="text" placeholder="Value" class="var-val" value="${val}">
                 <button class="remove-var">×</button>
             `;
 
@@ -385,8 +433,24 @@ N u l l Z e r o V i b e
                 const vars = {};
                 document.querySelectorAll('.var-row').forEach(row => {
                     const k = row.querySelector('.var-key').value.trim();
-                    const v = Number.parseFloat(row.querySelector('.var-val').value);
-                    if (k && !Number.isNaN(v)) {
+                    const rawVal = row.querySelector('.var-val').value.trim();
+
+                    if (k) {
+                        let v = rawVal;
+                        // Tiered Parsing Logic
+                        const lowerVal = rawVal.toLowerCase();
+                        if (rawVal === '') {
+                            // Skip empty values or treat as null? skipping for now
+                            return;
+                        } else if (!Number.isNaN(Number(rawVal)) && rawVal !== '') {
+                            v = Number(rawVal);
+                        } else if (lowerVal === 'true') {
+                            v = true;
+                        } else if (lowerVal === 'false') {
+                            v = false;
+                        }
+                        // Default is string
+
                         vars[k] = v;
                     }
                 });
