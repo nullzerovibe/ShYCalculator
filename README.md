@@ -24,6 +24,7 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/nullzerovibe/ShYCalculator/dotnet.yml?branch=main)](https://github.com/nullzerovibe/ShYCalculator/actions)
 [![Nuget](https://img.shields.io/nuget/v/ShYCalculator)](https://www.nuget.org/packages/ShYCalculator)
+[![Live Demo](https://img.shields.io/badge/Demo-WASM-brightgreen)](https://nullzerovibe.github.io/ShYCalculator/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 **ShYCalculator** is a high-performance, thread-safe, and extensible mathematical expression evaluator for .NET, based on the Shunting-Yard algorithm.
