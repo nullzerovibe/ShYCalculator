@@ -7,23 +7,23 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description"
-        content="High-performance .NET WASM Expression Evaluator with variable support, history, and scientific functions." />
+          content="High-performance .NET WASM Expression Evaluator with variable support, history, and scientific functions." />
     <meta name="keywords"
-        content="calculator, expression evaluator, wasm, dotnet, blazor, scientific calculator, math" />
+          content="calculator, expression evaluator, wasm, dotnet, blazor, scientific calculator, math" />
     <meta name="author" content="NullZeroVibe" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="ShYCalculator - .NET WASM Expression Evaluator" />
     <meta property="og:description"
-        content="High-performance .NET WASM Expression Evaluator with variable support, history, and scientific functions." />
+          content="High-performance .NET WASM Expression Evaluator with variable support, history, and scientific functions." />
     <meta property="og:image" content="nlo/nlo-banner.jpg" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content="ShYCalculator - .NET WASM Expression Evaluator" />
     <meta property="twitter:description"
-        content="High-performance .NET WASM Expression Evaluator with variable support, history, and scientific functions." />
+          content="High-performance .NET WASM Expression Evaluator with variable support, history, and scientific functions." />
     <meta property="twitter:image" content="nlo/nlo-banner.jpg" />
 
     <!-- Dynamic Filename Resolver will find the importmap during publish -->
@@ -49,14 +49,14 @@
             <h1>ShYCalculator</h1>
             <p class="subtitle">
                 High-performance .NET WASM Expression Evaluator <span id="appVersion"
-                    style="font-size: 0.8em; opacity: 0.7;"></span>
+                                                                      style="font-size: 0.8em; opacity: 0.7;"></span>
             </p>
             <div class="form-group" style="grid-template-columns: 1fr;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                     <label for="exampleSelect" style="margin-bottom: 0;">Load Example</label>
                     <button id="docsBtn" class="btn-small"
-                        style="width: auto; background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); padding: 0.25rem 0.75rem; margin: 0;"
-                        disabled>
+                            style="width: auto; background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); padding: 0.25rem 0.75rem; margin: 0;"
+                            disabled>
                         📚 Reference Guide
                     </button>
                 </div>
@@ -111,15 +111,13 @@
                         </option>
                     </optgroup>
                     <optgroup label="Complex Scenarios">
-                        <option
-                            value="(age >= 18 && any(hasLicense, false)) ? (if(max(score, 0) > 80, 'Qualified', 'Needs Retake')) : default"
-                            data-vars='{"age": 20, "hasLicense": true, "score": 85, "default": "Ineligible"}'>
+                        <option value="(age >= 18 && any(hasLicense, false)) ? (if(max(score, 0) > 80, 'Qualified', 'Needs Retake')) : default"
+                                data-vars='{"age": 20, "hasLicense": true, "score": 85, "default": "Ineligible"}'>
                             Driver
                             Qualification
                         </option>
-                        <option
-                            value="if(weight <= 0, 'Invalid Weight', 'Total: $' + round(max(5, weight * rate) + (express ? 10 : 0), 2))"
-                            data-vars='{"weight": 12.5, "rate": 0.8, "express": true}'>
+                        <option value="if(weight <= 0, 'Invalid Weight', 'Total: $' + round(max(5, weight * rate) + (express ? 10 : 0), 2))"
+                                data-vars='{"weight": 12.5, "rate": 0.8, "express": true}'>
                             Shipping Calculator
                         </option>
                     </optgroup>
@@ -128,7 +126,7 @@
                 <!-- Custom Input Interface -->
                 <div class="custom-select-container">
                     <input type="text" id="exampleInput" class="custom-select-input"
-                        placeholder="-- Select an Example --" autocomplete="off" />
+                           placeholder="-- Select an Example --" autocomplete="off" />
                     <div id="exampleList" class="custom-select-list"></div>
                 </div>
             </div>
@@ -143,8 +141,7 @@
             <!-- Variables Section -->
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <span
-                        style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0; margin-left: 0.25rem;">
+                    <span style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0; margin-left: 0.25rem;">
                         Variables
                         (Context)
                     </span>
@@ -162,7 +159,7 @@
                     <div class="result-value" id="output">---</div>
                     <button id="copyBtn" class="icon-btn" title="Copy Result" style="display: none;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
+                             stroke-linecap="round" stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
@@ -176,10 +173,8 @@
 
             <!-- History Section -->
             <div id="historySection" style="margin-top: 1.5rem; display: none;">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
-                    <span
-                        style="display: block; font-weight: 600; margin-left: 0.25rem; margin-bottom: 0; font-size: 0.9rem; letter-spacing: 1px; color: var(--text-muted);">HISTORY</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
+                    <span style="display: block; font-weight: 600; margin-left: 0.25rem; margin-bottom: 0; font-size: 0.9rem; letter-spacing: 1px; color: var(--text-muted);">HISTORY</span>
                     <button class="btn-clear-history" onclick="clearHistory()">Clear</button>
                 </div>
                 <div id="historyList" class="history-list"></div>
@@ -195,15 +190,13 @@
     <div class="corner-contact">
         <a href="mailto:nullzerovibe@gmail.com">
             <svg class="contact-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
             </svg>
             nullzerovibe@gmail.com
         </a>
         <a href="https://github.com/nullzerovibe" target="_blank">
             <svg class="contact-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M12 2C6.47 2 2 6.47 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.65.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z" />
+                <path d="M12 2C6.47 2 2 6.47 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.65.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z" />
             </svg>
             github.com/nullzerovibe
         </a>
@@ -226,10 +219,10 @@
                     <div class="filter-controls">
                         <div class="input-with-clear" style="flex: 1;">
                             <input type="text" id="funcSearchInput" placeholder="Search functions..."
-                                class="modern-input" style="width: 100%;">
+                                   class="modern-input" style="width: 100%;">
                             <button class="clear-input-btn" id="clearFuncSearch" title="Clear Search">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                                     stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
@@ -241,7 +234,7 @@
                             </select>
                             <button class="clear-input-btn" id="clearCatValues" title="Clear Filter">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                                     stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
@@ -262,7 +255,7 @@
                             <input id="dateFormatInput" type="text" value="dd/MM/yyyy" class="modern-input" />
                             <button class="clear-input-btn" onclick="clearFormat()" title="Clear Format">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                                     stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
@@ -286,7 +279,7 @@
                             <input id="cultureInput" type="text" value="en-US" class="modern-input" />
                             <button class="clear-input-btn" onclick="clearCulture()" title="Clear Culture">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                                     stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
@@ -315,7 +308,7 @@
             <!-- Scroll Top Button -->
             <button id="scrollTopBtn" class="scroll-top-btn" title="Go to top">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
-                    stroke-linejoin="round">
+                     stroke-linejoin="round">
                     <path d="M18 15l-6-6-6 6" />
                 </svg>
             </button>
