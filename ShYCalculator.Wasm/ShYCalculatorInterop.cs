@@ -128,6 +128,8 @@ public class ShYCalculatorInterop
             Category = "Logical"
         });
 
+        functions = functions.OrderBy(f => f.Name).ToList();
+
         var operators = _calculator.Environment.Operators
             .Select(o => new
             {
