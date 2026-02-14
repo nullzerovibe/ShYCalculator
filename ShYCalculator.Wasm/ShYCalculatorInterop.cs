@@ -138,4 +138,13 @@ public class ShYCalculatorInterop
 
         return System.Text.Json.JsonSerializer.Serialize(doc);
     }
+    /// <summary>
+    /// Retrieves the version of the assembly.
+    /// </summary>
+    /// <returns>The version string (e.g., "1.0.0.0").</returns>
+    [JSInvokable]
+    public string GetVersion()
+    {
+        return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown";
+    }
 }

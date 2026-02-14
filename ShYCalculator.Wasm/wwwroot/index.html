@@ -47,7 +47,8 @@
     <div id="app">
         <div class="card">
             <h1>ShYCalculator</h1>
-            <p class="subtitle">High-performance .NET WASM Expression Evaluator</p>
+            <p class="subtitle">High-performance .NET WASM Expression Evaluator <span id="appVersion"
+                    style="font-size: 0.8em; opacity: 0.7;"></span></p>
             <div class="form-group" style="grid-template-columns: 1fr;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                     <label for="exampleSelect" style="margin-bottom: 0;">Load Example</label>
@@ -63,6 +64,19 @@
                         <option value="1 + 2 * 3">Simple Arithmetic</option>
                         <option value="10 / 2 + 5">Division & Addition</option>
                         <option value="2 ^ 3">Power (2^3)</option>
+                    </optgroup>
+                    <optgroup label="Date & Time (Result depends on current time)">
+                        <option value="dt_now()">Current Date & Time</option>
+                        <option value="dt_today()">Today (Midnight)</option>
+                        <option value="dt_add(dt_today(), '1y')">Add 1 Year to Today</option>
+                        <option value="dt_dayofweek(dt_now())">Day of Week (0-6)</option>
+                        <option value="dt_year(dt_now())">Current Year</option>
+                    </optgroup>
+                    <optgroup label="String Operations">
+                        <option value="str_contains('Hello World', 'World')">Contains 'World'?</option>
+                        <option value="str_equal('abc', 'ABC', true)">Case-Insensitive Equal</option>
+                        <option value="str_starts('Hello World', 'Hello')">Starts With 'Hello'</option>
+                        <option value="str_ends('test.txt', '.txt')">Ends With '.txt'</option>
                     </optgroup>
                     <optgroup label="Scientific">
                         <option value="sin(0) + cos(0)">Trigonometry</option>
@@ -357,6 +371,16 @@ N u l l Z e r o V i b e
             const pong = await interop.invokeMethodAsync('Ping');
             console.log("ShYCalculator: Interop connection successful:", pong);
 
+            // Fetch and display version
+            try {
+                const version = await interop.invokeMethodAsync('GetVersion');
+                if (version) {
+                    document.getElementById('appVersion').textContent = `(v${version})`;
+                }
+            } catch (verErr) {
+                console.warn("ShYCalculator: Could not fetch version", verErr);
+            }
+
             // Enable UI
             btn.disabled = false;
             docsBtn.disabled = false;
@@ -388,7 +412,7 @@ N u l l Z e r o V i b e
         };
 
         // Close on Esc key
-        window.addEventListener('keydown', (e) => {
+        globalThis.addEventListener('keydown', (e) => {
             if (e.key === "Escape" && docsModal.style.display === 'flex') {
                 hideDocs();
             }
