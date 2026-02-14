@@ -10,6 +10,7 @@ public class UT_OperatorRegistry_Internal {
         // 1. Instantiate (covers constructor and initial setters)
         var op = new OperatorRegistry.OperatorDef(
             "Test",
+            "Test",
             OperatorKind.None,
             1,
             Associativity.Left,

@@ -4,8 +4,10 @@
 // </summary>
 // -----------------------------------------------------------------------------
 using ShYCalculator.Classes;
-using System.Reflection;
 using System.Collections.Frozen;
+using System.Globalization;
+using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ShYCalculator.Functions.Dates;
 
@@ -17,29 +19,45 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
     private readonly FrozenDictionary<string, CalcFunction> m_funcDef;
     private readonly FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> m_dispatch;
     private readonly string m_stringDateFormat;
+    private readonly CultureInfo m_culture;
     #endregion Members
 
     #region Constructor
     /// <summary>
     /// Initializes a new instance of the <see cref="CalcDateFunctions"/> class.
     /// </summary>
-    public CalcDateFunctions() {
-        var funcList = CalcFunctionsHelper.ReadFunctionsConfiguration(Name, typeof(CalcDateFunctions));
-        CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
-        m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        m_stringDateFormat = "dd/MM/yyyy";
-        m_dispatch = CreateDispatch();
+    public CalcDateFunctions() : this(null, null) {
     }
+
     /// <summary>
-    /// Initializes a new instance of the <see cref="CalcDateFunctions"/> class with a specific date format.
+    /// Initializes a new instance of the <see cref="CalcDateFunctions"/> class with specific settings.
     /// </summary>
     /// <param name="stringDateFormat">Date format string for parsing.</param>
-    public CalcDateFunctions(string stringDateFormat) {
+    /// <param name="cultureName">Culture name for parsing (e.g. "en-US").</param>
+    public CalcDateFunctions(string? stringDateFormat = null, string? cultureName = null) {
         var funcList = CalcFunctionsHelper.ReadFunctionsConfiguration(Name, typeof(CalcDateFunctions));
         CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
         m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        m_stringDateFormat = stringDateFormat;
+        
+        if (!string.IsNullOrEmpty(cultureName)) {
+            try {
+                m_culture = CultureInfo.GetCultureInfo(cultureName);
+            } catch {
+                m_culture = CultureInfo.InvariantCulture;
+            }
+        } else {
+            m_culture = CultureInfo.InvariantCulture;
+        }
+
+        m_stringDateFormat = !string.IsNullOrEmpty(stringDateFormat)
+            ? stringDateFormat
+            : GetStringDateFormat();
+
         m_dispatch = CreateDispatch();
+    }
+
+    private string GetStringDateFormat() {
+        return m_culture.Name != CultureInfo.InvariantCulture.Name ? m_culture.DateTimeFormat.ShortDatePattern : "dd/MM/yyyy";
     }
 
     private FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> CreateDispatch() {
@@ -110,7 +128,11 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
         var minute = (int)(arguments.Length >= 5 ? arguments[4].Nvalue ?? 0 : 0);
         var seconds = (int)(arguments.Length >= 6 ? arguments[5].Nvalue ?? 0 : 0);
 
-        return new Value(DataType.Date, dValue: new DateTimeOffset(year, month, day, hour, minute, seconds, TimeSpan.Zero));
+        if (year == 1 && month == 1 && day == 1 && hour == 0 && minute == 0 && seconds == 0) {
+            return new Value(DataType.Date, dValue: new DateTimeOffset(1, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        }
+        var dateTime = new DateTime(year, month, day, hour, minute, seconds);
+        return new Value(DataType.Date, dValue: new DateTimeOffset(dateTime: dateTime));
     }
     #endregion Private Get Functions
 
@@ -124,7 +146,9 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
 
     private static Value GetToday(string _ = FunctionNames.Today) {
         var now = DateTimeOffset.Now;
-        return new Value(DataType.Date, dValue: new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset));
+        // Today is midnight Local
+        var dateTime = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+        return new Value(DataType.Date, dValue: new DateTimeOffset(dateTime: dateTime));
     }
 
     internal static Value GetDayOfYear(DateTimeOffset? date, string functionName = FunctionNames.DayOfYear) {
@@ -312,7 +336,7 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
     internal Value AllDateValues(ReadOnlySpan<Value> arguments, string _1 = FunctionNames.AllDates) {
         if (arguments.Length == 0) return new Value(DataType.Boolean, bValue: false);
 
-        for (int i = 0; i < arguments.Length; i++) {
+        for (var i = 0; i < arguments.Length; i++) {
             var argument = arguments[i];
             if (argument.Dvalue != null) {
                 continue;
@@ -322,7 +346,7 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
                 return new Value(DataType.Boolean, bValue: false);
             }
 
-            if (!DateTimeOffset.TryParseExact(argument.Svalue, m_stringDateFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out _)) {
+            if (!DateTimeOffset.TryParseExact(argument.Svalue, m_stringDateFormat, m_culture, System.Globalization.DateTimeStyles.None, out _)) {
                 return new Value(DataType.Boolean, bValue: false);
             }
         }
@@ -357,13 +381,13 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
 
         if (value.Svalue != null) {
             // Try configured format first
-            if (DateTimeOffset.TryParseExact(value.Svalue, m_stringDateFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var parsedDate)) {
+            if (DateTimeOffset.TryParseExact(value.Svalue, m_stringDateFormat, m_culture, System.Globalization.DateTimeStyles.None, out var parsedDate)) {
                 date = parsedDate;
                 return true;
             }
             
             // Fallback to general parsing to support "10/25/2023" and other common formats
-            if (DateTimeOffset.TryParse(value.Svalue, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
+            if (DateTimeOffset.TryParse(value.Svalue, m_culture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
                 date = parsedDate;
                 return true;
             }

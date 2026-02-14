@@ -107,7 +107,7 @@ public class Environment : IEnvironment {
         }
 
         if (extensions.HasFlag(FunctionExtensions.Date)) {
-            RegisterFunctions(new CalcDateFunctions());
+            RegisterFunctions(new CalcDateFunctions(options?.DateFormat, options?.CultureName));
         }
 
         if (extensions.HasFlag(FunctionExtensions.Text)) {

@@ -263,7 +263,8 @@ public class UT_CalcFunctionsHelper_Internal {
 
     [TestMethod]
     public void Test_IsValidArgType_Date_Invalid() {
-        var result = CalcFunctionsHelper.IsValidArgType("date", new Value { DataType = DataType.String, Svalue = "not a date" });
+        // Number is not a valid type for a "date" argument (only Date or String allowed)
+        var result = CalcFunctionsHelper.IsValidArgType("date", new Value { DataType = DataType.Number, Nvalue = 12345 });
         Assert.IsFalse(result);
     }
 

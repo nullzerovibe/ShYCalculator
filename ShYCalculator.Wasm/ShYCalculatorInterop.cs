@@ -18,6 +18,22 @@ public class ShYCalculatorInterop
     public string Ping() => "Pong from ShYCalculator.Wasm Instance";
 
     /// <summary>
+    /// Configures the date format and culture for the calculator.
+    /// </summary>
+    /// <param name="format">Date format string (e.g. "dd/MM/yyyy").</param>
+    /// <param name="culture">Culture name (e.g. "en-US").</param>
+    /// <returns>Success message.</returns>
+    [JSInvokable]
+    public string ConfigureDates(string format, string culture) {
+        var options = new ShYCalculatorOptions {
+            DateFormat = format,
+            CultureName = culture
+        };
+        _calculator.Environment.ResetFunctions(options);
+        return $"Dates configured: {format} ({culture})";
+    }
+
+    /// <summary>
     /// Calculates the result of a mathematical expression.
     /// This method is callable from JavaScript.
     /// </summary>

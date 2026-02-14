@@ -71,7 +71,9 @@
             <!-- Variables Section -->
             <div class="form-group">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                    <label style="margin-bottom: 0;">Variables (Context)</label>
+                    <span
+                        style="display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0; margin-left: 0.25rem;">Variables
+                        (Context)</span>
                     <button class="btn-small" id="addVarBtn">+ Add</button>
                 </div>
                 <div id="variablesContainer" style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -102,8 +104,8 @@
             <div id="historySection" style="margin-top: 1.5rem; display: none;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">
-                    <label
-                        style="margin-bottom: 0; font-size: 0.9rem; letter-spacing: 1px; color: var(--text-muted);">HISTORY</label>
+                    <span
+                        style="display: block; font-weight: 600; margin-left: 0.25rem; margin-bottom: 0; font-size: 0.9rem; letter-spacing: 1px; color: var(--text-muted);">HISTORY</span>
                     <button class="btn-small" onclick="clearHistory()"
                         style="background: transparent; border: 1px solid var(--glass-border);">Clear</button>
                 </div>
@@ -140,14 +142,15 @@
                 <h2><span style="font-size: 1.2em; margin-right: 8px;">📚</span>Reference Guide</h2>
                 <button id="closeDocsBtn" class="close-btn">&times;</button>
             </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="functions">Functions</button>
+                <button class="tab-btn" data-tab="operators">Operators</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+            </div>
             <div class="modal-body" id="docsModalBody">
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="functions">Functions</button>
-                    <button class="tab-btn" data-tab="operators">Operators</button>
-                </div>
 
                 <div id="functionsTab" class="tab-content active">
-                    <div class="filter-controls" style="margin-bottom: 10px; display: flex; gap: 0.5rem;">
+                    <div class="filter-controls">
                         <select id="funcCategoryFilter" class="modern-select">
                             <option value="">All Categories</option>
                         </select>
@@ -165,6 +168,60 @@
 
                 <div id="operatorsTab" class="tab-content" style="overflow-x: auto;">
                     <div id="operatorsList" class="docs-list">Loading...</div>
+                </div>
+
+                <div id="settingsTab" class="tab-content">
+                    <div class="form-group">
+                        <label for="dateFormatInput">Date Format (e.g. dd/MM/yyyy, MM-dd-yyyy)</label>
+                        <div class="input-with-clear">
+                            <input id="dateFormatInput" type="text" value="dd/MM/yyyy" class="modern-input" />
+                            <button class="clear-input-btn" onclick="clearFormat()" title="Clear Format">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="chip-row">
+                            <button class="chip-btn" onclick="setFormat('dd/MM/yyyy')">dd/MM/yyyy</button>
+                            <button class="chip-btn" onclick="setFormat('MM/dd/yyyy')">MM/dd/yyyy</button>
+                            <button class="chip-btn" onclick="setFormat('yyyy-MM-dd')">yyyy-MM-dd</button>
+                            <button class="chip-btn" onclick="setFormat('d.M.yyyy')">d.M.yyyy</button>
+                            <button class="chip-btn" onclick="setFormat('yyyy/MM/dd')">yyyy/MM/dd</button>
+                            <button class="chip-btn" onclick="setFormat('d-M-yyyy')">d-M-yyyy</button>
+                            <button class="chip-btn" onclick="setFormat('dd.MM.yyyy')">dd.MM.yyyy</button>
+                            <button class="chip-btn" onclick="setFormat('yyyy.MM.dd')">yyyy.MM.dd</button>
+                            <button class="chip-btn" onclick="setFormat('dd-MM-yyyy')">dd-MM-yyyy</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="cultureInput">Culture (e.g. en-US, en-GB, fr-FR)</label>
+                        <div class="input-with-clear">
+                            <input id="cultureInput" type="text" value="en-US" class="modern-input" />
+                            <button class="clear-input-btn" onclick="clearCulture()" title="Clear Culture">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="chip-row">
+                            <button class="chip-btn" onclick="setCulture('en-US')">🇺🇸 US</button>
+                            <button class="chip-btn" onclick="setCulture('en-GB')">🇬🇧 UK</button>
+                            <button class="chip-btn" onclick="setCulture('de-DE')">🇩🇪 DE</button>
+                            <button class="chip-btn" onclick="setCulture('nl-NL')">🇳🇱 NL</button>
+                            <button class="chip-btn" onclick="setCulture('it-IT')">🇮🇹 IT</button>
+                            <button class="chip-btn" onclick="setCulture('hr-HR')">🇭🇷 HR</button>
+                            <button class="chip-btn" onclick="setCulture('es-ES')">🇪🇸 ES</button>
+                            <button class="chip-btn" onclick="setCulture('fr-FR')">🇫🇷 FR</button>
+                            <button class="chip-btn" onclick="setCulture('ru-RU')">🇷🇺 RU</button>
+                        </div>
+                    </div>
+                    <button id="saveSettingsBtn" class="btn-primary" style="margin-top: 1.5rem; width: 100%;">Save
+                        Settings</button>
+                    <div id="settingsMsg" style="margin-top: 0.5rem; font-size: 0.9rem; min-height: 1.2em;"></div>
                 </div>
             </div>
             <!-- Scroll Top Button -->
@@ -299,6 +356,35 @@ N u l l Z e r o V i b e
             if (e.target === docsModal) hideDocs();
         };
 
+        // Settings Logic
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const settingsMsg = document.getElementById('settingsMsg');
+
+        globalThis.setFormat = (fmt) => document.getElementById('dateFormatInput').value = fmt;
+        globalThis.setCulture = (cult) => document.getElementById('cultureInput').value = cult;
+        globalThis.currentCulture = null; // Store for formatting
+
+        saveSettingsBtn.onclick = async () => {
+            const format = document.getElementById('dateFormatInput').value;
+            const culture = document.getElementById('cultureInput').value;
+            settingsMsg.textContent = "Saving...";
+
+            // Update global culture for formatting
+            globalThis.currentCulture = culture;
+            settingsMsg.style.color = "var(--text-muted)";
+
+            try {
+                const interop = await getInterop();
+                const result = await interop.invokeMethodAsync('ConfigureDates', format, culture);
+                settingsMsg.textContent = "✅ " + result;
+                settingsMsg.style.color = "var(--success)";
+            } catch (e) {
+                console.error("Failed to save settings", e);
+                settingsMsg.textContent = "❌ Error: " + e.message;
+                settingsMsg.style.color = "var(--error)";
+            }
+        };
+
         // Tab Switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.onclick = () => {
@@ -374,6 +460,31 @@ N u l l Z e r o V i b e
 
                 // Populate Categories
                 const categories = [...new Set(allFunctions.map(f => f.Category).filter(Boolean))].sort();
+                globalThis.setCulture = (val) => {
+                    const input = document.getElementById('cultureInput');
+                    if (input) {
+                        input.value = val;
+                        // Highlight effect
+                        input.style.borderColor = 'var(--accent)';
+                        setTimeout(() => input.style.borderColor = '', 300);
+                    }
+                };
+
+                globalThis.clearFormat = () => {
+                    const input = document.getElementById('dateFormatInput');
+                    if (input) {
+                        input.value = '';
+                        input.focus();
+                    }
+                };
+
+                globalThis.clearCulture = () => {
+                    const input = document.getElementById('cultureInput');
+                    if (input) {
+                        input.value = '';
+                        input.focus();
+                    }
+                };
                 categories.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c;
@@ -596,7 +707,10 @@ N u l l Z e r o V i b e
                     if (result.nvalue !== null) val = result.nvalue;
                     else if (result.bvalue !== null) val = result.bvalue;
                     else if (result.dvalue === null || result.dvalue === undefined) { val = result.svalue; }
-                    else { val = new Date(result.dvalue).toLocaleString(); }
+                    else {
+                        // Use configured culture if available, otherwise browser default
+                        val = new Date(result.dvalue).toLocaleString(globalThis.currentCulture || undefined);
+                    }
 
                     // Allow null/undefined to show as "null"
                     if (val === undefined || val === null) val = "null";
