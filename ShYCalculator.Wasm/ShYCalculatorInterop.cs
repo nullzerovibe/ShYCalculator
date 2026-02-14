@@ -118,6 +118,16 @@ public class ShYCalculatorInterop
             .OrderBy(f => f.Name)
             .ToList();
 
+        // Manual injection: if function
+        functions.Add(new
+        {
+            Name = (string?)"if",
+            Description = (string?)"Evaluates a condition and returns the first value if true, otherwise the second value.",
+            Examples = (List<string>?)new List<string> { "if(5 > 3, 10, 0)", "if(x, 'Yes', 'No')" },
+            Arguments = (List<string>?)new List<string> { "boolean", "any", "any" },
+            Category = "Logical"
+        });
+
         var operators = _calculator.Environment.Operators
             .Select(o => new
             {
