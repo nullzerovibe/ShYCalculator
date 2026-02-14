@@ -886,52 +886,6 @@ N u l l Z e r o V i b e
             document.getElementById('exprInput').focus();
         };
 
-        // --- Copy Function ---
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(document.getElementById('output').textContent).then(() => {
-                const original = copyBtn.innerHTML;
-                copyBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                setTimeout(() => copyBtn.innerHTML = original, 1500);
-            });
-        };
-
-        // --- Keyboard Shortcuts ---
-        document.addEventListener('keydown', (e) => {
-            // Ctrl + Enter to Calculate
-            if (e.ctrlKey && e.key === 'Enter') {
-                calculate();
-            }
-            // Esc to Close Modal
-            if (e.key === 'Escape') {
-                const modal = document.getElementById('docsModal');
-                if (modal.style.display === 'flex') {
-                    modal.style.display = 'none';
-                }
-            }
-        });
-
-        document.getElementById('calcBtn').onclick = calculate;
-        document.getElementById('exprInput').onkeypress = (e) => {
-            if (e.key === 'Enter') calculate();
-        };
-
-        // Scroll Top Logic
-        const modalBody = document.getElementById('docsModalBody');
-        const scrollTopBtn = document.getElementById('scrollTopBtn');
-
-        if (modalBody && scrollTopBtn) {
-            modalBody.addEventListener('scroll', () => {
-                if (modalBody.scrollTop > 300) {
-                    scrollTopBtn.classList.add('visible');
-                } else {
-                    scrollTopBtn.classList.remove('visible');
-                }
-            });
-
-            scrollTopBtn.addEventListener('click', () => {
-                modalBody.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
     </script>
 </body>
 
