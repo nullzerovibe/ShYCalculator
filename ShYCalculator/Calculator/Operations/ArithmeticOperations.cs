@@ -42,23 +42,27 @@ internal static class ArithmeticOperations {
 
 
     internal static OpResult<Value> PerformArithmeticOperationOnStrings(in Value leftOperand, in Value rightOperand, Token token) {
+        if (token.OperatorKind == OperatorKind.Add) {
+             string val1 = GetValueString(leftOperand);
+             string val2 = GetValueString(rightOperand);
+             return OpResult<Value>.Ok(new Value {
+                 DataType = DataType.String,
+                 Svalue = val1 + val2
+             });
+        }
+
         if (leftOperand.DataType != DataType.String || rightOperand.DataType != DataType.String) {
             return OpResult<Value>.Fail(OperationHelper.GetDataTypeMismatchErrorMessage(leftOperand, rightOperand, token, DataType.String));
         }
 
-        if (leftOperand.Svalue == null || rightOperand.Svalue == null) {
-            return OpResult<Value>.Fail(OperationHelper.GetNullValueErrorMessage(leftOperand.Svalue == null, rightOperand.Svalue == null, token, DataType.String));
-        }
+        throw new ShuntingYardParserException($"Unexpected operator token '{token.KeyString}' of type {token.Type} at position {token.Index} on data type {DataType.String}.");
+    }
 
-        var operand1 = leftOperand.Svalue!;
-        var operand2 = rightOperand.Svalue!;
-        string result = token.KeySpan switch {
-            "+" => operand1 + operand2,
-            _ => throw new ShuntingYardParserException($"Unexpected operator token '{token.KeyString}' of type {token.Type} at position {token.Index} on data type {DataType.String}."),
-        };
-        return OpResult<Value>.Ok(new Value {
-            DataType = DataType.String,
-            Svalue = result
-        });
+    private static string GetValueString(Value v) {
+        if (v.DataType.HasFlag(DataType.String)) return v.Svalue ?? "";
+        if (v.DataType.HasFlag(DataType.Number)) return v.Nvalue?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "";
+        if (v.DataType.HasFlag(DataType.Boolean)) return v.Bvalue?.ToString() ?? "";
+        if (v.DataType.HasFlag(DataType.Date)) return v.Dvalue?.ToString() ?? "";
+        return "";
     }
 }
