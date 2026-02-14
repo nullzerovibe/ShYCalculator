@@ -84,15 +84,34 @@
                         <option value="sqrt(16) + abs(-5)">Roots & Absolute</option>
                     </optgroup>
                     <optgroup label="Logic">
+                        <option value="true && false">Logical AND</option>
+                        <option value="true || false">Logical OR</option>
+                        <option value="!true">Logical NOT</option>
+                        <option value="(5 > 3) && (2 < 4)">Combined Logic</option>
                         <option value="if(5 > 3, 100, 0)">Simple If/Else</option>
                         <option value="max(10, 20) + min(5, 1)">Max & Min</option>
                         <option value="true ? 1 : 0">Ternary Operator</option>
+                    </optgroup>
+                    <optgroup label="Bitwise Operations">
+                        <option value="5 & 3">Bitwise AND</option>
+                        <option value="5 | 3">Bitwise OR</option>
+                        <option value="5 ^ 3">Bitwise XOR</option>
+                        <option value="~5">Bitwise NOT</option>
                     </optgroup>
                     <optgroup label="Formulas (Uses Variables)">
                         <option value="pi * r * r" data-vars='{"r": 5, "pi": 3.14159}'>Area of Circle</option>
                         <option value="a * a + b * b" data-vars='{"a": 3, "b": 4}'>Pythagoras (a^2 + b^2)</option>
                         <option value="offset + scale * x" data-vars='{"offset": 10, "scale": 2, "x": 5}'>Linear
                             Equation</option>
+                    </optgroup>
+                    <optgroup label="Complex Scenarios">
+                        <option
+                            value="(age >= 18 && any(hasLicense, false)) ? (if(max(score, 0) > 80, 'Qualified', 'Needs Retake')) : default"
+                            data-vars='{"age": 20, "hasLicense": true, "score": 85, "default": "Ineligible"}'>Driver
+                            Qualification</option>
+                        <option
+                            value="if(weight <= 0, 'Invalid Weight', 'Total: $' + round(max(5, weight * rate) + (express ? 10 : 0), 2))"
+                            data-vars='{"weight": 12.5, "rate": 0.8, "express": true}'>Shipping Calculator</option>
                     </optgroup>
                 </select>
             </div>
