@@ -34,7 +34,7 @@ public static class ServiceCollectionExtensions {
         // This means all injected calculators will share the same functions/constants/operators definition.
         // If users need different scopes, they should use different containers or manual instantiation.
         services.AddSingleton<IGlobalScope>(configuredEnvironment);
-        
+
         // Also register IEnvironment if needed, but IGlobalScope is the preferred interface for definitions
         services.AddSingleton<IEnvironment>(sp => (IEnvironment)sp.GetRequiredService<IGlobalScope>());
 

@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // <summary>
 //     Evaluates RPN token streams to calculate the final result.
 //     Executes the logic for operators and functions.
@@ -95,7 +95,7 @@ internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParse
             stack[count++] = constant;
             return OpResult<Value>.Ok(default);
         }
-        
+
         return OpResult<Value>.Fail(new CalcError(ErrorCode.VariableNotFound, $"Unknown Constant '{token.KeyString}' at position {token.Index}.", (int)token.Index, token.Length));
     }
 

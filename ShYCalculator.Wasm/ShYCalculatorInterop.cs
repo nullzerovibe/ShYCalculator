@@ -6,8 +6,7 @@ namespace ShYCalculator.Wasm;
 /// <summary>
 /// Exposes ShYCalculator functionality to WebAssembly via JS Interop.
 /// </summary>
-public class ShYCalculatorInterop
-{
+public class ShYCalculatorInterop {
     private readonly ShYCalculator _calculator = new ShYCalculator();
 
     /// <summary>
@@ -40,8 +39,7 @@ public class ShYCalculatorInterop
     /// <param name="expression">The expression string to evaluate.</param>
     /// <returns>The result of the calculation.</returns>
     [JSInvokable]
-    public CalculationResult Calculate(string expression)
-    {
+    public CalculationResult Calculate(string expression) {
         return _calculator.Calculate(expression);
     }
 
@@ -53,34 +51,29 @@ public class ShYCalculatorInterop
     /// <param name="variables">A dictionary of variable names and their values (can be number, bool, string).</param>
     /// <returns>The result of the calculation.</returns>
     [JSInvokable]
-    public CalculationResult CalculateWithVars(string expression, Dictionary<string, object> variables)
-    {
+    public CalculationResult CalculateWithVars(string expression, Dictionary<string, object> variables) {
         var context = new Dictionary<string, Value>();
-        
-        foreach (var kvp in variables)
-        {
+
+        foreach (var kvp in variables) {
             context[kvp.Key] = ConvertToValue(kvp.Value);
         }
 
         return _calculator.Calculate(expression, context);
     }
 
-    private Value ConvertToValue(object obj)
-    {
-        if (obj is System.Text.Json.JsonElement json)
-        {
-            switch (json.ValueKind)
-            {
+    private Value ConvertToValue(object obj) {
+        if (obj is System.Text.Json.JsonElement json) {
+            switch (json.ValueKind) {
                 case System.Text.Json.JsonValueKind.Number:
-                    return Value.Number(json.GetDouble());
+                return Value.Number(json.GetDouble());
                 case System.Text.Json.JsonValueKind.True:
-                    return Value.Boolean(true);
+                return Value.Boolean(true);
                 case System.Text.Json.JsonValueKind.False:
-                    return Value.Boolean(false);
+                return Value.Boolean(false);
                 case System.Text.Json.JsonValueKind.String:
-                    return Value.String(json.GetString()!);
+                return Value.String(json.GetString()!);
                 default:
-                    return Value.String(json.ToString());
+                return Value.String(json.ToString());
             }
         }
         else if (obj is double d) return Value.Number(d);
@@ -89,7 +82,7 @@ public class ShYCalculatorInterop
         else if (obj is long l) return Value.Number(l);
         else if (obj is bool b) return Value.Boolean(b);
         else if (obj is string s) return Value.String(s);
-        
+
         return Value.String(obj?.ToString() ?? "");
     }
 
@@ -98,8 +91,7 @@ public class ShYCalculatorInterop
     /// </summary>
     /// <returns>A JSON string containing the documentation.</returns>
     [JSInvokable]
-    public string GetDocumentation()
-    {
+    public string GetDocumentation() {
         var functions = _calculator.Environment.Functions.Values
             .Distinct()
             .SelectMany(ext => {
@@ -107,8 +99,7 @@ public class ShYCalculatorInterop
                 var category = ext.Name.Replace("Calc", "").Replace("Functions", "");
                 return ext.GetFunctions().Select(f => new { Func = f, Category = category });
             })
-            .Select(x => new
-            {
+            .Select(x => new {
                 x.Func.Name,
                 x.Func.Description,
                 x.Func.Examples,
@@ -119,8 +110,7 @@ public class ShYCalculatorInterop
             .ToList();
 
         // Manual injection: if function
-        functions.Add(new
-        {
+        functions.Add(new {
             Name = (string?)"if",
             Description = (string?)"Evaluates a condition and returns the first value if true, otherwise the second value.",
             Examples = (List<string>?)new List<string> { "if(5 > 3, 10, 0)", "if(x, 'Yes', 'No')" },
@@ -131,8 +121,7 @@ public class ShYCalculatorInterop
         functions = functions.OrderBy(f => f.Name).ToList();
 
         var operators = _calculator.Environment.Operators
-            .Select(o => new
-            {
+            .Select(o => new {
                 Symbol = o.Key,
                 o.Value.Name,
                 o.Value.Precedence,
@@ -142,8 +131,7 @@ public class ShYCalculatorInterop
             .OrderByDescending(o => o.Precedence)
             .ToList();
 
-        var doc = new
-        {
+        var doc = new {
             functions,
             operators
         };
@@ -155,8 +143,7 @@ public class ShYCalculatorInterop
     /// </summary>
     /// <returns>The version string (e.g., "1.0.0.0").</returns>
     [JSInvokable]
-    public string GetVersion()
-    {
+    public string GetVersion() {
         return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown";
     }
 }

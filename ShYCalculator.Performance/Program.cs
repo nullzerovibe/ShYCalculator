@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using ShYCalculator.Classes;
 
 namespace ShYCalculator.Performance;
@@ -34,12 +34,12 @@ class Program {
 
         // Warmup
         foreach (var expr in expressions) {
-             calculator.Calculate(expr);
+            calculator.Calculate(expr);
         }
 
         string logFile = "benchmark_results.md";
         File.AppendAllText(logFile, $"\n\n# Benchmark Run {DateTime.Now}\n");
-        
+
         RunBenchmark(calculator, expressions, 1000, 30, "30x 1000", logFile);
         RunBenchmark(calculator, expressions, 100000, 10, "10x 100,000", logFile);
         // RunBenchmark(calculator, expressions, 10000000, 1, "1x 10,000,000", logFile); // Undo comment if needed, takes ~5 mins
@@ -53,7 +53,7 @@ class Program {
         Console.WriteLine(header);
         File.AppendAllText(logFile, $"\n## {label}\n| Run | Time (ms) | Ops/Sec | Allocations (KB) |\n|---|---|---|---|\n");
 
-        for(int r=1; r<=runs; r++) {
+        for (int r = 1; r <= runs; r++) {
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();

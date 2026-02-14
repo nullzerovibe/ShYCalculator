@@ -339,13 +339,13 @@ public class UT_CalcDateFunctions_Coverage {
         result = dateFuncs.GetDataTypeMismatchErrorMessage(null, DateTimeOffset.Now, "TestFunc");
         Assert.IsTrue(result.Contains("Left date is null") && !result.Contains("Right date is null"));
     }
-    
+
     [TestMethod]
     public void DateFunctions_Constructor_InvalidCulture_Coverage() {
         // This should trigger the catch block in the constructor
         // Invalid culture falls back to InvariantCulture
         var funcs = new CalcDateFunctions(null, "invalid-culture-name");
-        
+
         Assert.IsNotNull(funcs);
         // We can infer it is InvariantCulture because standard format should fail (if we had a way to access m_culture, but failing that, we know constructor didn't throw)
     }

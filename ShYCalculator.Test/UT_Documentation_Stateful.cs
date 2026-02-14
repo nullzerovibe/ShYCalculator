@@ -9,7 +9,7 @@ namespace ShYCalculator.Test;
 /// </summary>
 [TestClass]
 public class UT_Documentation_Stateful {
-    
+
     [TestMethod]
     public void Usage_Scripting_VariablesPersist() {
         // 1. Create the calculator (Builder is recommended, but new ShYCalculator() works too)
@@ -26,14 +26,14 @@ public class UT_Documentation_Stateful {
 
         // 4. Calculate total
         var result = calculator.Calculate("cost * (1 + tax)");
-        
+
         Assert.IsTrue(result.Success);
         Assert.AreEqual(55.0, result.Value.Nvalue!.Value, 0.000001);
 
         // 5. Variables are still there for the next calculation
         // Update "cost"
         calculator.Environment.AddVariable("cost", 100.0);
-        
+
         var result2 = calculator.Calculate("cost * (1 + tax)");
         Assert.AreEqual(110.0, result2.Value.Nvalue!.Value, 0.000001);
     }
@@ -72,7 +72,7 @@ public class UT_Documentation_Stateful {
         // Note: We pass the calculator's environment so the compiled logic knows where to look for variables
         var compiled = ShYCalculator.Compile("price * qty", calculator.Environment);
         Assert.IsTrue(compiled.Success);
-        
+
         var runner = compiled.Value!;
 
         // 2. Set State
@@ -85,7 +85,7 @@ public class UT_Documentation_Stateful {
 
         // 4. Update State
         calculator.Environment.AddVariable("qty", 10.0);
-        
+
         // 5. Execute again (no re-compile needed)
         var result2 = runner.Calculate();
         Assert.AreEqual(100.0, result2.Value.Nvalue);

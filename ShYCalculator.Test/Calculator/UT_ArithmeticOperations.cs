@@ -429,7 +429,7 @@ public class UT_ArithmeticOperations {
         Assert.IsTrue(res3.Success);
         Assert.AreEqual("", res3.Value.Svalue);
 
-         // Case 4: DataType.Date but Null value
+        // Case 4: DataType.Date but Null value
         var valDateNull = new Value { DataType = DataType.Date };
         var res4 = ArithmeticOperations.PerformArithmeticOperationOnStrings(valDateNull, valDateNull, new Token { OperatorKind = OperatorKind.Add });
         Assert.IsTrue(res4.Success);

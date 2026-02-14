@@ -23,7 +23,7 @@ public class UT_Documentation_Stateless {
             { "input", 100 },
             { "tax", 0.1 }
         };
-        
+
         // 3. Request 2 comes in (User B) simultaneously
         var contextB = new Dictionary<string, double> {
             { "input", 500 },
@@ -65,7 +65,7 @@ public class UT_Documentation_Stateless {
     [TestMethod]
     public void Usage_Compiled_Stateless() {
         // Compile once (expensive), Execute many times (cheap) with different contexts
-        
+
         // 1. Create a "Pure Definition" scope
         // This scope contains functions and constants, but NO variables.
         // It is effectively immutable.
@@ -78,7 +78,7 @@ public class UT_Documentation_Stateless {
         // 2. Compile
         var compiled = ShYCalculator.Compile("radius * radius * pi", globalScope);
         Assert.IsTrue(compiled.Success);
-        
+
         var runner = compiled.Value!;
 
         // 3. Execute for Circle A

@@ -1,270 +1,270 @@
 [
-    {
-        "Name": "abs",
-        "Description": "Returns the absolute value of a numeric parameter.",
-        "Examples": [
-            "abs(-5)",
-            "abs(5)",
-            "abs(0)"
-        ],
+  {
+    "Name": "abs",
+    "Description": "Returns the absolute value of a numeric parameter.",
+    "Examples": [
+      "abs(-5)",
+      "abs(5)",
+      "abs(0)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter to get the absolute value from."
+      }
+    ]
+  },
+  {
+    "Name": "min",
+    "Description": "Returns the minimum value from a list of numeric arguments.",
+    "Examples": [
+      "min(1, 2, 3)",
+      "min(10, -5, 0)",
+      "min($list)"
+    ],
+    "Arguments": [
+      {
+        "Type": "array",
+        "Description": "A list of repeating numeric arguments.",
+        "Min": 2,
+        "Max": 10,
         "Arguments": [
-            {
-                "Type": "number",
-                "Description": "A numeric parameter to get the absolute value from."
-            }
+          {
+            "Type": "number",
+            "Description": "A single numeric parameter in the list."
+          }
         ]
-    },
-    {
-        "Name": "min",
-        "Description": "Returns the minimum value from a list of numeric arguments.",
-        "Examples": [
-            "min(1, 2, 3)",
-            "min(10, -5, 0)",
-            "min($list)"
-        ],
+      }
+    ]
+  },
+  {
+    "Name": "max",
+    "Description": "Returns the maximum value from a list of numeric arguments.",
+    "Examples": [
+      "max(1, 2, 3)",
+      "max(10, -5, 0)",
+      "max($list)"
+    ],
+    "Arguments": [
+      {
+        "Type": "array",
+        "Description": "A list of repeating numeric arguments.",
+        "Min": 2,
+        "Max": 10,
         "Arguments": [
-            {
-                "Type": "array",
-                "Description": "A list of repeating numeric arguments.",
-                "Min": 2,
-                "Max": 10,
-                "Arguments": [
-                    {
-                        "Type": "number",
-                        "Description": "A single numeric parameter in the list."
-                    }
-                ]
-            }
+          {
+            "Type": "number",
+            "Description": "A single numeric parameter in the list."
+          }
         ]
-    },
-    {
-        "Name": "max",
-        "Description": "Returns the maximum value from a list of numeric arguments.",
-        "Examples": [
-            "max(1, 2, 3)",
-            "max(10, -5, 0)",
-            "max($list)"
-        ],
+      }
+    ]
+  },
+  {
+    "Name": "avg",
+    "Description": "Returns the average value from a list of numeric arguments.",
+    "Examples": [
+      "avg(1, 2, 3)",
+      "avg(10, 20)",
+      "avg($list)"
+    ],
+    "Arguments": [
+      {
+        "Type": "array",
+        "Description": "A list of repeating numeric arguments.",
+        "Min": 1,
+        "Max": 10,
         "Arguments": [
-            {
-                "Type": "array",
-                "Description": "A list of repeating numeric arguments.",
-                "Min": 2,
-                "Max": 10,
-                "Arguments": [
-                    {
-                        "Type": "number",
-                        "Description": "A single numeric parameter in the list."
-                    }
-                ]
-            }
+          {
+            "Type": "number",
+            "Description": "A single numeric parameter in the list."
+          }
         ]
-    },
-    {
-        "Name": "avg",
-        "Description": "Returns the average value from a list of numeric arguments.",
-        "Examples": [
-            "avg(1, 2, 3)",
-            "avg(10, 20)",
-            "avg($list)"
-        ],
+      }
+    ]
+  },
+  {
+    "Name": "sum",
+    "Description": "Returns the sum of all numeric arguments.",
+    "Examples": [
+      "sum(1, 2, 3)",
+      "sum(10, 20)",
+      "sum($list)"
+    ],
+    "Arguments": [
+      {
+        "Type": "array",
+        "Description": "A list of repeating numeric arguments.",
+        "Min": 1,
+        "Max": 100,
         "Arguments": [
-            {
-                "Type": "array",
-                "Description": "A list of repeating numeric arguments.",
-                "Min": 1,
-                "Max": 10,
-                "Arguments": [
-                    {
-                        "Type": "number",
-                        "Description": "A single numeric parameter in the list."
-                    }
-                ]
-            }
+          {
+            "Type": "number",
+            "Description": "A single numeric parameter in the list."
+          }
         ]
-    },
-    {
-        "Name": "sum",
-        "Description": "Returns the sum of all numeric arguments.",
-        "Examples": [
-            "sum(1, 2, 3)",
-            "sum(10, 20)",
-            "sum($list)"
-        ],
+      }
+    ]
+  },
+  {
+    "Name": "∑",
+    "Description": "Returns the sum of all numeric arguments (alias for sum).",
+    "Examples": [
+      "∑(1, 2, 3)",
+      "∑(10, 20)"
+    ],
+    "Arguments": [
+      {
+        "Type": "array",
+        "Description": "A list of repeating numeric arguments.",
+        "Min": 1,
+        "Max": 100,
         "Arguments": [
-            {
-                "Type": "array",
-                "Description": "A list of repeating numeric arguments.",
-                "Min": 1,
-                "Max": 100,
-                "Arguments": [
-                    {
-                        "Type": "number",
-                        "Description": "A single numeric parameter in the list."
-                    }
-                ]
-            }
+          {
+            "Type": "number",
+            "Description": "A single numeric parameter in the list."
+          }
         ]
-    },
-    {
-        "Name": "∑",
-        "Description": "Returns the sum of all numeric arguments (alias for sum).",
-        "Examples": [
-            "∑(1, 2, 3)",
-            "∑(10, 20)"
-        ],
+      }
+    ]
+  },
+  {
+    "Name": "pow",
+    "Description": "Returns the result of raising the first parameter to the power of the second parameter.",
+    "Examples": [
+      "pow(2, 3)",
+      "pow(10, 2)",
+      "pow(9, 0.5)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The base value to raise to a power."
+      },
+      {
+        "Type": "number",
+        "Description": "The exponent value."
+      }
+    ]
+  },
+  {
+    "Name": "sqrt",
+    "Description": "Returns the square root of a numeric parameter.",
+    "Examples": [
+      "sqrt(9)",
+      "sqrt(2)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "A numeric parameter to calculate the square root for."
+      }
+    ]
+  },
+  {
+    "Name": "round",
+    "Description": "Rounds a number to a specified number of digits.",
+    "Examples": [
+      "round(3.14159, 2)",
+      "round(3.5)",
+      "round(123.456, 0)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The number to round."
+      },
+      {
+        "Type": "number",
+        "Description": "The number of digits to round to (default 0).",
+        "Optional": true
+      }
+    ]
+  },
+  {
+    "Name": "floor",
+    "Description": "Returns the largest integer less than or equal to the specified number.",
+    "Examples": [
+      "floor(3.9)",
+      "floor(-3.1)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The number to floor."
+      }
+    ]
+  },
+  {
+    "Name": "ceiling",
+    "Description": "Returns the smallest integer greater than or equal to the specified number.",
+    "Examples": [
+      "ceiling(3.1)",
+      "ceiling(-3.9)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The number to ceiling."
+      }
+    ]
+  },
+  {
+    "Name": "trunc",
+    "Description": "Calculates the integral part of a number.",
+    "Examples": [
+      "trunc(3.9)",
+      "trunc(-3.9)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The number to truncate."
+      }
+    ]
+  },
+  {
+    "Name": "sign",
+    "Description": "Returns an integer that indicates the sign of a number.",
+    "Examples": [
+      "sign(10)",
+      "sign(-5)",
+      "sign(0)"
+    ],
+    "Arguments": [
+      {
+        "Type": "number",
+        "Description": "The number to get the sign of."
+      }
+    ]
+  },
+  {
+    "Name": "random",
+    "Description": "Returns a random number. With no arguments, returns a double between 0.0 and 1.0. With two arguments, returns a random integer between min (inclusive) and max (exclusive).",
+    "Examples": [
+      "random()",
+      "random(1, 10)"
+    ],
+    "Arguments": [
+      {
+        "Type": "array",
+        "Description": "Optional range arguments.",
+        "Min": 0,
+        "Max": 1,
+        "Optional": true,
         "Arguments": [
-            {
-                "Type": "array",
-                "Description": "A list of repeating numeric arguments.",
-                "Min": 1,
-                "Max": 100,
-                "Arguments": [
-                    {
-                        "Type": "number",
-                        "Description": "A single numeric parameter in the list."
-                    }
-                ]
-            }
+          {
+            "Type": "number",
+            "Description": "Min value (inclusive).",
+            "Optional": true
+          },
+          {
+            "Type": "number",
+            "Description": "Max value (exclusive).",
+            "Optional": true
+          }
         ]
-    },
-    {
-        "Name": "pow",
-        "Description": "Returns the result of raising the first parameter to the power of the second parameter.",
-        "Examples": [
-            "pow(2, 3)",
-            "pow(10, 2)",
-            "pow(9, 0.5)"
-        ],
-        "Arguments": [
-            {
-                "Type": "number",
-                "Description": "The base value to raise to a power."
-            },
-            {
-                "Type": "number",
-                "Description": "The exponent value."
-            }
-        ]
-    },
-    {
-        "Name": "sqrt",
-        "Description": "Returns the square root of a numeric parameter.",
-        "Examples": [
-            "sqrt(9)",
-            "sqrt(2)"
-        ],
-        "Arguments": [
-            {
-                "Type": "number",
-                "Description": "A numeric parameter to calculate the square root for."
-            }
-        ]
-    },
-    {
-        "Name": "round",
-        "Description": "Rounds a number to a specified number of digits.",
-        "Examples": [
-            "round(3.14159, 2)",
-            "round(3.5)",
-            "round(123.456, 0)"
-        ],
-        "Arguments": [
-            {
-                "Type": "number",
-                "Description": "The number to round."
-            },
-            {
-                "Type": "number",
-                "Description": "The number of digits to round to (default 0).",
-                "Optional": true
-            }
-        ]
-    },
-    {
-        "Name": "floor",
-        "Description": "Returns the largest integer less than or equal to the specified number.",
-        "Examples": [
-            "floor(3.9)",
-            "floor(-3.1)"
-        ],
-        "Arguments": [
-            {
-                "Type": "number",
-                "Description": "The number to floor."
-            }
-        ]
-    },
-    {
-        "Name": "ceiling",
-        "Description": "Returns the smallest integer greater than or equal to the specified number.",
-        "Examples": [
-            "ceiling(3.1)",
-            "ceiling(-3.9)"
-        ],
-        "Arguments": [
-            {
-                "Type": "number",
-                "Description": "The number to ceiling."
-            }
-        ]
-    },
-    {
-        "Name": "trunc",
-        "Description": "Calculates the integral part of a number.",
-        "Examples": [
-            "trunc(3.9)",
-            "trunc(-3.9)"
-        ],
-        "Arguments": [
-            {
-                "Type": "number",
-                "Description": "The number to truncate."
-            }
-        ]
-    },
-    {
-        "Name": "sign",
-        "Description": "Returns an integer that indicates the sign of a number.",
-        "Examples": [
-            "sign(10)",
-            "sign(-5)",
-            "sign(0)"
-        ],
-        "Arguments": [
-            {
-                "Type": "number",
-                "Description": "The number to get the sign of."
-            }
-        ]
-    },
-    {
-        "Name": "random",
-        "Description": "Returns a random number. With no arguments, returns a double between 0.0 and 1.0. With two arguments, returns a random integer between min (inclusive) and max (exclusive).",
-        "Examples": [
-            "random()",
-            "random(1, 10)"
-        ],
-        "Arguments": [
-            {
-                "Type": "array",
-                "Description": "Optional range arguments.",
-                "Min": 0,
-                "Max": 1,
-                "Optional": true,
-                "Arguments": [
-                    {
-                        "Type": "number",
-                        "Description": "Min value (inclusive).",
-                        "Optional": true
-                    },
-                    {
-                        "Type": "number",
-                        "Description": "Max value (exclusive).",
-                        "Optional": true
-                    }
-                ]
-            }
-        ]
-    }
+      }
+    ]
+  }
 ]

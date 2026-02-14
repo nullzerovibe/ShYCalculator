@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // <summary>
 //     Represents a pre-compiled expression ready for repeated execution.
 //     Optimizes performance by avoiding reparsing of the same formula.
@@ -14,10 +14,10 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
     internal readonly IExpressionTokenizer m_expTokenizer;
     internal readonly IShuntingYardGenerator m_shyGenerator;
     internal readonly IShuntingYardParser m_shyParser;
-    
+
     private OpResult<IEnumerable<Token>> m_tokenizerResult;
     private OpResult<IEnumerable<Token>> m_generatorResult;
-    
+
     private string m_expression;
     private bool m_compiled;
 
@@ -29,7 +29,7 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
     internal ShYCompiledCalculator(IGlobalScope? globalScope = null, ShYCalculatorOptions? options = null) {
         // If globalScope is null, create new Environment (which is IGlobalScope)
         Environment = globalScope ?? new Calculator.Environment(null, options);
-        
+
         m_expTokenizer = new ExpressionTokenizer(Environment);
         m_shyGenerator = new ShuntingYardGenerator(Environment);
         m_shyParser = new ShuntingYardParser(Environment);
@@ -128,13 +128,14 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
             if (Environment is IContext context && context.Variables.Count > 0) {
                 if (contextVariables == null) {
                     effectiveContext = context.Variables;
-                } else {
+                }
+                else {
                     effectiveContext = new CompositeDictionary(contextVariables, context.Variables);
                 }
             }
 
             var evaluationResult = m_shyParser.Evaluate(m_generatorResult.Value!, m_expression, effectiveContext);
-            
+
             return new CalculationResult() {
                 Success = evaluationResult.Success,
                 Message = evaluationResult.Message,

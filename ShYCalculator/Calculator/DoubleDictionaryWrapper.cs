@@ -33,16 +33,16 @@ internal readonly struct DoubleDictionaryWrapper(IEnumerable<KeyValuePair<string
         if (_source is IReadOnlyDictionary<string, double> roDict) return roDict.ContainsKey(key);
         return _source.Any(x => x.Key == key);
     }
-    
+
     public bool TryGetValue(string key, out Value value) {
         double dVal;
         bool found = false;
-        
+
         if (_source is IDictionary<string, double> dict) found = dict.TryGetValue(key, out dVal);
         else if (_source is IReadOnlyDictionary<string, double> roDict) found = roDict.TryGetValue(key, out dVal);
         else {
             dVal = 0;
-            foreach(var kvp in _source) {
+            foreach (var kvp in _source) {
                 if (kvp.Key == key) {
                     dVal = kvp.Value;
                     found = true;

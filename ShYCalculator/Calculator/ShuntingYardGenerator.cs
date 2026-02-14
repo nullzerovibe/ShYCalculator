@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // <summary>
 //     Implements the Shunting-Yard algorithm to convert infix expressions to Reverse Polish Notation (RPN).
 // 
@@ -60,7 +60,7 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
             if (breakTokens != null && expressionToken.Type != TokenType.Operator) {
                 // Ensure we don't break if we are inside parentheses
                 bool insideParentheses = operatorStack.Any(t => t.Type == TokenType.OpeningParenthesis);
-                
+
                 if (!insideParentheses) {
                     foreach (var bt in breakTokens) {
                         if (keySpan.SequenceEqual(bt.AsSpan())) {
@@ -106,15 +106,16 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
             else if (expressionToken.Type == TokenType.Function) {
                 // Special handling for 'if' function to support short-circuiting (lazy evaluation)
                 if (expressionToken.KeySpan.Equals("if", StringComparison.OrdinalIgnoreCase)) {
-                     // Check if next token is opening parenthesis
+                    // Check if next token is opening parenthesis
                     if (expressionTokenPosition + 1 >= tokensList.Count || tokensList[expressionTokenPosition + 1].Type != TokenType.OpeningParenthesis) {
-                         // Let it fail naturally as a variable/function if syntax is wrong
-                    } else {
+                        // Let it fail naturally as a variable/function if syntax is wrong
+                    }
+                    else {
                         // Parse: if ( condition , trueBranch , falseBranch )
                         // Mapping to Ternary: condition ? trueBranch : falseBranch
-                        
+
                         // 1. Consume 'if' and '('
-                        expressionTokenPosition += 2; 
+                        expressionTokenPosition += 2;
 
                         // 2. Parse Condition
                         // We use a break token of ',' to stop when we hit the first comma
@@ -123,10 +124,10 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                         // provided we trust the nesting check above.
                         var conditionResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [","]);
                         if (!conditionResult.Success) return conditionResult;
-                        
+
                         // 3. Verify we stopped at ','
                         if (expressionTokenPosition >= tokensList.Count || tokensList[expressionTokenPosition].Type != TokenType.Comma) {
-                             return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ',' after condition", expressionToken.Index.ToInt(), expressionToken.Length));
+                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ',' after condition", expressionToken.Index.ToInt(), expressionToken.Length));
                         }
                         expressionTokenPosition++; // Consume ','
 
@@ -136,7 +137,7 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
 
                         // 5. Verify we stopped at ','
                         if (expressionTokenPosition >= tokensList.Count || tokensList[expressionTokenPosition].Type != TokenType.Comma) {
-                             return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ',' after true branch", expressionToken.Index.ToInt(), expressionToken.Length));
+                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ',' after true branch", expressionToken.Index.ToInt(), expressionToken.Length));
                         }
                         expressionTokenPosition++; // Consume ','
 
@@ -145,11 +146,11 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                         var falseResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [")"]);
                         if (!falseResult.Success) return falseResult;
 
-                         // 7. Verify we stopped at ')'
+                        // 7. Verify we stopped at ')'
                         if (expressionTokenPosition >= tokensList.Count || tokensList[expressionTokenPosition].Type != TokenType.ClosingParenthesis) {
-                             return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ')' after false branch", expressionToken.Index.ToInt(), expressionToken.Length));
+                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ')' after false branch", expressionToken.Index.ToInt(), expressionToken.Length));
                         }
-                        
+
                         var ternaryToken = new Token {
                             Type = TokenType.Ternary,
                             Key = "?",
@@ -158,15 +159,15 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                                 TrueBranch = trueResult.Value!,
                                 FalseBranch = falseResult.Value!
                             },
-                             Index = expressionToken.Index,
-                             Length = expressionToken.Length
+                            Index = expressionToken.Index,
+                            Length = expressionToken.Length
                         };
-                        
+
                         // Add Condition tokens first
                         rpnOutput.AddRange(conditionResult.Value!);
                         // Then the Ternary operator (which contains the branches)
                         rpnOutput.Add(ternaryToken);
-                        
+
                         expressionTokenPosition++; // Consume closing parenthesis ')'
                         continue; // Continue main loop
                     }

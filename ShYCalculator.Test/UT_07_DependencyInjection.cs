@@ -10,12 +10,12 @@ public class UT_07_DependencyInjection {
     public void TestAddShYCalculator_ResolvesServices() {
         // Arrange
         var services = new ServiceCollection();
-        
+
         // Act
         services.AddShYCalculator(builder => {
             builder.WithMathematics(); // Configure with Math functions
         });
-        
+
         var provider = services.BuildServiceProvider();
 
         // Assert
@@ -24,10 +24,10 @@ public class UT_07_DependencyInjection {
 
         var globalScope = provider.GetService<IGlobalScope>();
         Assert.IsNotNull(globalScope);
-        
+
         // Verify Math functions are registered
         Assert.IsTrue(globalScope.Functions.ContainsKey("sin"));
-        
+
         // Verify Tokenizer resolution (via internal factory)
         // IExpressionTokenizer is public, so we can resolve it
         var tokenizer = provider.GetService<IExpressionTokenizer>();

@@ -50,12 +50,12 @@ public class UT_SyntaxErrors_Operators {
         Assert.IsFalse(result.Success);
         Assert.IsTrue(result.Errors.Any(e => e.Code == ErrorCode.MissingOperand || e.Code == ErrorCode.InvalidSyntax));
     }
-    
+
     [TestMethod]
     public void InvalidTrailingOperator() {
         // Valid: 1 + 2
         var result = m_shyCalculator.Calculate("1 + 2 /");
-        
+
         Assert.IsFalse(result.Success);
         Assert.IsTrue(result.Errors.Any(e => e.Code == ErrorCode.MissingOperand));
     }

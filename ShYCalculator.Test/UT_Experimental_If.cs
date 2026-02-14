@@ -19,7 +19,7 @@ public class UT_Experimental_If {
         // This test demonstrates why we need lazy evaluation.
         // In eager evaluation, '1/0' is calculated BEFORE 'if' runs, causing a divide by zero error.
         // In lazy evaluation, the second branch is never touched.
-        
+
         var expression = "if(true, 1, 1/0)";
         var result = calculator.Calculate(expression);
 
@@ -40,10 +40,10 @@ public class UT_Experimental_If {
         // We can simulate performance check by having a side-effect or just ensuring complex logic isn't run.
         // For now, let's stick to the safety check above as it's definitive.
         // We can also test nested ifs.
-        
+
         var expression = "if(false, 1/0, if(true, 2, 1/0))";
         var result = calculator.Calculate(expression);
-        
+
         Assert.IsTrue(result.Success, "Nested if failed: " + result.Message);
         Assert.AreEqual(2.0, result.Value.Nvalue!.Value);
 
@@ -55,7 +55,7 @@ public class UT_Experimental_If {
         // Test with string result
         var result3 = calculator.Calculate("if(true, 'Yes', 'No')");
         Assert.AreEqual("Yes", result3.Value.Svalue);
-        
+
         // Test with complex condition
         var result4 = calculator.Calculate("if(1+1==2 && 3<4, 100, 200)");
         Assert.AreEqual(100.0, result4.Value.Nvalue!.Value);
@@ -71,9 +71,9 @@ public class UT_Experimental_If {
         // Missing closing parenthesis
         var result2 = calculator.Calculate("if(true, 1, 2");
         Assert.IsFalse(result2.Success);
-        
+
         // Missing branches
-       // var result3 = calculator.Calculate("if(true)");
+        // var result3 = calculator.Calculate("if(true)");
         //Assert.IsFalse(result3.Success);
     }
 
@@ -102,7 +102,7 @@ public class UT_Experimental_If {
         var result4 = calculator.Calculate("if((5 > 3 ? true : false), 100, 200)");
         Assert.IsTrue(result4.Success, "Test 4 failed: " + result4.Message);
         Assert.AreEqual(100.0, result4.Value.Nvalue!.Value);
-        
+
         // 5. If inside ternary branch
         // true ? if(true, 77, 88) : 99 -> 77
         var result5 = calculator.Calculate("true ? if(true, 77, 88) : 99");
@@ -168,7 +168,7 @@ public class UT_Experimental_If {
                 ),
                 -1
             )";
-        
+
         // Remove newlines and whitespace for cleaner parsing if needed, 
         // though parser handles whitespace. Let's keep it clean.
         expression = expression.Replace("\r", "").Replace("\n", "").Trim();

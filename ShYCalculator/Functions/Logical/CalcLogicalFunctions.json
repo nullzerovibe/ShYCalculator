@@ -1,63 +1,63 @@
 [
-    {
-        "Name": "any",
-        "Description": "Checks if any of the provided arguments evaluate to true (Logical OR). Returns false if no arguments are true.",
-        "Examples": [
-            "any(true, false)",
-            "any(1 == 2, 3 > 1)",
-            "any($boolVar, false)"
-        ],
+  {
+    "Name": "any",
+    "Description": "Checks if any of the provided arguments evaluate to true (Logical OR). Returns false if no arguments are true.",
+    "Examples": [
+      "any(true, false)",
+      "any(1 == 2, 3 > 1)",
+      "any($boolVar, false)"
+    ],
+    "Arguments": [
+      {
+        "Type": "array",
+        "Description": "A list of boolean arguments.",
+        "Min": 1,
+        "Max": 255,
         "Arguments": [
-            {
-                "Type": "array",
-                "Description": "A list of boolean arguments.",
-                "Min": 1,
-                "Max": 255,
-                "Arguments": [
-                    {
-                        "Type": "boolean",
-                        "Description": "A boolean expression."
-                    }
-                ]
-            }
+          {
+            "Type": "boolean",
+            "Description": "A boolean expression."
+          }
         ]
-    },
-    {
-        "Name": "all",
-        "Description": "Checks if all of the provided arguments evaluate to true (Logical AND). Returns true if all arguments are true.",
-        "Examples": [
-            "all(true, true)",
-            "all(1 < 2, 3 > 1)",
-            "all($boolVar1, $boolVar2)"
-        ],
+      }
+    ]
+  },
+  {
+    "Name": "all",
+    "Description": "Checks if all of the provided arguments evaluate to true (Logical AND). Returns true if all arguments are true.",
+    "Examples": [
+      "all(true, true)",
+      "all(1 < 2, 3 > 1)",
+      "all($boolVar1, $boolVar2)"
+    ],
+    "Arguments": [
+      {
+        "Type": "array",
+        "Description": "A list of boolean arguments.",
+        "Min": 1,
+        "Max": 255,
         "Arguments": [
-            {
-                "Type": "array",
-                "Description": "A list of boolean arguments.",
-                "Min": 1,
-                "Max": 255,
-                "Arguments": [
-                    {
-                        "Type": "boolean",
-                        "Description": "A boolean expression."
-                    }
-                ]
-            }
+          {
+            "Type": "boolean",
+            "Description": "A boolean expression."
+          }
         ]
-    },
-    {
-        "Name": "not",
-        "Description": "Returns the logical complement of the argument (Logical NOT).",
-        "Examples": [
-            "not(true)",
-            "not(1 == 2)",
-            "not($boolVar)"
-        ],
-        "Arguments": [
-            {
-                "Type": "boolean",
-                "Description": "The boolean expression to negate."
-            }
-        ]
-    }
+      }
+    ]
+  },
+  {
+    "Name": "not",
+    "Description": "Returns the logical complement of the argument (Logical NOT).",
+    "Examples": [
+      "not(true)",
+      "not(1 == 2)",
+      "not($boolVar)"
+    ],
+    "Arguments": [
+      {
+        "Type": "boolean",
+        "Description": "The boolean expression to negate."
+      }
+    ]
+  }
 ]

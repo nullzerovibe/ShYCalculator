@@ -12,9 +12,9 @@ public class UT_ThreadSafety {
         var globalEnv = new global::ShYCalculator.Calculator.Environment();
         // Add a shared function just to be sure
         globalEnv.RegisterFunctions(new TestFunctionExtension());
-        
+
         var calculator = new ShYCalculator(globalEnv);
-        
+
         int threadCount = 20;
         var tasks = new Task[threadCount];
         var results = new double[threadCount];
@@ -29,14 +29,15 @@ public class UT_ThreadSafety {
                     var contextVars = new Dictionary<string, double> {
                         { "x", uniqueId }
                     };
-                    
+
                     // Calculate "x + 100"
                     // If threads share state, x might be overwritten by another thread
                     var result = calculator.Calculate("x + 100", contextVars);
-                    
+
                     if (result.Success) {
                         results[uniqueId] = result.Value.Nvalue ?? double.NaN;
-                    } else {
+                    }
+                    else {
                         errors[uniqueId] = true;
                     }
                 }
@@ -45,7 +46,7 @@ public class UT_ThreadSafety {
                 }
             });
         }
-        
+
         Task.WaitAll(tasks);
 
         // Assert
@@ -58,7 +59,7 @@ public class UT_ThreadSafety {
             Assert.AreEqual(expected, results[i], $"Thread {i} result mismatch. Expected {expected}, got {results[i]}.");
         }
     }
-    
+
     private class TestFunctionExtension : ICalcFunctionsExtension {
         public string Name => "ThreadTest";
         public IEnumerable<CalcFunction> GetFunctions() => [

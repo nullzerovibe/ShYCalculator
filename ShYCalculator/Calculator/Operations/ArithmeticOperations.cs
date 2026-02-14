@@ -43,12 +43,12 @@ internal static class ArithmeticOperations {
 
     internal static OpResult<Value> PerformArithmeticOperationOnStrings(in Value leftOperand, in Value rightOperand, Token token) {
         if (token.OperatorKind == OperatorKind.Add) {
-             string val1 = GetValueString(leftOperand);
-             string val2 = GetValueString(rightOperand);
-             return OpResult<Value>.Ok(new Value {
-                 DataType = DataType.String,
-                 Svalue = val1 + val2
-             });
+            string val1 = GetValueString(leftOperand);
+            string val2 = GetValueString(rightOperand);
+            return OpResult<Value>.Ok(new Value {
+                DataType = DataType.String,
+                Svalue = val1 + val2
+            });
         }
 
         if (leftOperand.DataType != DataType.String || rightOperand.DataType != DataType.String) {

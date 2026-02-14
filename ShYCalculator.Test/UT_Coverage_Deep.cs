@@ -24,7 +24,7 @@ public class UT_Coverage_Deep {
         int count = 0;
         // Manually creating a token with an invalid type to trigger 'default' case in ProcessToken
         var token = new Token(0, "???", (TokenType)999);
-        
+
         // We can call it directly if it's internal.
         var result = (OpResult<Value>)m_parser.ProcessToken(token, stack, ref count, null!);
 
@@ -37,7 +37,7 @@ public class UT_Coverage_Deep {
         var stack = new Value[10];
         int count = 0;
         var token = new Token(0, "not_a_number", TokenType.Number);
-        
+
         var result = (OpResult<Value>)m_parser.ProcessToken(token, stack, ref count, null!);
 
         Assert.IsFalse(result.Success);
@@ -49,7 +49,7 @@ public class UT_Coverage_Deep {
         var stack = new Value[10];
         int count = 0;
         var token = new Token(0, "sin", TokenType.Function); // FunctionInfo is null by default
-        
+
         // Mock environment to return the extension
         var extension = new SinExtension();
         var functions = new Dictionary<string, ICalcFunctionsExtension> { { "sin", extension } };
@@ -83,7 +83,7 @@ public class UT_Coverage_Deep {
         var stack = new Value[10];
         int count = 0;
         stack[count++] = new Value { DataType = DataType.Boolean, Bvalue = true };
-        
+
         var token = new Token(0, "?", TokenType.Ternary) {
             TernaryBranches = null // Should trigger error
         };

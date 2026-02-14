@@ -38,14 +38,16 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
         var funcList = CalcFunctionsHelper.ReadFunctionsConfiguration(Name, typeof(CalcDateFunctions));
         CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
         m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        
+
         if (!string.IsNullOrEmpty(cultureName)) {
             try {
                 m_culture = CultureInfo.GetCultureInfo(cultureName);
-            } catch {
+            }
+            catch {
                 m_culture = CultureInfo.InvariantCulture;
             }
-        } else {
+        }
+        else {
             m_culture = CultureInfo.InvariantCulture;
         }
 
@@ -385,7 +387,7 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
                 date = parsedDate;
                 return true;
             }
-            
+
             // Fallback to general parsing to support "10/25/2023" and other common formats
             if (DateTimeOffset.TryParse(value.Svalue, m_culture, System.Globalization.DateTimeStyles.None, out parsedDate)) {
                 date = parsedDate;

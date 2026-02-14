@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // <summary>
 //     Converts raw string expressions into a stream of Tokens.
 //     Handles parsing of numbers, strings, operators, and function calls.
@@ -193,9 +193,9 @@ internal class ExpressionTokenizer(IGlobalScope globalScope) : IExpressionTokeni
 
         // Explicitly handle 'if' as a function keyword, even if not registered, to support lazy-eval logic in Generator
         if (tokenSpan.Equals("if", StringComparison.OrdinalIgnoreCase)) {
-             tokens.Add(new Token(startIndex, tokenMemory, TokenType.Function, functionInfo: new FunctionInfo()));
-             i = tempIndex;
-             return true;
+            tokens.Add(new Token(startIndex, tokenMemory, TokenType.Function, functionInfo: new FunctionInfo()));
+            i = tempIndex;
+            return true;
         }
 
         // Fallback: Treat unknown identifiers as Variables

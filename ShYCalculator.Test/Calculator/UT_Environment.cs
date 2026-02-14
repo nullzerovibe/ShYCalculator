@@ -1,4 +1,4 @@
-﻿using ShYCalculator.Classes;
+using ShYCalculator.Classes;
 using ShYCalculator.Functions;
 using ShYCalculator.Functions.Dates;
 using ShYCalculator.Functions.Mathematics;
@@ -8,14 +8,12 @@ using Environment = ShYCalculator.Calculator.Environment;
 namespace ShYCalculator.Test.Calculator;
 
 [TestClass]
-public class UT_Environment
-{
+public class UT_Environment {
     private ShYCalculator m_shyCalculator = null!;
     private Environment m_environment = null!;
 
     [TestInitialize]
-    public void Setup()
-    {
+    public void Setup() {
         m_shyCalculator = new ShYCalculator();
         m_environment = (Environment)m_shyCalculator.Environment;
 
@@ -29,8 +27,7 @@ public class UT_Environment
     #region Environment Tests
 
     [TestMethod]
-    public void Environment_SetConstants_Coverage()
-    {
+    public void Environment_SetConstants_Coverage() {
         var constants = new Dictionary<string, Value> {
             { "test_const", new Value { Nvalue = 123, DataType = DataType.Number } }
         };
@@ -39,8 +36,7 @@ public class UT_Environment
     }
 
     [TestMethod]
-    public void Environment_AddVariables_Overloads_Coverage()
-    {
+    public void Environment_AddVariables_Overloads_Coverage() {
         m_environment.AddVariables(new Dictionary<string, bool> { { "$b1", true } });
         m_environment.AddVariables(new Dictionary<string, string> { { "$s1", "hello" } });
         m_environment.AddVariables(new Dictionary<string, DateTimeOffset> { { "$d1", DateTimeOffset.Now } });
@@ -56,8 +52,7 @@ public class UT_Environment
     }
 
     [TestMethod]
-    public void Environment_AddConstants_Overloads_Coverage()
-    {
+    public void Environment_AddConstants_Overloads_Coverage() {
         m_environment.AddConstants(new Dictionary<string, double> { { "c1", 1.1 } });
         m_environment.AddConstants(new Dictionary<string, bool> { { "c2", true } });
         m_environment.AddConstants(new Dictionary<string, string> { { "c3", "const" } });
@@ -70,22 +65,18 @@ public class UT_Environment
     }
 
     [TestMethod]
-    public void Environment_RegisterFunctions_EmptyList_Throws()
-    {
+    public void Environment_RegisterFunctions_EmptyList_Throws() {
         var extension = new EmptyExtension();
-        try
-        {
+        try {
             m_environment.RegisterFunctions(extension);
             Assert.Fail("Expected CalcEnvironmentException was not thrown.");
         }
-        catch (CalcEnvironmentException)
-        {
+        catch (CalcEnvironmentException) {
             // Success
         }
     }
 
-    private class EmptyExtension : ICalcFunctionsExtension
-    {
+    private class EmptyExtension : ICalcFunctionsExtension {
         public string Name => "Empty";
         public IEnumerable<CalcFunction> GetFunctions() => [];
         public Value ExecuteFunction(string functionName, ReadOnlySpan<Value> parameters) => new();

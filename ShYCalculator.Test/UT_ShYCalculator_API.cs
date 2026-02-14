@@ -44,7 +44,7 @@ public class UT_ShYCalculator_API {
         var result = ShYCalculator.Compile("1 + 1");
         Assert.IsTrue(result.Success);
         Assert.IsNotNull(result.Value);
-        
+
         var calcResult = result.Value.Calculate();
         Assert.IsTrue(calcResult.Success);
         Assert.AreEqual(2.0, calcResult.Nvalue);

@@ -27,7 +27,7 @@ public class ShYCalculatorBuilder {
     public ShYCalculatorBuilder() {
         _environment = new Calculator.Environment();
         // Start with clean slate for builder
-        _environment.ResetFunctions(new ShYCalculatorOptions { EnabledExtensions = FunctionExtensions.None }); 
+        _environment.ResetFunctions(new ShYCalculatorOptions { EnabledExtensions = FunctionExtensions.None });
         _environment.ResetConstants();
         _environment.ResetVariables();
     }
@@ -42,7 +42,7 @@ public class ShYCalculatorBuilder {
         _environment.RegisterFunctions(new CalcDateFunctions());
         _environment.RegisterFunctions(new CalcStringFunctions());
         _environment.RegisterFunctions(new CalcLogicalFunctions());
-        
+
         // Add default constants
         _environment.AddConstant("pi", Math.PI);
         _environment.AddConstant("e", Math.E);
@@ -112,7 +112,7 @@ public class ShYCalculatorBuilder {
         _environment.AddConstant(name, value);
         return this;
     }
-    
+
     /// <summary>
     /// Adds a custom constant to the global scope.
     /// </summary>

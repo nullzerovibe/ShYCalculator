@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // <summary>
 //     Defines the properties of a mathematical operator (Precedence, Associativity).
 //     Used by the Shunting-Yard algorithm to determine operation order.
@@ -15,17 +15,17 @@ public readonly struct Operator {
     /// Gets the precedence level of the operator. Higher values mean higher precedence.
     /// </summary>
     public int Precedence { get; init; }
-    
+
     /// <summary>
     /// Gets the associativity of the operator (Left or Right).
     /// </summary>
     public Associativity Associativity { get; init; }
-    
+
     /// <summary>
     /// Gets the supported data types for this operator.
     /// </summary>
     public DataType ValidDataTypes { get; init; }
-    
+
     /// <summary>
     /// Gets the friendly name of the operator (e.g., "Add", "Logical AND").
     /// </summary>

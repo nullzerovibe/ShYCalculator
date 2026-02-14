@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // <summary>
 //     The main entry point for the ShYCalculator library.
 //     Provides a thread-safe, stateless expression evaluator based on the Shunting-Yard algorithm.
@@ -17,7 +17,7 @@ public class ShYCalculator {
     private readonly IExpressionTokenizer m_tokenizer;
     private readonly IShuntingYardGenerator m_generator;
     private readonly IShuntingYardParser m_parser;
-    
+
     /// <summary>
     /// Gets the Global Scope (Functions, Constants) used by this calculator.
     /// </summary>
@@ -78,10 +78,10 @@ public class ShYCalculator {
     /// <param name="variables">Dictionary of numeric variables.</param>
     /// <returns>The result of the calculation.</returns>
     public CalculationResult Calculate(string expression, Dictionary<string, double> variables) {
-         // Re-use the interface-based overload to avoid code duplication, 
-         // though specific optimization for exact Dictionary type could be done if needed.
-         // For now, wrappers are struct-based so overhead is minimal.
-         return Calculate(expression, (IEnumerable<KeyValuePair<string, double>>)variables);
+        // Re-use the interface-based overload to avoid code duplication, 
+        // though specific optimization for exact Dictionary type could be done if needed.
+        // For now, wrappers are struct-based so overhead is minimal.
+        return Calculate(expression, (IEnumerable<KeyValuePair<string, double>>)variables);
     }
 
     /// <summary>
@@ -118,7 +118,8 @@ public class ShYCalculator {
             if (Environment.Variables.Count > 0) {
                 if (contextVariables == null) {
                     effectiveContext = Environment.Variables;
-                } else {
+                }
+                else {
                     effectiveContext = new CompositeDictionary(contextVariables, Environment.Variables);
                 }
             }
@@ -142,7 +143,7 @@ public class ShYCalculator {
                 Expression = expression,
                 InternalExpressionTokens = expTokenizerResult.Value,
                 InternalRPNTokens = shyGeneratorResult.Value,
-                Value = evaluationResult.Value, 
+                Value = evaluationResult.Value,
             };
         }
         catch (BaseCalcException ex) {

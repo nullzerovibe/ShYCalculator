@@ -17,7 +17,7 @@ public class UT_SyntaxErrors_Parentheses {
     public void MissingClosingParenthesis() {
         // Valid: (1 + 2) * 3
         var result = m_shyCalculator.Calculate("(1 + 2 * 3");
-        
+
         Assert.IsFalse(result.Success, "Expected failure for missing closing parenthesis");
         Assert.IsTrue(result.Errors.Any(e => e.Code == ErrorCode.MismatchedParentheses), "Expected MismatchedParentheses error");
     }

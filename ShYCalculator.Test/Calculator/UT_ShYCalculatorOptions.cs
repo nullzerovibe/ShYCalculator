@@ -67,11 +67,11 @@ public class UT_ShYCalculatorOptions {
 
         // Compile logic checking logic function failure
         var compiledFail = ShYCalculator.Compile("str_contains('ABC', 'A')", options: options);
-        
+
         // If compilation succeeds (it might if function lookup happens at runtime), then calculation fails.
         // But Compile checks for function existence? Yes.
         Assert.IsTrue(compiledFail.Success); // The function 'str_contains' exists in standard lib?
-        
+
         var resultFail = compiledFail.Value!.Calculate();
         // It might compile (parsing tokens) but evaluate might fail if function maps are checked at runtime?
         // Actually, tokenization probably identifies functions. 

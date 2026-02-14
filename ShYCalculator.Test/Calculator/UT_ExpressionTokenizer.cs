@@ -1,4 +1,4 @@
-﻿using ShYCalculator.Functions.Dates;
+using ShYCalculator.Functions.Dates;
 using ShYCalculator.Functions.Mathematics;
 using ShYCalculator.Functions.Text;
 using ShYCalculator.Calculator;
@@ -7,14 +7,12 @@ using Environment = ShYCalculator.Calculator.Environment;
 namespace ShYCalculator.Test.Calculator;
 
 [TestClass]
-public class UT_ExpressionTokenizer
-{
+public class UT_ExpressionTokenizer {
     private ShYCalculator m_shyCalculator = null!;
     private Environment m_environment = null!;
 
     [TestInitialize]
-    public void Setup()
-    {
+    public void Setup() {
         m_shyCalculator = new ShYCalculator();
         m_environment = (Environment)m_shyCalculator.Environment;
 
@@ -28,8 +26,7 @@ public class UT_ExpressionTokenizer
     #region ExpressionTokenizer Tests
 
     [TestMethod]
-    public void Tokenizer_ScientificNotation_Positive_Exponent()
-    {
+    public void Tokenizer_ScientificNotation_Positive_Exponent() {
         var tokenizer = new ExpressionTokenizer(m_environment);
         var opResult = tokenizer.Tokenize("1.2e+3");
         Assert.IsTrue(opResult.Success);
@@ -39,8 +36,7 @@ public class UT_ExpressionTokenizer
     }
 
     [TestMethod]
-    public void Tokenizer_ScientificNotation_Negative_Exponent()
-    {
+    public void Tokenizer_ScientificNotation_Negative_Exponent() {
         var tokenizer = new ExpressionTokenizer(m_environment);
         var opResult = tokenizer.Tokenize("1.2e-3");
         Assert.IsTrue(opResult.Success);
@@ -50,8 +46,7 @@ public class UT_ExpressionTokenizer
     }
 
     [TestMethod]
-    public void Tokenizer_ScientificNotation_NoSign_Exponent()
-    {
+    public void Tokenizer_ScientificNotation_NoSign_Exponent() {
         var tokenizer = new ExpressionTokenizer(m_environment);
         var opResult = tokenizer.Tokenize("1.2e3");
         Assert.IsTrue(opResult.Success);

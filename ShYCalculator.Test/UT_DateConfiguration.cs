@@ -5,7 +5,7 @@ namespace ShYCalculator.Test;
 
 [TestClass]
 public class UT_DateConfiguration {
-    
+
     [TestMethod]
     public void Test_Default_Configuration() {
         // Arrange
@@ -64,10 +64,10 @@ public class UT_DateConfiguration {
         var result1 = calc.Calculate("dt_equal(\"13.4.2026.\", dt_create(2026, 4, 13))");
         Assert.IsTrue(result1.Success, "Should parse Croatian format with trailing dot");
         Assert.IsTrue(result1.Bvalue.GetValueOrDefault());
-        
+
         // Also spaces commonly used: "13. 4. 2026."
         var result2 = calc.Calculate("dt_equal(\"13. 4. 2026.\", dt_create(2026, 4, 13))");
-         if (result2.Success) Assert.IsTrue(result2.Bvalue.GetValueOrDefault());
+        if (result2.Success) Assert.IsTrue(result2.Bvalue.GetValueOrDefault());
     }
 
     [TestMethod]
@@ -86,7 +86,7 @@ public class UT_DateConfiguration {
 
         // Short year sometimes works with lenient parsing
         var result2 = calc.Calculate("dt_equal(\"13/4/2026\", dt_create(2026, 4, 13))");
-        Assert.IsTrue(result2.Success); 
+        Assert.IsTrue(result2.Success);
         Assert.IsTrue(result2.Bvalue.GetValueOrDefault());
     }
 
@@ -137,7 +137,7 @@ public class UT_DateConfiguration {
         var result1 = calc.Calculate("dt_equal(\"13-04-2026\", dt_create(2026, 4, 13))");
         Assert.IsTrue(result1.Success);
         Assert.IsTrue(result1.Bvalue.GetValueOrDefault());
-        
+
         // Single digits
         var result2 = calc.Calculate("dt_equal(\"1-1-2026\", dt_create(2026, 1, 1))");
         Assert.IsTrue(result2.Success);

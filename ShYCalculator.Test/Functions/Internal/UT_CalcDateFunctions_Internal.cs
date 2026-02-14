@@ -97,7 +97,7 @@ public class UT_CalcDateFunctions_Internal {
 
         // Note: Default format in code is dd/MM/yyyy. "01/01/2023 12:00:00" might fail or parse if format allows time.
         var vsStrict = new Value(DataType.String, sValue: "01/01/2023");
-        
+
         // Target for Noon (matches "01/01/2023 12:00:00")
         var localDtNoon = new DateTime(2023, 1, 1, 12, 0, 0, DateTimeKind.Local);
         var offsetNoon = TimeZoneInfo.Local.GetUtcOffset(localDtNoon);
@@ -111,7 +111,7 @@ public class UT_CalcDateFunctions_Internal {
         var vTargetMidnight = new Value(DataType.Date, dValue: dTargetMidnight);
 
         // Use custom format for time component test
-        Assert.IsTrue(new CalcDateFunctions("dd/MM/yyyy HH:mm:ss").MatchDate(vs, vTargetNoon).Bvalue!.Value); 
+        Assert.IsTrue(new CalcDateFunctions("dd/MM/yyyy HH:mm:ss").MatchDate(vs, vTargetNoon).Bvalue!.Value);
         Assert.IsTrue(new CalcDateFunctions().MatchDate(vsStrict, vTargetMidnight).Bvalue!.Value);
     }
 

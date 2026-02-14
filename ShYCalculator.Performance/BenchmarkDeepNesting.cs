@@ -6,13 +6,13 @@ namespace ShYCalculator.Performance;
 public class BenchmarkDeepNesting {
     public static void Run() {
         Console.WriteLine("\n=== Deep Nesting Benchmark ===");
-        
+
         var options = new ShYCalculatorOptions(); // Default
         var env = new Calculator.Environment(null, options);
         // Register all needed functions
         env.RegisterFunctions(new Functions.Mathematics.CalcNumericFunctions());
         env.RegisterFunctions(new Functions.Logical.CalcLogicalFunctions());
-        
+
         var calculator = new ShYCalculator(env);
 
         // The stress test expression from UT_Experimental_If
@@ -47,11 +47,11 @@ public class BenchmarkDeepNesting {
 
         double opsPerSec = iterations / sw.Elapsed.TotalSeconds;
         long allocs = endMem - startMem;
-        
+
         Console.WriteLine($"Time: {sw.Elapsed.TotalMilliseconds:F2} ms");
         Console.WriteLine($"Ops/Sec: {opsPerSec:N0}");
         Console.WriteLine($"Allocations: {allocs / 1024.0 / 1024.0:F2} MB");
-        
+
         // Append to results
         string logFile = "benchmark_results.md";
         File.AppendAllText(logFile, $"\n### Deep Nesting Benchmark\n- **Expression**: Very deep nested IFs/Ternaries\n- **Iterations**: {iterations}\n- **Ops/Sec**: {opsPerSec:N0}\n- **Allocations**: {allocs / 1024.0 / 1024.0:F2} MB\n");

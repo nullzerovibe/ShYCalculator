@@ -102,12 +102,12 @@ public interface IGlobalScope {
     /// Gets the registered function extensions.
     /// </summary>
     IDictionary<string, ICalcFunctionsExtension> Functions { get; }
-    
+
     /// <summary>
     /// Gets the registered global constants.
     /// </summary>
     IDictionary<string, Value> Constants { get; }
-    
+
     /// <summary>
     /// Gets the registered operators.
     /// </summary>
@@ -119,47 +119,47 @@ public interface IGlobalScope {
     /// <param name="extension">The extension to register.</param>
     /// <param name="overrideExistingFunctions">Whether to override existing functions with same names.</param>
     void RegisterFunctions(ICalcFunctionsExtension extension, bool overrideExistingFunctions = true);
-    
+
     /// <summary>
     /// Adds a collection of typed constants.
     /// </summary>
     void AddConstants(Dictionary<string, Value> constants);
-    
+
     /// <summary>
     /// Adds a collection of numeric constants.
     /// </summary>
     void AddConstants(Dictionary<string, double> constants);
-    
+
     /// <summary>
     /// Adds a collection of boolean constants.
     /// </summary>
     void AddConstants(Dictionary<string, bool> constants);
-    
+
     /// <summary>
     /// Adds a collection of string constants.
     /// </summary>
     void AddConstants(Dictionary<string, string> constants);
-    
+
     /// <summary>
     /// Adds a collection of date constants.
     /// </summary>
     void AddConstants(Dictionary<string, DateTimeOffset> constants);
-    
+
     /// <summary>
     /// Adds a single numeric constant.
     /// </summary>
     void AddConstant(string key, double value);
-    
+
     /// <summary>
     /// Adds a single boolean constant.
     /// </summary>
     void AddConstant(string key, bool value);
-    
+
     /// <summary>
     /// Adds a single string constant.
     /// </summary>
     void AddConstant(string key, string value);
-    
+
     /// <summary>
     /// Adds a single date constant.
     /// </summary>
@@ -174,7 +174,7 @@ public interface IContext {
     /// Gets the current variables in scope.
     /// </summary>
     IDictionary<string, Value> Variables { get; }
-    
+
     /// <summary>
     /// Sets the variables context, replacing existing ones.
     /// </summary>
@@ -184,37 +184,37 @@ public interface IContext {
     /// Adds numeric variables to the context.
     /// </summary>
     void AddVariables(Dictionary<string, double> variables);
-    
+
     /// <summary>
     /// Adds boolean variables to the context.
     /// </summary>
     void AddVariables(Dictionary<string, bool> variables);
-    
+
     /// <summary>
     /// Adds string variables to the context.
     /// </summary>
     void AddVariables(Dictionary<string, string> variables);
-    
+
     /// <summary>
     /// Adds date variables to the context.
     /// </summary>
     void AddVariables(Dictionary<string, DateTimeOffset> variables);
-    
+
     /// <summary>
     /// Adds a single numeric variable.
     /// </summary>
     void AddVariable(string key, double value);
-    
+
     /// <summary>
     /// Adds a single boolean variable.
     /// </summary>
     void AddVariable(string key, bool value);
-    
+
     /// <summary>
     /// Adds a single string variable.
     /// </summary>
     void AddVariable(string key, string value);
-    
+
     /// <summary>
     /// Adds a single date variable.
     /// </summary>
