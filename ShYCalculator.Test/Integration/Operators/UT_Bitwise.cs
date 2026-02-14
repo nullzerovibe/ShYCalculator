@@ -75,4 +75,22 @@ public class UT_Bitwise {
         Assert.IsFalse(result.Success);
         // Checking via manual invocation for precise message if needed, but integration test confirms failure.
     }
+    [TestMethod]
+    public void Bitwise_Shift() {
+        // Left Shift <<
+        CheckDoubleResult("1 << 1", 2);
+        CheckDoubleResult("1 << 2", 4);
+        CheckDoubleResult("10 << 3", 80);
+        CheckDoubleResult("-1 << 1", -2); // -1 is all 1s, shift left makes it ...1110 which is -2
+
+        // Right Shift >>
+        CheckDoubleResult("2 >> 1", 1);
+        CheckDoubleResult("4 >> 2", 1);
+        CheckDoubleResult("80 >> 3", 10);
+        CheckDoubleResult("-2 >> 1", -1); // Arithmetic shift preserves sign bit
+
+        // Precedence Checks: + (6) > << (5) > & (4)
+        CheckDoubleResult("1 + 2 << 1", 6); // (1+2)<<1 = 3<<1 = 6
+        CheckDoubleResult("1 << 1 & 1", 0); // (1<<1)&1 = 2&1 = 0
+    }
 }

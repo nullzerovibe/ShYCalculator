@@ -175,6 +175,10 @@ public enum OperatorKind : byte {
     BitwiseXor,     // ⊕
     /// <summary>Bitwise NOT (~).</summary>
     BitwiseNot,     // ~
+    /// <summary>Bitwise Left Shift (&lt;&lt;).</summary>
+    BitwiseLeftShift, // <<
+    /// <summary>Bitwise Right Shift (&gt;&gt;).</summary>
+    BitwiseRightShift, // >>
     // Unary
     /// <summary>Factorial (!).</summary>
     Factorial,      // ! (postfix)

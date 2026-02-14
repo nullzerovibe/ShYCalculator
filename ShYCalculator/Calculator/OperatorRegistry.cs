@@ -26,6 +26,10 @@ internal static class OperatorRegistry {
         new("⊕",  "Bitwise XOR",      OperatorKind.BitwiseXor,     3, Associativity.Left,  Category.Bitwise,    DataType.Number),
         new("^^", "Bitwise XOR",      OperatorKind.BitwiseXor,     3, Associativity.Left,  Category.Bitwise,    DataType.Number),  // ASCII XOR alias
         new("&",  "Bitwise AND",      OperatorKind.BitwiseAnd,     4, Associativity.Left,  Category.Bitwise,    DataType.Number),
+
+        // Bitwise Shift (precedence 5 - same as comparison but logically distinct)
+        new("<<", "Bitwise Left Shift", OperatorKind.BitwiseLeftShift, 5, Associativity.Left, Category.Bitwise, DataType.Number),
+        new(">>", "Bitwise Right Shift", OperatorKind.BitwiseRightShift, 5, Associativity.Left, Category.Bitwise, DataType.Number),
         
         // Comparison (precedence 5)
         new("<",  "Less Than",        OperatorKind.Lt,             5, Associativity.Left,  Category.Comparison, DataType.Number | DataType.Date),

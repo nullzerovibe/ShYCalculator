@@ -28,6 +28,8 @@ internal static class BitwiseOperations {
             OperatorKind.BitwiseAnd => operand1 & operand2,
             OperatorKind.BitwiseOr => operand1 | operand2,
             OperatorKind.BitwiseXor => operand1 ^ operand2,
+            OperatorKind.BitwiseLeftShift => operand1 << operand2,
+            OperatorKind.BitwiseRightShift => operand1 >> operand2,
             _ => throw new ShuntingYardParserException($"Unexpected bitwise operator token '{token.KeyString}' of type {token.Type} at position {token.Index}")
         };
 
