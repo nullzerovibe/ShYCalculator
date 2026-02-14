@@ -523,7 +523,7 @@ option {
     padding: 1.5rem;
 }
 
-#functionList {
+#functionsList {
     padding: 1.5rem;
 }
 
@@ -633,7 +633,8 @@ option {
     border-bottom: 1px solid var(--glass-border);
 }
 
-.modern-select {
+.modern-select,
+.modern-input {
     width: 100%;
     padding: 0.5rem;
     border: 1px solid var(--glass-border);
@@ -641,9 +642,11 @@ option {
     color: var(--text);
     border-radius: 4px;
     outline: none;
+    font-size: 0.9rem;
 }
 
-.modern-select:focus {
+.modern-select:focus,
+.modern-input:focus {
     border-color: var(--accent);
 }
 
@@ -751,22 +754,22 @@ option {
 }
 
 .history-item {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    border-radius: 6px;
-    padding: 0.5rem 0.75rem;
-    /* Compact padding */
-    cursor: pointer;
-    transition: all 0.2s;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 0.75rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .history-item:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: var(--accent);
+    background: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.2);
 }
 
 .history-item:active {
@@ -792,6 +795,7 @@ option {
 .history-val {
     color: var(--accent);
     flex-shrink: 0;
+    font-weight: 600;
 }
 
 .history-time {

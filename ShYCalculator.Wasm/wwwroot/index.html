@@ -151,17 +151,29 @@
 
                 <div id="functionsTab" class="tab-content active">
                     <div class="filter-controls">
-                        <select id="funcCategoryFilter" class="modern-select">
-                            <option value="">All Categories</option>
-                        </select>
-                        <button id="clearCatValues" class="icon-btn" title="Clear Filter"
-                            style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); height: auto; width: 42px; display: flex; align-items: center; justify-content: center;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" style="width: 1.2rem; height: 1.2rem;">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
+                        <div class="input-with-clear" style="flex: 1;">
+                            <input type="text" id="funcSearchInput" placeholder="Search functions..."
+                                class="modern-input" style="width: 100%;">
+                            <button class="clear-input-btn" id="clearFuncSearch" title="Clear Search">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="input-with-clear" style="width: auto; min-width: 150px;">
+                            <select id="funcCategoryFilter" class="modern-select" style="width: 100%;">
+                                <option value="">All Categories</option>
+                            </select>
+                            <button class="clear-input-btn" id="clearCatValues" title="Clear Filter">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <div id="functionsList" class="docs-list">Loading...</div>
                 </div>
@@ -356,6 +368,13 @@ N u l l Z e r o V i b e
             if (e.target === docsModal) hideDocs();
         };
 
+        // Close on Esc key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && docsModal.style.display === 'flex') {
+                hideDocs();
+            }
+        });
+
         // Settings Logic
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const settingsMsg = document.getElementById('settingsMsg');
@@ -405,20 +424,42 @@ N u l l Z e r o V i b e
         });
 
         // Filter Logic
+        const funcSearchInput = document.getElementById('funcSearchInput');
         const categoryFilter = document.getElementById('funcCategoryFilter');
         const clearCatValues = document.getElementById('clearCatValues');
+        const clearFuncSearch = document.getElementById('clearFuncSearch');
 
         const applyFilter = () => {
             const cat = categoryFilter.value;
-            const filtered = cat ? allFunctions.filter(f => f.Category === cat) : allFunctions;
+            const search = funcSearchInput.value.toLowerCase().trim();
+
+            const filtered = allFunctions.filter(f => {
+                // Category Filter
+                if (cat && f.Category !== cat) return false;
+
+                // Search Filter
+                if (search) {
+                    return f.Name.toLowerCase().includes(search) ||
+                        (f.Description && f.Description.toLowerCase().includes(search));
+                }
+
+                return true;
+            });
             renderFunctions(filtered);
         };
 
         categoryFilter.onchange = applyFilter;
+        funcSearchInput.oninput = applyFilter;
 
         clearCatValues.onclick = () => {
             categoryFilter.value = "";
             applyFilter();
+        };
+
+        clearFuncSearch.onclick = () => {
+            funcSearchInput.value = "";
+            applyFilter();
+            funcSearchInput.focus();
         };
 
         // Operator Sorting
