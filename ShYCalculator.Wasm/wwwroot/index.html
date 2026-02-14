@@ -60,7 +60,7 @@
                         📚 Reference Guide
                     </button>
                 </div>
-                <select id="exampleSelect">
+                <select id="exampleSelect" style="display: none;">
                     <option value="">-- Select an Example --</option>
                     <optgroup label="Basic">
                         <option value="1 + 2 * 3">Simple Arithmetic</option>
@@ -124,12 +124,21 @@
                         </option>
                     </optgroup>
                 </select>
+
+                <!-- Custom Input Interface -->
+                <div class="custom-select-container">
+                    <input type="text" id="exampleInput" class="custom-select-input"
+                        placeholder="-- Select an Example --" autocomplete="off" />
+                    <div id="exampleList" class="custom-select-list"></div>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="exprInput">Mathematical Expression</label>
                 <input id="exprInput" type="text" placeholder="e.g. 1 + 2 * sin(0)" value="1 + 2 * sin(0)" />
             </div>
+
+
 
             <!-- Variables Section -->
             <div class="form-group">
@@ -299,7 +308,8 @@
                         Save
                         Settings
                     </button>
-                    <div id="settingsMsg" style="margin-top: 0.5rem; font-size: 0.9rem; min-height: 1.2em;"></div>
+                    <div id="settingsMsg" style="margin-top: 0.5rem; font-size: 0.9rem; min-height: 1.2em;">
+                    </div>
                 </div>
             </div>
             <!-- Scroll Top Button -->
@@ -541,6 +551,184 @@ N u l l Z e r o V i b e
         // Operator Sorting
         let allOperators = [];
         let curOpSort = { key: 'Precedence', dir: 'desc' }; // Default sort
+
+        // --- Custom Dropdown Logic (Ported from UoMConverter with OptGroup support) ---
+        function setupCustomExampleDropdown() {
+            const input = document.getElementById('exampleInput');
+            const list = document.getElementById('exampleList');
+            const select = document.getElementById('exampleSelect');
+
+            // 1. Flatten options but keep group info
+            let allItems = [];
+
+            Array.from(select.children).forEach(child => {
+                if (child.tagName === 'OPTGROUP') {
+                    // Add Group Header
+                    allItems.push({
+                        text: child.label,
+                        isGroupHeader: true
+                    });
+
+                    // Add Group Options
+                    Array.from(child.children).forEach(opt => {
+                        allItems.push({
+                            text: opt.textContent,
+                            value: opt.value,
+                            element: opt, // Keep ref for data-attributes
+                            groupLabel: child.label,
+                            isGroupHeader: false
+                        });
+                    });
+                } else if (child.tagName === 'OPTION') {
+                    // Top level option
+                    if (child.value === "") return; // Skip placeholder
+                    allItems.push({
+                        text: child.textContent,
+                        value: child.value,
+                        element: child,
+                        isGroupHeader: false
+                    });
+                }
+            });
+
+            const renderList = (filterText = '') => {
+                list.innerHTML = '';
+                const lowerFilter = filterText.toLowerCase();
+
+                let visibleCount = 0;
+
+                // If filter is active -> show only matching items
+                if (filterText) {
+                    const matches = allItems.filter(i => !i.isGroupHeader && i.text.toLowerCase().includes(lowerFilter));
+                    if (matches.length === 0) {
+                        list.innerHTML = '<div class="no-results" style="padding: 8px; color: #888;">No examples found</div>';
+                        return;
+                    }
+                    matches.forEach(item => createOptionElement(item));
+                } else {
+                    // Full view with headers
+                    allItems.forEach(item => {
+                        createOptionElement(item);
+                    });
+                }
+            };
+
+            function createOptionElement(item) {
+                const div = document.createElement('div');
+                div.className = item.isGroupHeader ? 'custom-group-header' : 'custom-option';
+                div.textContent = item.text;
+
+                if (item.isGroupHeader) {
+                    // Header styling
+                    div.style.padding = '8px 12px';
+                    div.style.fontWeight = '600';
+                    div.style.color = 'var(--text-muted)';
+                    div.style.fontSize = '0.85em';
+                    div.style.backgroundColor = 'rgba(0,0,0,0.1)';
+                    div.style.pointerEvents = 'none'; // Not clickable
+                    list.appendChild(div);
+                    return;
+                }
+
+                // Interaction for options
+                if (input.value === item.text) div.classList.add('selected');
+
+                div.onmousedown = (e) => {
+                    if (e.button !== 0) return;
+                    e.preventDefault(); // Prevent input blur
+
+                    // Select logic
+                    input.value = item.text;
+                    select.value = item.value;
+
+                    // Trigger change event manually
+                    select.dispatchEvent(new Event('change'));
+
+                    list.classList.remove('open');
+                };
+
+                list.appendChild(div);
+            }
+
+            // Keyboard Nav
+            let highlightedIndex = -1;
+            const updateHighlight = () => {
+                const options = Array.from(list.children).filter(c => c.classList.contains('custom-option'));
+                options.forEach((opt, idx) => {
+                    if (idx === highlightedIndex) {
+                        opt.classList.add('highlighted');
+                        opt.scrollIntoView({ block: 'nearest' });
+                    } else {
+                        opt.classList.remove('highlighted');
+                    }
+                });
+            };
+
+            // Event Handlers
+            input.onfocus = () => {
+                renderList('');
+                list.classList.add('open');
+                highlightedIndex = -1;
+            };
+
+            input.onclick = () => {
+                if (!list.classList.contains('open')) {
+                    renderList('');
+                    list.classList.add('open');
+                }
+            };
+
+            input.oninput = () => {
+                renderList(input.value);
+                list.classList.add('open');
+                highlightedIndex = 0;
+                updateHighlight();
+            };
+
+            // Close on blur
+            input.onblur = () => {
+                setTimeout(() => {
+                    list.classList.remove('open');
+                    // If invalid text, clear it
+                    const match = allItems.find(i => !i.isGroupHeader && i.text === input.value);
+                    if (!match) input.value = '';
+                }, 200);
+            };
+
+            input.onkeydown = (e) => {
+                if (!list.classList.contains('open')) {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                        renderList('');
+                        list.classList.add('open');
+                    }
+                    return;
+                }
+
+                const options = Array.from(list.children).filter(c => c.classList.contains('custom-option'));
+                if (options.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    highlightedIndex = (highlightedIndex + 1) % options.length;
+                    updateHighlight();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    highlightedIndex = (highlightedIndex - 1 + options.length) % options.length;
+                    updateHighlight();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (highlightedIndex >= 0 && options[highlightedIndex]) {
+                        options[highlightedIndex].onmousedown({ button: 0, preventDefault: () => { } });
+                    }
+                } else if (e.key === 'Escape') {
+                    list.classList.remove('open');
+                    input.blur();
+                }
+            };
+        }
+
+        // Initialize Custom Dropdown
+        setupCustomExampleDropdown();
 
         function sortOperators(key) {
             if (curOpSort.key === key) {
