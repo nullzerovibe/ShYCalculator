@@ -40,6 +40,7 @@
 - 🏗️ **Builder Pattern**: Fluent API for easy configuration.
 - 🛡️ **Safe**: No `eval()` or dynamic compilation risks; strictly parsed.
 - 🔁 **Compiled Mode**: Parse once, execute many times for maximum performance.
+- 📅 **Date & Time**: Robust support for date parsing, culture-specific formats, and time adjustments.
 - 🌳 **Deep Nesting**: Supports complex nested expressions (ifs, ternaries, functions).
 
 ## Quick Start

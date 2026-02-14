@@ -617,7 +617,10 @@ option {
     background: rgba(255, 255, 255, 0.05);
 }
 
-/* Filter Controls */
+/* Filter Controls 
+   Sits below tabs, sticky positioned.
+   Padding handled by input container (no modal-body padding). 
+*/
 .filter-controls {
     position: sticky;
     top: 0;
@@ -815,7 +818,9 @@ option {
     text-overflow: ellipsis;
 }
 
-/* Input with Clear Button */
+/* Input with Clear Button 
+   Wrapper to position the 'X' button inside the input.
+*/
 .input-with-clear {
     position: relative;
     display: flex;
@@ -823,8 +828,8 @@ option {
 }
 
 .input-with-clear input {
-    padding-right: 2.5rem;
     /* Make room for the button */
+    padding-right: 2.5rem;
 }
 
 .clear-input-btn {

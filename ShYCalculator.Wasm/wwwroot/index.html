@@ -360,7 +360,16 @@ N u l l Z e r o V i b e
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const settingsMsg = document.getElementById('settingsMsg');
 
+        /**
+         * Sets the Date Format input value from a chip selection.
+         * @param {string} fmt - The date format string (e.g., "dd/MM/yyyy")
+         */
         globalThis.setFormat = (fmt) => document.getElementById('dateFormatInput').value = fmt;
+
+        /**
+         * Sets the Culture input value from a chip selection.
+         * @param {string} cult - The culture code (e.g., "en-US")
+         */
         globalThis.setCulture = (cult) => document.getElementById('cultureInput').value = cult;
         globalThis.currentCulture = null; // Store for formatting
 
@@ -470,6 +479,10 @@ N u l l Z e r o V i b e
                     }
                 };
 
+                /**
+                 * Clears the Date Format input and restores focus.
+                 * Triggered by the 'X' button inside the input.
+                 */
                 globalThis.clearFormat = () => {
                     const input = document.getElementById('dateFormatInput');
                     if (input) {
@@ -478,6 +491,10 @@ N u l l Z e r o V i b e
                     }
                 };
 
+                /**
+                 * Clears the Culture input and restores focus.
+                 * Triggered by the 'X' button inside the input.
+                 */
                 globalThis.clearCulture = () => {
                     const input = document.getElementById('cultureInput');
                     if (input) {
