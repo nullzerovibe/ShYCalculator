@@ -787,7 +787,7 @@ N u l l Z e r o V i b e
                     copyBtn.style.display = 'block';
 
                     // Add to History
-                    addToHistory(expr, val);
+                    addToHistory(expr, val, vars);
                 } else {
                     output.textContent = "Error";
                     output.style.color = "var(--error)";
@@ -812,8 +812,8 @@ N u l l Z e r o V i b e
         }
 
         // --- History Functions ---
-        function addToHistory(expr, res) {
-            history.unshift({ expr, res, time: new Date().toLocaleTimeString() });
+        function addToHistory(expr, res, vars) {
+            history.unshift({ expr, res, vars, time: new Date().toLocaleTimeString() });
             if (history.length > MAX_HISTORY) history.pop();
             renderHistory();
         }
@@ -824,16 +824,21 @@ N u l l Z e r o V i b e
                 return;
             }
             historySection.style.display = 'block';
-            historyList.innerHTML = history.map(item => {
-                // Truncate less aggressively since we have a defined layout, but still needed for safety
+            historyList.innerHTML = history.map((item, index) => {
+                // Formatting vars string
+                let varsStr = '';
+                if (item.vars && Object.keys(item.vars).length > 0) {
+                    varsStr = Object.entries(item.vars).map(([k, v]) => `${k}=${v}`).join(', ');
+                }
+
                 const displayExpr = item.expr.length > 40 ? item.expr.substring(0, 40) + '...' : item.expr;
                 return `
-                <div class="history-item" onclick="restoreHistory('${item.expr.replace(/'/g, "\\'")}')" title="${item.expr} = ${item.res}">
+                <div class="history-item" onclick="restoreHistory(${index})" title="Restore: ${item.expr}">
                     <div class="history-main">
                         <span class="history-expr">${displayExpr}</span>
                         <span class="history-val">= ${item.res}</span>
                     </div>
-                    <div class="history-time">${item.time}</div>
+                    <div class="history-time" title="Variables used">${varsStr}</div>
                 </div>
             `}).join('');
         }
@@ -843,8 +848,21 @@ N u l l Z e r o V i b e
             renderHistory();
         };
 
-        globalThis.restoreHistory = (expr) => {
-            document.getElementById('exprInput').value = expr;
+        globalThis.restoreHistory = (index) => {
+            const item = history[index];
+            if (!item) return;
+
+            document.getElementById('exprInput').value = item.expr;
+
+            // Restore variables
+            const container = document.getElementById('variablesContainer');
+            container.innerHTML = ''; // Clear current
+
+            if (item.vars) {
+                for (const [key, val] of Object.entries(item.vars)) {
+                    addVariableRow(key, val);
+                }
+            }
             document.getElementById('exprInput').focus();
         };
 

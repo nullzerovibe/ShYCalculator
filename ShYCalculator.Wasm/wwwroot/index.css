@@ -243,16 +243,20 @@ button:disabled {
     padding: 0.5rem 1.25rem;
     font-size: 0.85rem;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--success), #059669);
-    color: white;
-    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    /* Subtle glass */
+    color: var(--text-muted);
+    border: 1px solid var(--glass-border);
     border-radius: 6px;
     transition: all 0.2s;
 }
 
 .btn-small:hover {
-    background: linear-gradient(135deg, var(--success), #059669);
-    filter: brightness(1.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.3);
+    filter: none;
+    /* Remove brightness filter */
 }
 
 .var-row {
@@ -267,9 +271,10 @@ button:disabled {
     align-items: center;
     justify-content: center;
     padding: 0;
-    background: linear-gradient(135deg, var(--error), #b91c1c) !important;
-    color: white !important;
-    border: none !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    /* Subtle glass */
+    color: var(--text-muted) !important;
+    border: 1px solid var(--glass-border) !important;
     border-radius: 6px;
     font-size: 1.2rem;
     font-weight: 700;
@@ -277,8 +282,11 @@ button:disabled {
 }
 
 .remove-var:hover {
-    background: linear-gradient(135deg, var(--error), #b91c1c) !important;
-    filter: brightness(1.2);
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--error) !important;
+    /* Red on hover only */
+    border-color: var(--error) !important;
+    filter: none;
 }
 
 @keyframes fadeIn {
@@ -806,7 +814,7 @@ option {
 
 .history-expr {
     font-weight: 500;
-    color: var(--text);
+    color: var(--text-muted);
     text-overflow: ellipsis;
     overflow: hidden;
 }
