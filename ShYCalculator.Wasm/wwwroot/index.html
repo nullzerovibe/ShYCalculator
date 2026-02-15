@@ -7,7 +7,7 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description"
-        content="High-performance .NET WASM Expression Evaluator with a premium industrial industrial theme." />
+        content="High-performance .NET WASM Expression Evaluator with a premium industrial theme." />
     <meta name="theme-color" content="#0f172a" />
 
     <!-- OpenGraph / Social Sharing -->
@@ -28,12 +28,6 @@
     <!-- Custom Styles -->
     <link rel="stylesheet" href="index.css" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
 
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
@@ -57,22 +51,42 @@ N u l l Z e r o V i b e
     </script>
 </head>
 
-<body>
+<body class="is-booting">
+    <!-- Boot Guard Splash Screen -->
+    <div id="boot-splash" class="boot-splash">
+        <img src="nlo/nlo-banner.jpg" class="splash-banner" alt="">
+        <div class="splash-logo">ShYCalculator</div>
+        <div class="splash-description">High-performance .NET WASM Expression Evaluator</div>
+        <div class="splash-loader"></div>
+        <div class="splash-status" id="boot-status">Initializing Engine...</div>
+    </div>
+
     <!-- App Root -->
-    <div id="app">
+    <div id="app" v-cloak>
         <!-- Preact will mount here -->
-        <div
-            style="display: flex; height: 100vh; justify-content: center; align-items: center; color: #94a3b8; font-family: sans-serif;">
-            Starting UI...
-        </div>
     </div>
 
     <!-- Background Decoration -->
     <img src="nlo/nlo-banner.jpg" class="app-banner" alt="" style="display:none;">
     <!-- Hidden but kept for asset reference if needed -->
 
-    <!-- Corner Links -->
-    <a href="https://github.com/nullzerovibe/ShYCalculator" target="_blank">
+    <!-- Corner Links (Static) -->
+    <div class="contact-footer">
+        <a href="mailto:nullzerovibe@gmail.com" class="contact-link">
+            <sl-icon name="envelope"></sl-icon>
+            <span>nullzerovibe@gmail.com</span>
+        </a>
+        <a href="https://github.com/nullzerovibe" target="_blank" class="contact-link">
+            <sl-icon name="github"></sl-icon>
+            <span>github.com/nullzerovibe</span>
+        </a>
+        <a href="https://x.com/nullzerovibe" target="_blank" class="contact-link">
+            <sl-icon name="twitter"></sl-icon>
+            <span>x.com/nullzerovibe</span>
+        </a>
+    </div>
+
+    <a href="https://github.com/nullzerovibe/ShYCalculator" target="_blank" class="corner-logo-wrapper">
         <img src="nlo/nlo-profile.png" alt="NullZeroVibe" class="corner-logo" />
     </a>
 
@@ -81,10 +95,52 @@ N u l l Z e r o V i b e
         globalThis.shyCalculator = null;
         globalThis.registerShYCalculator = (dotNetHelper) => {
             console.log("ShYCalculator: .NET Instance Registered!", dotNetHelper);
+            const status = document.getElementById('boot-status');
+            if (status) status.textContent = 'Mounting UI...';
+
             globalThis.shyCalculator = dotNetHelper;
             // Dispatch event for app.js to catch if it's already waiting
             globalThis.dispatchEvent(new CustomEvent('shy-calculator-ready', { detail: dotNetHelper }));
         };
+    </script>
+
+    <!-- UI Boot Guard (Shoelace Definition Watcher) -->
+    <script>
+        (async () => {
+            console.log("Boot Guard: Monitoring Shoelace Definitions...");
+            const status = document.getElementById('boot-status');
+
+            try {
+                // Wait for core components to be defined by Shoelace Autoloader
+                await Promise.all([
+                    customElements.whenDefined('sl-button'),
+                    customElements.whenDefined('sl-dialog'),
+                    customElements.whenDefined('sl-card'),
+                    customElements.whenDefined('sl-input'),
+                    customElements.whenDefined('sl-icon')
+                ]);
+
+                console.log("Boot Guard: Shoelace components defined.");
+                if (status) status.textContent = 'Engine Ready';
+
+                // Once components are defined, lift the cloak and hide splash
+                // We Wait a tiny bit extra for WASM if possible, but the app handles WASM load internally
+                setTimeout(() => {
+                    const app = document.getElementById('app');
+                    const splash = document.getElementById('boot-splash');
+
+                    if (app) app.removeAttribute('v-cloak');
+                    if (splash) splash.classList.add('hidden');
+                    document.body.classList.remove('is-booting');
+
+                    console.log("Boot Guard: Cloak lifted. UI synchronized.");
+                }, 150);
+
+            } catch (e) {
+                console.error("Boot Guard: Initialization failed!", e);
+                if (status) status.textContent = 'Boot Error: ' + e.message;
+            }
+        })();
     </script>
 
     <!-- Blazor Bootstrapper -->
@@ -146,19 +202,19 @@ N u l l Z e r o V i b e
 
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
+            globalThis.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
                     .then(reg => {
                         console.log('SW: Registered', reg);
                         // Check if already active or wait for it
                         if (reg.active) {
-                            window.dispatchEvent(new CustomEvent('sw-ready'));
+                            globalThis.dispatchEvent(new CustomEvent('sw-ready'));
                         }
                         reg.addEventListener('updatefound', () => {
                             const newWorker = reg.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'activated') {
-                                    window.dispatchEvent(new CustomEvent('sw-ready'));
+                                    globalThis.dispatchEvent(new CustomEvent('sw-ready'));
                                 }
                             });
                         });

@@ -81,20 +81,8 @@ export const Header = ({ state, actions }) => html`
             <h1 class="app-title">ShYCalculator</h1>
             <p class="app-subtitle">
                 High-performance .NET WASM Expression Evaluator 
-                <span class="version-tag">v${state.version?.value || '...'}</span>
+                <sl-badge class="version-tag shy-badge" size="small">v${state.version?.value || '...'}</sl-badge>
             </p>
-        </div>
-        <div class="header-actions">
-            <div class="status-indicator">
-                ${state.isOfflineReady?.value ? html`
-                    <sl-tooltip content="Offline Ready" hoist>
-                        <sl-icon name="wifi" class="offline-badge"></sl-icon>
-                    </sl-tooltip>
-                ` : null}
-                <sl-badge variant="${state.isReady?.value ? 'success' : 'danger'}">
-                    ${state.status?.value || 'Loading...'}
-                </sl-badge>
-            </div>
         </div>
     </header>
 `;
@@ -705,31 +693,26 @@ export const Documentation = ({ state, actions }) => {
         }}>
             <div slot="label" class="u-flex u-items-center u-gap-075">
                 <sl-icon src="https://api.iconify.design/lucide/book-open.svg?color=%23cbd5e1" class="doc-header-icon"></sl-icon>
-                Reference Guide
-                ${state.isOfflineReady?.value ? html`
-                    <sl-tooltip content="Offline Ready">
-                        <sl-icon name="cloud-check" class="u-text-success u-ml-05"></sl-icon>
-                    </sl-tooltip>
-                ` : null}
+                Docs & Settings
             </div>
             <sl-tab-group onsl-tab-show=${(e) => {
             state.showScrollTop.value = false;
             state.docActiveTab.value = e.detail.name;
         }}>
                 <sl-tab slot="nav" panel="funcs">
-                    <sl-icon src="https://api.iconify.design/lucide/variable.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Functions
+                    <sl-icon src="https://api.iconify.design/lucide/variable.svg?color=currentColor" class="tab-icon"></sl-icon> Functions
                 </sl-tab>
                 <sl-tab slot="nav" panel="ops">
-                    <sl-icon src="https://api.iconify.design/lucide/percent.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Operators
+                    <sl-icon src="https://api.iconify.design/lucide/percent.svg?color=currentColor" class="tab-icon"></sl-icon> Operators
                 </sl-tab>
                 <sl-tab slot="nav" panel="library">
-                    <sl-icon src="https://api.iconify.design/lucide/bookmark.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Expression Library
+                    <sl-icon src="https://api.iconify.design/lucide/bookmark.svg?color=currentColor" class="tab-icon"></sl-icon> Expression Library
                 </sl-tab>
                 <sl-tab slot="nav" panel="settings">
-                    <sl-icon src="https://api.iconify.design/lucide/settings-2.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Settings
+                    <sl-icon src="https://api.iconify.design/lucide/settings-2.svg?color=currentColor" class="tab-icon"></sl-icon> Settings
                 </sl-tab>
                 <sl-tab slot="nav" panel="about">
-                    <sl-icon src="https://api.iconify.design/lucide/info.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> About
+                    <sl-icon src="https://api.iconify.design/lucide/info.svg?color=currentColor" class="tab-icon"></sl-icon> About
                 </sl-tab>
                 
                 <sl-tab-panel name="funcs" onscroll=${onPanelScroll}>
@@ -765,8 +748,9 @@ export const Documentation = ({ state, actions }) => {
             return html`
                                 <div class="doc-card">
                                     <div class="doc-card-header">
-                                        <span class="doc-name">${name}</span>
-                                        <sl-copy-button value=${name} class="doc-copy-btn"></sl-copy-button>
+                                        <sl-tooltip content="Copy Name" hoist>
+                                            <span class="doc-name" onclick=${() => actions.copyToClipboard(name)}>${name}</span>
+                                        </sl-tooltip>
                                         <span class="doc-args">(${args.join(', ') || ''})</span>
                                         <sl-badge variant="primary" size="small" outline class="doc-category">
                                             <sl-icon src="${getCategoryIconUrl(fCat)}" class="cat-icon"></sl-icon> ${fCat}
@@ -776,9 +760,11 @@ export const Documentation = ({ state, actions }) => {
                                     ${examples.length > 0 ? html`
                                         <div class="doc-examples">
                                             ${examples.map(ex => html`
-                                                <sl-button size="small" outline class="btn-example" onclick=${() => actions.insertExample(ex)}>
-                                                    ${ex}
-                                                </sl-button>
+                                                <sl-tooltip content="Use Function" hoist>
+                                                    <sl-button size="small" outline class="btn-example" onclick=${() => actions.insertExample(ex)}>
+                                                        ${ex}
+                                                    </sl-button>
+                                                </sl-tooltip>
                                             `)}
                                         </div>
                                     ` : null}
@@ -815,8 +801,9 @@ export const Documentation = ({ state, actions }) => {
                                             <tr>
                                                 <td>
                                                     <div class="u-flex u-items-center u-justify-center u-gap-025">
-                                                        <code class="op-symbol">${symbol}</code>
-                                                        <sl-copy-button value=${symbol} class="doc-copy-btn"></sl-copy-button>
+                                                        <sl-tooltip content="Copy Symbol" hoist>
+                                                            <code class="op-symbol" onclick=${() => actions.copyToClipboard(symbol)}>${symbol}</code>
+                                                        </sl-tooltip>
                                                     </div>
                                                 </td>
                                                 <td>${name}</td>
@@ -1051,7 +1038,11 @@ export const Documentation = ({ state, actions }) => {
                                                 <sl-icon src=${getCategoryIconUrl(s.icon)} class="u-text-primary" style="font-size: 1.1rem;"></sl-icon>
                                             </td>
                                             <td style="font-weight: 600;">${s.label}</td>
-                                            <td><code class="op-symbol" dangerouslySetInnerHTML=${{ __html: highlightExpression(s.value, state.knownNames.value, state.variables.value, true) }}></code></td>
+                                            <td>
+                                                <sl-tooltip content="Copy Expression" hoist>
+                                                    <code class="op-symbol" onclick=${() => actions.copyToClipboard(s.value)} dangerouslySetInnerHTML=${{ __html: highlightExpression(s.value, state.knownNames.value, state.variables.value, true) }}></code>
+                                                </sl-tooltip>
+                                            </td>
                                             <td>
                                                 <sl-badge size="small" class="shy-badge">
                                                     ${s.group}
@@ -1127,22 +1118,6 @@ export const ConfirmDialog = ({ state, actions }) => {
     `;
 };
 
-export const ContactFooter = () => html`
-    <div class="contact-footer">
-        <a href="mailto:nullzerovibe@gmail.com" class="contact-link">
-            <sl-icon name="envelope"></sl-icon>
-            <span>nullzerovibe@gmail.com</span>
-        </a>
-        <a href="https://github.com/nullzerovibe" target="_blank" class="contact-link">
-            <sl-icon name="github"></sl-icon>
-            <span>github.com/nullzerovibe</span>
-        </a>
-        <a href="https://x.com/nullzerovibe" target="_blank" class="contact-link">
-            <sl-icon name="twitter"></sl-icon>
-            <span>x.com/nullzerovibe</span>
-        </a>
-    </div>
-`;
 
 export const App = ({ state, actions }) => {
     useEffect(() => {
@@ -1198,12 +1173,21 @@ export const App = ({ state, actions }) => {
     }, [state.result.value]);
 
     return html`
+        <div class="status-indicator">
+            ${state.isOfflineReady?.value ? html`
+                <sl-tooltip content="Offline Ready — Application is fully cached and available for standalone use without an internet connection." hoist>
+                    <sl-icon name="cloud-check" class="pwa-status"></sl-icon>
+                </sl-tooltip>
+            ` : null}
+            <sl-tooltip content="${state.isReady?.value ? 'Core Engine Active — High-performance .NET WASM runtime is initialized and ready for calculations.' : 'Engine Initializing...'}" hoist>
+                <sl-icon name="cpu" class="engine-status ${state.isReady?.value ? '' : 'is-loading'}"></sl-icon>
+            </sl-tooltip>
+        </div>
         <div class="app-container single-column">
             <${Header} state=${state} actions=${actions} />
             <${MainCard} state=${state} actions=${actions} />
         </div>
         <${Documentation} state=${state} actions=${actions} />
-        <${ContactFooter} />
         <${SaveSnippetDialog} state=${state} actions=${actions} />
         <${ConfirmDialog} state=${state} actions=${actions} />
     `;

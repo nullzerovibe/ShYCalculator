@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shy-calc-v2';
+const CACHE_NAME = 'shy-calc-v3';
 const ASSETS = [
     '/',
     '/index.html',
@@ -7,6 +7,8 @@ const ASSETS = [
     '/logic.js',
     '/favicon/favicon.ico',
     '/favicon/site.webmanifest',
+    '/favicon/android-chrome-192x192.png',
+    '/favicon/android-chrome-512x512.png',
     'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/themes/light.css',
     'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/shoelace-autoloader.js'
 ];
