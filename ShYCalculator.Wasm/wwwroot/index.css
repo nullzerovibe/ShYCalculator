@@ -809,8 +809,9 @@ sl-icon-button::part(base):hover {
 .hist-expr {
     font-family: var(--font-mono);
     font-size: 0.95rem;
-    color: #cbd5e1;
-    word-break: break-all;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    flex: 1;
 }
 
 .hist-res-group {
@@ -873,6 +874,13 @@ sl-icon-button::part(base):hover {
 sl-dialog::part(overlay) {
     background-color: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(4px);
+    transition: background-color 0.3s ease;
+}
+
+/* Prevent backdrop accumulation for nested dialogs */
+sl-dialog[open]~sl-dialog[open]::part(overlay) {
+    background-color: transparent;
+    backdrop-filter: none;
 }
 
 sl-dialog::part(panel) {
@@ -1313,7 +1321,12 @@ sl-tab-panel {
 .op-symbol {
     color: var(--accent);
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    font-family: var(--font-mono);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    display: inline-block;
+    max-width: 100%;
 }
 
 .ops-table td.num {
@@ -1727,29 +1740,28 @@ sl-tab-panel[active]::part(base) {
 
 /* Save Dialog & Premium Polish */
 .save-dialog::part(panel) {
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #1e293b;
+    border: 1px solid var(--glass-border);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    --width: 1125px;
+    width: 1200px;
     max-width: 95vw;
     z-index: 1000;
 }
 
 .save-dialog::part(header) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--glass-border);
+    background: #1e293b;
     padding: 0.65rem 1rem;
 }
 
 .save-dialog::part(body) {
     padding: 1.25rem;
-    max-height: 50vh;
     overflow-y: auto;
 }
 
 .save-dialog::part(footer) {
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid var(--glass-border);
+    background: #1e293b;
     padding: 1rem;
     display: flex;
     justify-content: center;
@@ -1873,10 +1885,31 @@ sl-tab-panel[active]::part(base) {
 
 .premium-save-btn {
     width: 100%;
-    min-height: 3.25rem;
-    font-size: 1rem;
-    font-weight: 700;
     letter-spacing: 0.01em;
+}
+
+.premium-save-btn::part(base) {
+    min-height: 3.25rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
+    border: none;
+    color: #ffffff;
+    transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.premium-save-btn::part(base):hover {
+    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+.premium-save-btn::part(base):active {
+    transform: translateY(0);
+    opacity: 0.9;
 }
 
 /* Pin Buttons */

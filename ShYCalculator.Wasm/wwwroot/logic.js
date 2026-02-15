@@ -71,7 +71,7 @@ export const EXAMPLE_GROUPS = [
         ]
     },
     {
-        label: "Formulas (Uses Variables)",
+        label: "Expressions (Uses Variables)",
         icon: "function-square",
         items: [
             { label: "Area of Circle", value: "pi * r * r", vars: [{ name: "r", value: "5" }, { name: "pi", value: "3.14159" }] },
@@ -170,7 +170,7 @@ export const getCategoryIconUrl = (cat) => {
         case 'all_categories':
         case 'layout-grid': icon = 'layout-grid'; break;
         case 'function-square':
-        case 'formulas (uses variables)': icon = 'function-square'; break;
+        case 'expressions (uses variables)': icon = 'function-square'; break;
         case 'rocket': icon = 'rocket'; break;
         case 'heart': icon = 'heart'; break;
         case 'star': icon = 'star'; break;
@@ -681,7 +681,7 @@ export const actions = {
                     newVars.push({ name, value: val });
                 });
                 appState.variables.value = newVars;
-                appState.message.value = "Formula loaded. Smart defaults applied based on function context.";
+                appState.message.value = "Expression loaded. Smart defaults applied based on function context.";
             }
         }
 
@@ -695,7 +695,7 @@ export const actions = {
             appState.snippets.value = appState.snippets.value.map(s =>
                 s.id === editing.id ? { ...s, label: name, icon, value, group, vars: JSON.parse(JSON.stringify(appState.variables.value)) } : s
             );
-            util.notify("Formula updated!", "success", "check2-circle");
+            util.notify("Expression updated!", "success", "check2-circle");
         } else {
             const item = {
                 id: Date.now().toString(),
@@ -703,17 +703,17 @@ export const actions = {
                 value: value || appState.input.value,
                 vars: JSON.parse(JSON.stringify(appState.variables.value)),
                 icon: icon || 'bookmark',
-                group: group || 'Custom Formulas'
+                group: group || 'Custom Expressions'
             };
             appState.snippets.value = [...appState.snippets.value, item];
-            util.notify("Formula saved to library!", "success", "bookmark");
+            util.notify("Expression saved to library!", "success", "bookmark");
         }
         appState.editingSnippet.value = null;
     },
 
     deleteSnippet: (id) => {
         appState.snippets.value = appState.snippets.value.filter(s => s.id !== id);
-        util.notify("Formula removed from library.");
+        util.notify("Expression removed from library.");
     },
     editSnippet: (snippet) => {
         appState.editingSnippet.value = JSON.parse(JSON.stringify(snippet));
@@ -724,7 +724,7 @@ export const actions = {
             s.id === id ? { ...s, pinned: !s.pinned } : s
         );
         const snippet = appState.snippets.value.find(s => s.id === id);
-        util.notify(snippet.pinned ? "Formula pinned!" : "Formula unpinned.");
+        util.notify(snippet.pinned ? "Expression pinned!" : "Expression unpinned.");
     },
 
     loadSnippet: (snippet) => {
