@@ -565,6 +565,7 @@ export const actions = {
         appState.result.value = item.result;
         appState.resultType.value = item.resultType || '';
         appState.calcTime.value = null;
+        actions.calculate();
     },
     saveSettings: async (newSettings) => {
         if (!appState.isReady.value) return;

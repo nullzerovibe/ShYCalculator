@@ -1539,15 +1539,17 @@ sl-tab-panel[name="about"]::part(base) {
     flex: 1;
 }
 
-.btn-cancel-settings::part(base) {
+.btn-cancel::part(base) {
     border-color: var(--glass-border);
     color: var(--text-muted);
 }
 
-.btn-cancel-settings::part(base):hover:not([disabled]) {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: var(--text-muted);
-    color: var(--text);
+.btn-cancel:not([disabled])::part(base):hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: #64748b !important;
+    color: #f8fafc !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 .settings-form {
@@ -1616,7 +1618,7 @@ sl-tab-panel[name="about"]::part(base) {
 
 .settings-presets sl-button[variant="primary"][outline]::part(base) {
     border-color: var(--glass-border);
-    color: #94a3b8;
+    color: #cbd5e1;
     background: transparent;
 }
 
@@ -1633,17 +1635,24 @@ sl-tab-panel[name="about"]::part(base) {
     background: rgba(56, 189, 248, 0.2);
 }
 
-/* --- Stepper Buttons (Ergonomics) --- */
+.btn-stepper {
+    margin: 0 !important;
+}
+
 .btn-stepper::part(base) {
     color: var(--accent);
-    padding: 0 0.5rem;
-    height: auto;
-    min-height: 2rem;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100% !important;
+    min-height: 2.25rem !important;
+    border-radius: 4px !important;
+    /* Industrial safety margin to avoid border overlap */
+    border: none !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 2.25rem !important;
 }
 
 .btn-stepper sl-icon {
@@ -1674,6 +1683,25 @@ sl-input::part(prefix) {
 
 sl-input::part(suffix) {
     margin-right: 0.35rem;
+}
+
+/* Specific override for stepper containers to eliminate gaps */
+sl-input:has(.btn-stepper)::part(base) {
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+sl-input:has(.btn-stepper)::part(input) {
+    padding: 0 0.75rem !important;
+}
+
+sl-input:has(.btn-stepper)::part(prefix),
+sl-input:has(.btn-stepper)::part(suffix) {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: stretch !important;
 }
 
 .btn-save-settings {
@@ -1718,8 +1746,6 @@ sl-input::part(suffix) {
 
 .scroll-top-btn:hover {
     transform: translateY(-5px) scale(1.1);
-    background: var(--accent) !important;
-    color: white !important;
 }
 
 .scroll-top-btn.visible {
@@ -1778,35 +1804,43 @@ sl-input::part(suffix) {
     left: 2rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    z-index: 100;
+    gap: 0.75rem;
+    z-index: 10000;
 }
 
 .contact-link {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    color: var(--text-muted);
+    color: #64748b;
     text-decoration: none;
     font-family: var(--font-mono);
-    font-size: 0.9rem;
-    transition: all 0.2s;
-    opacity: 0.7;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .contact-link sl-icon {
-    font-size: 1.1rem;
-    width: 1.1rem;
-    height: 1.1rem;
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    opacity: 0.7;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .contact-link:hover {
+    color: var(--accent) !important;
+    transform: translateX(4px);
     opacity: 1;
-    color: #cbd5e1;
-    transform: translateX(5px);
+}
+
+.contact-link:hover sl-icon {
+    opacity: 1;
+    color: var(--accent);
+    transform: scale(1.1);
 }
 
 .vibe-card {

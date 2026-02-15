@@ -913,7 +913,7 @@ export const Documentation = ({ state, actions }) => {
                             </form>
                         </div>
                         <div class="settings-button-footer">
-                            <sl-button variant="default" outline class="btn-cancel-settings" onclick=${actions.cancelSettings} disabled=${!isSettingsDirty()}>
+                            <sl-button variant="default" outline class="btn-cancel-settings btn-cancel" onclick=${actions.cancelSettings} disabled=${!isSettingsDirty()}>
                                 Cancel
                             </sl-button>
                             <sl-button variant="primary" type="submit" form="settings-form" class="btn-save-settings" disabled=${!isSettingsDirty()}>
@@ -1108,7 +1108,7 @@ export const ConfirmDialog = ({ state, actions }) => {
             <div class="confirm-content">
                 ${dialog.message.value}
             </div>
-            <sl-button slot="footer" variant="text" onclick=${() => actions.closeConfirm()}>
+            <sl-button slot="footer" variant="text" class="btn-cancel" onclick=${() => actions.closeConfirm()}>
                 ${dialog.cancelLabel.value}
             </sl-button>
             <sl-button slot="footer" variant=${dialog.variant.value} onclick=${handleConfirm} autofocus>
