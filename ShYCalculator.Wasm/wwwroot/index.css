@@ -1601,10 +1601,13 @@ sl-tab-panel[name="about"]::part(base) {
     text-overflow: ellipsis;
     white-space: nowrap;
     transition: all 0.2s ease;
+    border-radius: 6px !important;
 }
 
 .settings-presets sl-button[variant="primary"]:not([outline])::part(base) {
     background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+    background-clip: padding-box;
+    /* Fix color bleed on rounded corners */
     border: 1px solid transparent;
     color: white;
     font-weight: 600;
@@ -1628,6 +1631,49 @@ sl-tab-panel[name="about"]::part(base) {
 .settings-presets sl-button[variant="primary"][outline]:active::part(base) {
     transform: translateY(0);
     background: rgba(56, 189, 248, 0.2);
+}
+
+/* --- Stepper Buttons (Ergonomics) --- */
+.btn-stepper::part(base) {
+    color: var(--accent);
+    padding: 0 0.5rem;
+    height: auto;
+    min-height: 2rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-stepper sl-icon {
+    font-size: 1.1rem;
+}
+
+.btn-stepper:hover::part(base) {
+    background-color: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    transform: scale(1.1);
+}
+
+.btn-stepper:active::part(base) {
+    background-color: rgba(56, 189, 248, 0.25);
+    transform: scale(0.9);
+}
+
+.btn-stepper[disabled]::part(base) {
+    color: var(--text-muted);
+    opacity: 0.3;
+    transform: none;
+}
+
+/* Internal Spacing refinement for all inputs */
+sl-input::part(prefix) {
+    margin-left: 0.35rem;
+}
+
+sl-input::part(suffix) {
+    margin-right: 0.35rem;
 }
 
 .btn-save-settings {

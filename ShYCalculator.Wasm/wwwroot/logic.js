@@ -421,11 +421,6 @@ export const actions = {
 
             loadDocumentation();
 
-            if (FLAT_MAP && FLAT_MAP.length > 0) {
-                const first = FLAT_MAP[0];
-                actions.insertExample(first.value, first.vars, "0");
-            }
-
         } catch (e) {
             console.error("Initialization Failed", e);
             appState.status.value = 'Error: ' + e.message;

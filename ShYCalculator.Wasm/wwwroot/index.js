@@ -886,13 +886,13 @@ export const Documentation = ({ state, actions }) => {
                                         <div class="form-group u-mb-2" style="animation: fadeIn 0.15s ease-out;">
                                             <sl-input name="historyLength" type="number" min="1" max="100" value=${state.settings.value.historyLength} onsl-input=${onInputChange}>
                                                 <div slot="help-text" class="subtle-help">Maximum number of calculations to keep in history memory.</div>
-                                                <sl-button slot="prefix" variant="text" style="padding: 0; margin-left: 0.25rem;" 
+                                                <sl-button slot="prefix" variant="text" class="btn-stepper"
                                                     onclick=${(e) => { e.preventDefault(); state.settings.value = { ...state.settings.value, historyLength: Math.max(1, parseInt(state.settings.value.historyLength) - 1) }; }}>
-                                                    <sl-icon name="dash-lg" style="font-size: 0.8rem;"></sl-icon>
+                                                    <sl-icon name="dash-lg"></sl-icon>
                                                 </sl-button>
-                                                <sl-button slot="suffix" variant="text" style="padding: 0; margin-right: 0.25rem;" 
+                                                <sl-button slot="suffix" variant="text" class="btn-stepper"
                                                     onclick=${(e) => { e.preventDefault(); state.settings.value = { ...state.settings.value, historyLength: Math.min(100, parseInt(state.settings.value.historyLength) + 1) }; }}>
-                                                    <sl-icon name="plus-lg" style="font-size: 0.8rem;"></sl-icon>
+                                                    <sl-icon name="plus-lg"></sl-icon>
                                                 </sl-button>
                                             </sl-input>
                                         </div>
@@ -900,11 +900,11 @@ export const Documentation = ({ state, actions }) => {
                                         <div class="form-group u-mb-2" style="opacity: 0.5; pointer-events: none;">
                                             <sl-input name="historyLength" type="number" value=${state.settings.value.historyLength} disabled>
                                                 <div slot="help-text" class="subtle-help">Enable history recording to adjust record limit.</div>
-                                                <sl-button slot="prefix" variant="text" style="padding: 0; margin-left: 0.25rem;" disabled>
-                                                    <sl-icon name="dash-lg" style="font-size: 0.8rem;"></sl-icon>
+                                                <sl-button slot="prefix" variant="text" class="btn-stepper" disabled>
+                                                    <sl-icon name="dash-lg"></sl-icon>
                                                 </sl-button>
-                                                <sl-button slot="suffix" variant="text" style="padding: 0; margin-right: 0.25rem;" disabled>
-                                                    <sl-icon name="plus-lg" style="font-size: 0.8rem;"></sl-icon>
+                                                <sl-button slot="suffix" variant="text" class="btn-stepper" disabled>
+                                                    <sl-icon name="plus-lg"></sl-icon>
                                                 </sl-button>
                                             </sl-input>
                                         </div>
