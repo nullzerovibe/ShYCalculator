@@ -5,21 +5,94 @@ import { FLAT_MAP, EXAMPLE_GROUPS, getCategoryIconUrl, getTypeIconUrl, appState,
 
 const html = htm.bind(h);
 
+// --- HELPERS ---
+
+const highlightExpression = (text, knownNames, variables) => {
+    if (!text) return '';
+    const varNames = new Set(variables.map(v => v.name));
+
+    // Simple tokenizer for highlighting
+    // String: Amber, Operators: Cyan, Numbers: White, Functions: Slate, Booleans: Rose, Variables: Blue, Unknown: Underlined Red
+    return text.replace(/('.*?')|\b(true|false)\b|([a-zA-Z_][a-zA-Z0-9_]*)|(\d+(?:\.\d+)?)|([+\-*/^%<>=!&|?:]+)|(\s+)|(.)/g, (match, str, bool, id, num, op, space, other) => {
+        if (str) return `<span class="hl-str">${str}</span>`;
+        if (bool) return `<span class="hl-bool">${bool}</span>`;
+        if (id) {
+            if (knownNames.has(id)) return `<span class="hl-func">${id}</span>`;
+            if (varNames.has(id)) return `<span class="hl-var">${id}</span>`;
+            return `<span class="hl-unknown">${id}</span>`;
+        }
+        if (num) return `<span class="hl-num">${num}</span>`;
+        if (op) return `<span class="hl-op">${op}</span>`;
+        if (space) return space;
+        return other;
+    });
+};
+
+const detectVariables = (text, knownNames, variables) => {
+    if (!text) return [];
+    // Remove strings before detecting variables to avoid false positives
+    const cleanText = text.replace(/'.*?'/g, '');
+    const varNames = new Set(variables.map(v => v.name));
+    const cand = new Set();
+    const matches = cleanText.matchAll(/\b([a-zA-Z_][a-zA-Z0-9_]*)\b/g);
+    for (const m of matches) {
+        const id = m[1];
+        if (!knownNames.has(id) && !varNames.has(id)) {
+            cand.add(id);
+        }
+    }
+    return Array.from(cand);
+};
+
 // --- COMPONENTS ---
 
-export const Header = ({ state }) => html`
+export const SyntaxEditor = ({ value, onInput, onKeyDown, state }) => {
+    const onInternalInput = (e) => {
+        onInput(e);
+        // Detect suggestions
+        const cands = detectVariables(e.target.value, state.knownNames.value, state.variables.value);
+        state.suggestions.value = cands;
+    };
+
+    const htmlContent = highlightExpression(value, state.knownNames.value, state.variables.value);
+
+    return html`
+        <div class="syntax-editor">
+            <div class="highlight-overlay" dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
+            <textarea 
+                placeholder="Enter expression..." 
+                value=${value}
+                oninput=${onInternalInput}
+                onkeydown=${onKeyDown}
+                spellcheck="false"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+            ></textarea>
+        </div>
+    `;
+};
+
+export const Header = ({ state, actions }) => html`
     <header class="app-header">
         <div class="logo-area">
             <h1 class="app-title">ShYCalculator</h1>
             <p class="app-subtitle">
                 High-performance .NET WASM Expression Evaluator 
-                <span class="version-tag">v${state.version.value}</span>
+                <span class="version-tag">v${state.version?.value || '...'}</span>
             </p>
         </div>
-        <div class="status-indicator">
-            <sl-badge variant="${state.isReady.value ? 'success' : 'danger'}">
-                ${state.status.value}
-            </sl-badge>
+        <div class="header-actions">
+            <div class="status-indicator">
+                ${state.isOfflineReady?.value ? html`
+                    <sl-tooltip content="Offline Ready">
+                        <sl-icon name="cloud-check" class="offline-icon"></sl-icon>
+                    </sl-tooltip>
+                ` : null}
+                <sl-badge variant="${state.isReady?.value ? 'success' : 'danger'}">
+                    ${state.status?.value || 'Loading...'}
+                </sl-badge>
+            </div>
         </div>
     </header>
 `;
@@ -58,7 +131,7 @@ export const MainCard = ({ state, actions }) => {
                         `)}
                     </sl-select>
                     <sl-button outline class="btn-secondary" onclick=${actions.openDocs}>
-                        <sl-icon slot="prefix" name="book"></sl-icon> Reference Guide
+                        <sl-icon slot="prefix" name="book"></sl-icon> Docs & Settings
                     </sl-button>
                 </div>
             </div>
@@ -68,13 +141,13 @@ export const MainCard = ({ state, actions }) => {
                     <sl-icon src="https://api.iconify.design/lucide/terminal.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
                     Mathematical Expression
                 </label>
-                <sl-input 
-                    placeholder="Enter expression..." 
+                <${SyntaxEditor} 
                     value=${state.input.value}
-                    oninput=${onInput}
-                    onkeydown=${e => e.key === 'Enter' && actions.calculate()}
-                    clearable
-                ></sl-input>
+                    onInput=${onInput}
+                    onKeyDown=${e => e.key === 'Enter' && actions.calculate()}
+                    state=${state}
+                />
+                
             </div>
 
             <div class="form-section">
@@ -84,6 +157,37 @@ export const MainCard = ({ state, actions }) => {
                         Variables (Context)
                     </label>
                     <div class="section-actions">
+                        ${(() => {
+            const items = state.suggestions.value;
+            const shown = items.slice(0, 3);
+            const remaining = items.slice(3);
+
+            return html`
+                                ${shown.map(v => html`
+                                    <sl-button size="small" variant="primary" outline class="suggestion-pill u-mr-05" onclick=${() => {
+                    actions.addVar();
+                    const lastIdx = state.variables.value.length - 1;
+                    actions.updateVar(lastIdx, 'name', v);
+                    state.suggestions.value = state.suggestions.value.filter(s => s !== v);
+                }}>
+                                        <sl-icon slot="prefix" name="plus"></sl-icon> '${v}'?
+                                    </sl-button>
+                                `)}
+                                
+                                ${remaining.length > 0 ? html`
+                                    <sl-button size="small" variant="primary" outline class="suggestion-pill u-mr-05" onclick=${() => {
+                        items.forEach(v => {
+                            actions.addVar();
+                            const lastIdx = state.variables.value.length - 1;
+                            actions.updateVar(lastIdx, 'name', v);
+                        });
+                        state.suggestions.value = [];
+                    }}>
+                                        <sl-icon slot="prefix" name="layers"></sl-icon> Create All (${items.length})
+                                    </sl-button>
+                                ` : null}
+                            `;
+        })()}
                         <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary u-mr-05" onclick=${actions.clearVars}>
                             <sl-icon slot="prefix" name="trash"></sl-icon> Clear
                         </sl-button>
@@ -120,14 +224,14 @@ export const MainCard = ({ state, actions }) => {
                     </div>
 
                     <div class="result-footer">
-                        <div class="result-badge-area ${state.message.value ? 'u-visible' : 'u-invisible'}">
+                        <div class="result-badge-area ${state.message.value ? 'u-visible' : 'u-invisible'} ${state.result.value === 'Error' ? 'u-hidden' : ''}">
                             <sl-badge size="small" class="shy-badge">
                                 <sl-icon src="${getTypeIconUrl(state.resultType.value)}" class="type-icon-sm"></sl-icon>
                                 ${state.resultType.value}
                             </sl-badge>
                             <span class="result-msg">${state.message.value}</span>
                         </div>
-                        <div class="result-stats">
+                        <div class="result-stats ${state.result.value === 'Error' ? 'u-hidden' : ''}">
                             ${state.calcTime.value === null ? null : html`
                                 <sl-badge size="small" class="shy-badge">
                                     <sl-icon src="https://api.iconify.design/lucide/timer.svg?color=%23cbd5e1" class="type-icon-sm"></sl-icon>
@@ -143,9 +247,20 @@ export const MainCard = ({ state, actions }) => {
                 <div class="history-section">
                     <div class="history-header">
                         <label class="section-label">History</label>
-                        <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary" onclick=${actions.clearHistory}>
-                            <sl-icon slot="prefix" name="trash"></sl-icon> Clear
-                        </sl-button>
+                        <div class="section-actions">
+                            <sl-dropdown hoist>
+                                <sl-button slot="trigger" size="small" variant="neutral" outline class="btn-secondary u-mr-05" caret>
+                                    <sl-icon slot="prefix" name="download"></sl-icon> Export
+                                </sl-button>
+                                <sl-menu>
+                                    <sl-menu-item onclick=${() => actions.exportHistory('csv')}>Export as CSV</sl-menu-item>
+                                    <sl-menu-item onclick=${() => actions.exportHistory('json')}>Export as JSON</sl-menu-item>
+                                </sl-menu>
+                            </sl-dropdown>
+                            <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary" onclick=${actions.clearHistory}>
+                                <sl-icon slot="prefix" name="trash"></sl-icon> Clear
+                            </sl-button>
+                        </div>
                     </div>
                     <div class="history-list">
                         ${state.history.value.map(item => html`
@@ -282,6 +397,7 @@ export const Documentation = ({ state, actions }) => {
         const isChecked = (name) => form.querySelector(`[name="${name}"]`)?.checked || false;
 
         actions.saveSettings({
+            theme: getVal('theme'),
             dateFormat: getVal('dateFormat'),
             culture: getVal('culture'),
             enableHistory: isChecked('enableHistory'),
@@ -330,6 +446,11 @@ export const Documentation = ({ state, actions }) => {
             <div slot="label" class="u-flex u-items-center u-gap-075">
                 <sl-icon src="https://api.iconify.design/lucide/book-open.svg?color=%23cbd5e1" class="doc-header-icon"></sl-icon>
                 Reference Guide
+                ${state.isOfflineReady?.value ? html`
+                    <sl-tooltip content="Offline Ready">
+                        <sl-icon name="cloud-check" class="u-text-success u-ml-05"></sl-icon>
+                    </sl-tooltip>
+                ` : null}
             </div>
             <sl-tab-group onsl-tab-show=${() => state.showScrollTop.value = false}>
                 <sl-tab slot="nav" panel="funcs">
@@ -378,6 +499,7 @@ export const Documentation = ({ state, actions }) => {
                             <div class="doc-card">
                                 <div class="doc-card-header">
                                     <span class="doc-name">${name}</span>
+                                    <sl-copy-button value=${name} class="doc-copy-btn"></sl-copy-button>
                                     <span class="doc-args">(${args.join(', ') || ''})</span>
                                     <sl-badge variant="primary" size="small" outline class="doc-category">
                                         <sl-icon src="${getCategoryIconUrl(fCat)}" class="cat-icon"></sl-icon> ${fCat}
@@ -421,7 +543,12 @@ export const Documentation = ({ state, actions }) => {
 
                 return html`
                                     <tr>
-                                        <td><code class="op-symbol">${symbol}</code></td>
+                                        <td>
+                                            <div class="u-flex u-items-center u-justify-center u-gap-025">
+                                                <code class="op-symbol">${symbol}</code>
+                                                <sl-copy-button value=${symbol} class="doc-copy-btn"></sl-copy-button>
+                                            </div>
+                                        </td>
                                         <td>${name}</td>
                                         <td>
                                             <sl-badge size="small" class="shy-badge op-category">
@@ -440,6 +567,18 @@ export const Documentation = ({ state, actions }) => {
 
                 <sl-tab-panel name="settings">
                     <form class="settings-form" onsubmit=${onSaveSettings}>
+                        <div class="form-group u-mb-2">
+                            <label>
+                                <sl-icon src="https://api.iconify.design/lucide/palette.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
+                                Appearance Theme
+                            </label>
+                            <sl-select name="theme" value=${state.settings.value.theme} onsl-change=${onInputChange}>
+                                <sl-option value="auto">System Default (Auto)</sl-option>
+                                <sl-option value="light">Industrial White (Light)</sl-option>
+                                <sl-option value="dark">Industrial Black (Dark)</sl-option>
+                            </sl-select>
+                        </div>
+
                         <div class="form-group">
                             <label>
                                 <sl-icon src="https://api.iconify.design/lucide/calendar-clock.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
@@ -478,7 +617,7 @@ export const Documentation = ({ state, actions }) => {
                                  <sl-switch name="enableHistory" checked=${state.settings.value.enableHistory} onsl-change=${(e) => {
             const isChecked = e.target.checked;
             let newLen = state.settings.value.historyLength;
-            if (isChecked && (!newLen || parseInt(newLen) <= 0)) newLen = 10;
+            if (isChecked && (!newLen || Number.parseInt(newLen) <= 0)) newLen = 10;
             state.settings.value = { ...state.settings.value, enableHistory: isChecked, historyLength: newLen };
         }}></sl-switch>
                             </div>
@@ -624,9 +763,55 @@ export const App = ({ state, actions }) => {
         }
     }, []);
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // / to focus input (if not already focused and not in an input/textarea)
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                const input = document.querySelector('sl-input[placeholder="Enter expression..."]');
+                if (input) {
+                    input.focus();
+                    // Select all text if there is any
+                    input.select();
+                }
+            }
+            // Esc to clear input (if input is focused)
+            if (e.key === 'Escape' && document.activeElement.tagName === 'INPUT') {
+                state.input.value = '';
+                actions.calculate();
+            }
+            // Ctrl+Enter to trigger calculate
+            if (e.key === 'Enter' && e.ctrlKey) {
+                actions.calculate();
+            }
+        };
+
+        globalThis.addEventListener('keydown', handleKeyDown);
+        // Listen for SW readiness
+        const onSwReady = () => {
+            state.isOfflineReady.value = true;
+        };
+        globalThis.addEventListener('sw-ready', onSwReady);
+
+        return () => {
+            globalThis.removeEventListener('keydown', handleKeyDown);
+            globalThis.removeEventListener('sw-ready', onSwReady);
+        };
+    }, []);
+
+    // Reactive Feedback: Result Ping
+    useEffect(() => {
+        const resEl = document.querySelector('.result-value');
+        if (resEl && state.result.value !== '0' && state.result.value !== '') {
+            resEl.classList.remove('result-animate');
+            void resEl.offsetWidth; // Trigger reflow
+            resEl.classList.add('result-animate');
+        }
+    }, [state.result.value]);
+
     return html`
         <div class="app-container single-column">
-            <${Header} state=${state} />
+            <${Header} state=${state} actions=${actions} />
             <${MainCard} state=${state} actions=${actions} />
             <${Documentation} state=${state} actions=${actions} />
             <${ContactFooter} />

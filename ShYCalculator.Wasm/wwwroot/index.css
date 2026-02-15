@@ -66,6 +66,33 @@
     monospace;
 }
 
+/* Industrial White Theme Overrides */
+[data-theme="light"] {
+    --bg: #f8fafc;
+    /* Slate 50 */
+    --glass: rgba(255, 255, 255, 0.7);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-surface: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --text: #1e293b;
+    /* Slate 800 */
+    --text-muted: #64748b;
+    /* Slate 500 */
+    --accent: #0284c7;
+    /* Sky 700 - darker for readability */
+
+    /* Shoelace Light Theme Sync */
+    --sl-color-neutral-0: #ffffff;
+    --sl-color-neutral-100: #f1f5f9;
+    --sl-color-neutral-200: #e2e8f0;
+    --sl-input-background-color: #ffffff;
+    --sl-input-border-color: #e2e8f0;
+    --sl-input-color: #1e293b;
+
+    /* Document/Card Overrides */
+    --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
 /* --- Utilities --- */
 .u-flex {
     display: flex;
@@ -298,6 +325,7 @@ sl-tab-panel {
     letter-spacing: -0.02em;
     background: linear-gradient(to right, #60a5fa, #38bdf8);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.4));
 }
@@ -328,10 +356,10 @@ sl-tab-panel {
 
 .version-tag {
     font-size: 0.75em;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.3);
     padding: 0.25em 0.75em;
     border-radius: 99px;
-    color: #f1f5f9;
+    color: #ffffff;
     /* Increased contrast (Slate 100) */
     border: 1px solid rgba(255, 255, 255, 0.1);
     font-weight: 600;
@@ -423,7 +451,7 @@ sl-card::part(body) {
     height: 3.5rem;
     font-size: 1.25rem;
     font-weight: 600;
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
     border: none;
     color: #ffffff;
     letter-spacing: 0.02em;
@@ -1047,10 +1075,24 @@ sl-tab-panel {
 .doc-card-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.4rem;
-    /* Tighter spacing */
+    gap: 0.15rem;
+    margin-bottom: 0.25rem;
 }
+
+.doc-copy-btn {
+    --sl-icon-size: 0.8rem;
+    color: var(--accent);
+    opacity: 0.3;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+}
+
+.doc-copy-btn:hover {
+    opacity: 1;
+}
+
+/* Tighter spacing */
+
 
 .doc-name {
     color: var(--accent);
@@ -1341,7 +1383,7 @@ sl-tab-panel {
     height: 3.5rem;
     font-size: 1.1rem;
     font-weight: 600;
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
     border: none;
     color: #ffffff;
     display: flex;
@@ -1370,8 +1412,14 @@ sl-tab-panel {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateY(10px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: translateY(10px) scale(0.9);
+}
+
+.scroll-top-btn:hover {
+    transform: translateY(-5px) scale(1.1);
+    background: var(--accent) !important;
+    color: white !important;
 }
 
 .scroll-top-btn.visible {
@@ -1531,4 +1579,131 @@ sl-menu-label::part(base) {
 .shy-badge sl-icon {
     font-size: 1.1rem;
     vertical-align: middle;
+}
+
+/* --- UX & Micro-Interactions --- */
+
+/* Smooth Tab Transitions */
+sl-tab-panel::part(base) {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+sl-tab-panel[active]::part(base) {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Result Ping Animation */
+@keyframes result-ping {
+    0% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+        filter: brightness(1.3) drop-shadow(0 0 8px var(--accent));
+    }
+
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
+
+.result-animate {
+    animation: result-ping 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* --- Syntax Highlighting --- */
+.syntax-editor {
+    position: relative;
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    line-height: 1.5;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 100px;
+    transition: border-color 0.2s ease;
+}
+
+.syntax-editor:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.syntax-editor textarea {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100px;
+    padding: 1rem;
+    background: transparent;
+    border: none;
+    resize: none;
+    color: transparent;
+    caret-color: var(--accent);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    outline: none;
+    display: block;
+}
+
+.syntax-editor .highlight-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    pointer-events: none;
+    color: var(--text-muted);
+}
+
+.hl-op {
+    color: #38bdf8;
+    font-weight: bold;
+}
+
+.hl-num {
+    color: #ffffff;
+}
+
+.hl-func {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.hl-bool {
+    color: #fb7185;
+    font-weight: bold;
+}
+
+.hl-var {
+    color: #60a5fa;
+}
+
+.hl-str {
+    color: #fbbf24;
+}
+
+.hl-unknown {
+    color: #fb7185;
+    text-decoration: underline wavy;
+}
+
+.suggestion-pill::part(base) {
+    --sl-button-font-size-small: 0.75rem;
+    padding: 0 0.5rem;
+    height: 1.8rem;
+    border-style: dashed;
 }

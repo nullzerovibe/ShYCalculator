@@ -6,7 +6,19 @@
     <title>ShYCalculator (Preact + Shoelace)</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="High-performance .NET WASM Expression Evaluator with Preact & Shoelace UI." />
+    <meta name="description"
+        content="High-performance .NET WASM Expression Evaluator with a premium industrial industrial theme." />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- OpenGraph / Social Sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ShYCalculator - Industrial .NET WASM Engine" />
+    <meta property="og:description"
+        content="A blazingly fast expression evaluator with unit conversion support and a professional industrial aesthetic." />
+    <meta property="og:image"
+        content="https://raw.githubusercontent.com/nullzerovibe/ShYCalculator/main/docs/preview.png" />
+    <meta property="og:url" content="https://nullzerovibe.github.io/ShYCalculator/" />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <!-- Shoelace (CDN) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.12.0/cdn/themes/light.css" />
@@ -131,6 +143,30 @@ N u l l Z e r o V i b e
 
     <!-- Main UI Logic -->
     <script type="module" src="index.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => {
+                        console.log('SW: Registered', reg);
+                        // Check if already active or wait for it
+                        if (reg.active) {
+                            window.dispatchEvent(new CustomEvent('sw-ready'));
+                        }
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'activated') {
+                                    window.dispatchEvent(new CustomEvent('sw-ready'));
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => console.error('SW: Registration failed', err));
+            });
+        }
+    </script>
 </body>
 
 </html>

@@ -150,7 +150,7 @@ const loadSavedHistory = () => {
 };
 
 const loadSavedSettings = () => {
-    const defaults = { dateFormat: 'dd/MM/yyyy', culture: 'en-US', enableHistory: true, historyLength: 15 };
+    const defaults = { dateFormat: 'dd/MM/yyyy', culture: 'en-US', enableHistory: true, historyLength: 15, theme: 'auto' };
     try {
         const saved = localStorage.getItem(STORAGE_KEY_SETTINGS);
         if (!saved) return defaults;
@@ -198,12 +198,38 @@ export const appState = {
     operatorSortBy: signal('Precedence'),
     operatorSortDir: signal('desc'),
     settings: signal(settings),
-    showScrollTop: signal(false)
+    showScrollTop: signal(false),
+    isOfflineReady: signal(false),
+    suggestions: signal([]),
+    knownNames: signal(new Set(['pi', 'e', 'true', 'false']))
 };
 
 // --- AUTO-SAVE EFFECTS ---
 effect(() => {
     localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(appState.history.value));
+});
+
+effect(() => {
+    let theme = appState.settings.value.theme || 'auto';
+
+    if (theme === 'auto') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = isDark ? 'dark' : 'light';
+    }
+
+    document.body.dataset.theme = theme;
+    const slTheme = theme === 'dark' ? 'sl-theme-dark' : 'sl-theme-light';
+    document.documentElement.className = slTheme;
+});
+
+// Listener for system preference changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (appState.settings.value.theme === 'auto') {
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = isDark ? 'dark' : 'light';
+        document.body.dataset.theme = theme;
+        document.documentElement.className = isDark ? 'sl-theme-dark' : 'sl-theme-light';
+    }
 });
 
 // --- INTEROP & LOGIC ---
@@ -232,6 +258,13 @@ async function loadDocumentation() {
         const json = await interop.invokeMethodAsync('GetDocumentation');
         const data = JSON.parse(json);
         appState.docs.value = data;
+
+        // Populate known names for intelligence features
+        const names = new Set(['pi', 'e', 'true', 'false']);
+        if (data.functions) data.functions.forEach(f => names.add(f.Name || f.name));
+        if (data.operators) data.operators.forEach(o => names.add(o.Name || o.name));
+        appState.knownNames.value = names;
+
         appState.docsSafe.value = true;
     } catch (e) {
         console.error("Docs load failed", e);
@@ -565,5 +598,49 @@ export const actions = {
 
         appState.result.value = '---';
         actions.calculate();
+    },
+
+    exportHistory: (format) => {
+        const history = appState.history.value;
+        if (history.length === 0) return;
+
+        let content = '';
+        let fileName = `shy_history_${new Date().getTime()}`;
+        let mimeType = 'text/plain';
+
+        if (format === 'json') {
+            content = JSON.stringify(history, null, 2);
+            fileName += '.json';
+            mimeType = 'application/json';
+        } else {
+            // CSV
+            const headers = ['Expression', 'Result', 'Type', 'Variables'];
+            const rows = history.map(h => [
+                `"${h.expr.replaceAll('"', '""')}"`,
+                `"${String(h.result).replaceAll('"', '""')}"`,
+                `"${h.resultType || ''}"`,
+                `"${(h.vars || []).map(v => `${v.name}=${v.value}`).join('; ').replace(/"/g, '""')}"`
+            ]);
+            content = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            fileName += '.csv';
+            mimeType = 'text/csv';
+        }
+
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    },
+
+    toggleTheme: () => {
+        const current = appState.settings.value.theme || 'dark';
+        const next = current === 'dark' ? 'light' : 'dark';
+        appState.settings.value = { ...appState.settings.value, theme: next };
+        actions.saveSettings(appState.settings.value);
     }
 };
