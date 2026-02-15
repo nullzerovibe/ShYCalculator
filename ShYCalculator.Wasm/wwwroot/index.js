@@ -46,7 +46,7 @@ const detectVariables = (text, knownNames, variables) => {
 
 // --- COMPONENTS ---
 
-export const SyntaxEditor = ({ value, onInput, onKeyDown, state }) => {
+export const SyntaxEditor = ({ value, onInput, onKeyDown, state, name }) => {
     const onInternalInput = (e) => {
         onInput(e);
         // Detect suggestions
@@ -60,6 +60,7 @@ export const SyntaxEditor = ({ value, onInput, onKeyDown, state }) => {
         <div class="syntax-editor">
             <div class="highlight-overlay" dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
             <textarea 
+                name=${name}
                 placeholder="Enter expression..." 
                 value=${value}
                 oninput=${onInternalInput}
@@ -85,8 +86,8 @@ export const Header = ({ state, actions }) => html`
         <div class="header-actions">
             <div class="status-indicator">
                 ${state.isOfflineReady?.value ? html`
-                    <sl-tooltip content="Offline Ready">
-                        <sl-icon name="cloud-check" class="offline-icon"></sl-icon>
+                    <sl-tooltip content="Offline Ready" hoist>
+                        <sl-icon name="wifi" class="offline-badge"></sl-icon>
                     </sl-tooltip>
                 ` : null}
                 <sl-badge variant="${state.isReady?.value ? 'success' : 'danger'}">
@@ -97,14 +98,221 @@ export const Header = ({ state, actions }) => html`
     </header>
 `;
 
+export const SaveSnippetDialog = ({ state, actions }) => {
+    const isEdit = state.editingSnippet.value !== null;
+    const editing = state.editingSnippet.value;
+
+    useEffect(() => {
+        if (state.saveSnippetOpen.value && editing) {
+            const form = document.getElementById('save-snippet-form');
+            if (form) {
+                form.name.value = editing.label;
+                const iconRadio = form.querySelector(`sl-radio-button[value="${editing.icon}"]`);
+                if (iconRadio) iconRadio.click();
+            }
+        } else if (state.saveSnippetOpen.value && !editing) {
+            const form = document.getElementById('save-snippet-form');
+            if (form) {
+                form.reset();
+                const defaultIcon = form.querySelector('sl-radio-button[value="bookmark"]');
+                if (defaultIcon) defaultIcon.click();
+            }
+        }
+    }, [state.saveSnippetOpen.value, editing]);
+
+    const onHide = () => {
+        state.saveSnippetOpen.value = false;
+        state.editingSnippet.value = null;
+    };
+
+    const onSubmit = (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const name = formData.get('name');
+        const value = formData.get('value');
+        const icon = formData.get('icon');
+
+        // Find the group based on the icon selection
+        let group = 'Custom Formulas';
+        for (const cat of catIcons) {
+            if (cat.icons.some(i => i.value === icon)) {
+                group = cat.name === 'Custom' ? 'Custom Formulas' : cat.name;
+                break;
+            }
+        }
+
+        if (!name || !value) return;
+
+        actions.saveSnippet(name, icon, value, group);
+        state.saveSnippetOpen.value = false;
+    };
+
+    const catIcons = [
+        {
+            name: 'Arithmetical',
+            icons: [
+                { name: 'Arithmetical', value: 'arithmetical' },
+                { name: 'Plus', value: 'plus' },
+                { name: 'Minus', value: 'minus' },
+                { name: 'Equal', value: 'equal' },
+                { name: 'Parentheses', value: 'parentheses' }
+            ]
+        },
+        {
+            name: 'Numeric',
+            icons: [
+                { name: 'Numeric', value: 'numeric' },
+                { name: 'Hash', value: 'hash' },
+                { name: 'List', value: 'list-ordered' },
+                { name: 'Percent', value: 'percent' },
+                { name: 'Dice', value: 'dice-5' }
+            ]
+        },
+        {
+            name: 'Scientific',
+            icons: [
+                { name: 'Scientific', value: 'scientific' },
+                { name: 'Chemistry', value: 'flask-conical' },
+                { name: 'Physics', value: 'atom' },
+                { name: 'Infinity', value: 'infinity' },
+                { name: 'Brain', value: 'brain' },
+                { name: 'Activity', value: 'activity' }
+            ]
+        },
+        {
+            name: 'String',
+            icons: [
+                { name: 'String', value: 'type' },
+                { name: 'Select Text', value: 'text-select' },
+                { name: 'Message', value: 'message-square' },
+                { name: 'Tags', value: 'tags' }
+            ]
+        },
+        {
+            name: 'Logical',
+            icons: [
+                { name: 'Logical', value: 'logical' },
+                { name: 'Binary', value: 'binary' },
+                { name: 'CPU', value: 'cpu' },
+                { name: 'Logic Tree', value: 'list-tree' },
+                { name: 'Network', value: 'network' }
+            ]
+        },
+        {
+            name: 'Date',
+            icons: [
+                { name: 'Date', value: 'calendar' },
+                { name: 'Clock', value: 'clock' },
+                { name: 'History', value: 'history' },
+                { name: 'Sun', value: 'sun' },
+                { name: 'Moon', value: 'moon' }
+            ]
+        },
+        {
+            name: 'Custom',
+            icons: [
+                { name: 'Bookmark', value: 'bookmark' },
+                { name: 'Heart', value: 'heart' },
+                { name: 'Star', value: 'star' },
+                { name: 'Flash', value: 'lightning' },
+                { name: 'Rocket', value: 'rocket' },
+                { name: 'Tool', value: 'tools' },
+                { name: 'Layers', value: 'layers' }
+            ]
+        }
+    ];
+
+    return html`
+        <sl-dialog class="save-dialog" 
+            open=${state.saveSnippetOpen.value} 
+            onsl-request-close=${(e) => {
+            if (e.target !== e.currentTarget) return;
+        }}
+            onsl-after-hide=${(e) => {
+            if (e.target !== e.currentTarget) return;
+            state.saveSnippetOpen.value = false;
+            state.editingSnippet.value = null;
+        }}>
+            <div slot="label" class="u-flex u-items-center u-gap-075">
+                <sl-icon src="https://api.iconify.design/lucide/bookmark-plugin.svg?color=%23cbd5e1" class="doc-header-icon"></sl-icon>
+                ${isEdit ? 'Edit Formula' : 'Save Formula to Library'}
+            </div>
+            <form id="save-snippet-form" onsubmit=${onSubmit} class="snippet-form">
+                <div class="dialog-section">
+                    <div class="section-badge">Formula Details</div>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <sl-input name="name" placeholder="E.g., Monthly Compound Interest" required autocomplete="off"></sl-input>
+                        <div class="subtle-help">Give your formula a descriptive title.</div>
+                    </div>
+
+                    <div class="form-group u-mt-15">
+                        <label>Expression</label>
+                        <${SyntaxEditor} 
+                            name="value"
+                            value=${isEdit ? editing.value : state.input.value}
+                            onInput=${(e) => {
+            if (isEdit) {
+                state.editingSnippet.value = { ...state.editingSnippet.value, value: e.target.value };
+            } else {
+                state.input.value = e.target.value;
+            }
+        }}
+                            state=${state}
+                        />
+                        <div class="subtle-help">You can refine the expression before saving.</div>
+                    </div>
+                </div>
+                
+                <div class="dialog-section u-mt-15">
+                    <div class="section-badge">Library Placement</div>
+                    <div class="form-group">
+                        <label>Select Category</label>
+                        <sl-radio-group name="icon" value="bookmark" class="icon-selector">
+                            <div class="icon-categories">
+                                ${catIcons.map(cat => html`
+                                    <div class="icon-cat-group">
+                                        <div class="icon-cat-label">${cat.name}</div>
+                                        <div class="icon-grid">
+                                            ${cat.icons.map(icon => {
+            const isCat = cat.name !== 'Miscellaneous';
+            const iconSrc = isCat ? getCategoryIconUrl(icon.value) : null;
+            return html`
+                                                    <sl-tooltip content=${icon.name} hoist>
+                                                        <sl-radio-button value=${icon.value} class="icon-tile">
+                                                            <div class="tile-content">
+                                                                ${iconSrc ? html`<sl-icon src=${iconSrc}></sl-icon>` : html`<sl-icon name=${icon.value}></sl-icon>`}
+                                                            </div>
+                                                        </sl-radio-button>
+                                                    </sl-tooltip>
+                                                `;
+        })}
+                                        </div>
+                                    </div>
+                                `)}
+                            </div>
+                        </sl-radio-group>
+                    </div>
+                </div>
+            </form>
+
+            <sl-button variant="primary" type="submit" form="save-snippet-form" slot="footer" class="u-w-100 premium-save-btn">
+                <sl-icon slot="prefix" name=${isEdit ? 'check2-circle' : 'bookmark-star'}></sl-icon> 
+                ${isEdit ? 'Update Formula' : 'Save to My Library'}
+            </sl-button>
+        </sl-dialog>
+    `;
+};
+
 export const MainCard = ({ state, actions }) => {
     const onInput = (e) => state.input.value = e.target.value;
 
-    const onExampleSelect = (e) => {
-        const idx = e.target.value;
-        if (idx !== '' && FLAT_MAP[Number.parseInt(idx)]) {
-            const item = FLAT_MAP[Number.parseInt(idx)];
-            actions.insertExample(item.value, item.vars, idx);
+    const onSnippetSelect = (e) => {
+        const id = e.target.value;
+        const snippet = state.snippets.value.find(s => s.id === id);
+        if (snippet) {
+            actions.loadSnippet(snippet);
+            state.selectedIdx.value = id;
         }
     };
 
@@ -115,20 +323,40 @@ export const MainCard = ({ state, actions }) => {
             <div class="form-section">
                 <label class="section-label">
                     <sl-icon src="https://api.iconify.design/lucide/list-plus.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
-                    Load Example
+                    Select a formula
                 </label>
                 <div class="controls-top">
-                    <sl-select placeholder="Select an example" value=${state.selectedIdx.value} onsl-change=${onExampleSelect} hoist>
-                        ${EXAMPLE_GROUPS.map((g, i) => html`
-                            <sl-menu-label>
-                                <sl-icon src="https://api.iconify.design/lucide/${g.icon || 'help-circle'}.svg?color=%23cbd5e1" class="ex-group-icon"></sl-icon>
-                                ${g.label}
-                            </sl-menu-label>
-                            ${g.items.map(ex => html`
-                                <sl-option value="${ex._idx}">${ex.label}</sl-option>
-                            `)}
-                            ${i < EXAMPLE_GROUPS.length - 1 ? html`<sl-divider></sl-divider>` : null}
-                        `)}
+                    <sl-select placeholder="Select a formula..." value=${state.selectedIdx.value} onsl-change=${onSnippetSelect} hoist>
+                        ${(() => {
+            const pinned = state.snippets.value.filter(s => s.pinned);
+            const others = state.snippets.value.filter(s => !s.pinned);
+
+            const groups = [];
+
+            if (pinned.length > 0) {
+                groups.push({ label: 'Pinned', icon: 'pin', items: pinned });
+            }
+
+            const otherGroups = others.reduce((acc, s) => {
+                const g = s.group || 'Others';
+                if (!acc[g]) acc[g] = { label: g, icon: s.icon, items: [] };
+                acc[g].items.push(s);
+                return acc;
+            }, {});
+
+            groups.push(...Object.values(otherGroups));
+
+            return groups.map((g, i, arr) => html`
+                                <sl-menu-label>
+                                    <sl-icon name=${g.icon || 'collection'} class="ex-group-icon"></sl-icon>
+                                    ${g.label}
+                                </sl-menu-label>
+                                ${g.items.map(s => html`
+                                    <sl-option value="${s.id}">${s.label}</sl-option>
+                                `)}
+                                ${i < arr.length - 1 ? html`<sl-divider></sl-divider>` : null}
+                            `);
+        })()}
                     </sl-select>
                     <sl-button outline class="btn-secondary" onclick=${actions.openDocs}>
                         <sl-icon slot="prefix" name="book"></sl-icon> Docs & Settings
@@ -136,11 +364,17 @@ export const MainCard = ({ state, actions }) => {
                 </div>
             </div>
 
+
             <div class="form-section">
-                <label class="section-label">
-                    <sl-icon src="https://api.iconify.design/lucide/terminal.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
-                    Mathematical Expression
-                </label>
+                <div class="section-header">
+                    <label class="section-label">
+                        <sl-icon src="https://api.iconify.design/lucide/terminal.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
+                        Mathematical Expression
+                    </label>
+                    <sl-tooltip content="Save Formula" hoist>
+                        <sl-icon-button name="bookmark-star" class="btn-save-snippet" onclick=${() => state.saveSnippetOpen.value = true}></sl-icon-button>
+                    </sl-tooltip>
+                </div>
                 <${SyntaxEditor} 
                     value=${state.input.value}
                     onInput=${onInput}
@@ -348,6 +582,30 @@ export const Documentation = ({ state, actions }) => {
         }
     };
 
+    const onLibrarySort = (field) => {
+        if (state.librarySortBy.value === field) {
+            state.librarySortDir.value = state.librarySortDir.value === 'asc' ? 'desc' : 'asc';
+        } else {
+            state.librarySortBy.value = field;
+            state.librarySortDir.value = 'asc';
+        }
+    };
+
+    const sortedSnippets = [...state.snippets.value].sort((a, b) => {
+        if (a.pinned !== b.pinned) return b.pinned ? 1 : -1;
+        const field = state.librarySortBy.value;
+        const dir = state.librarySortDir.value;
+        let v1 = '', v2 = '';
+        if (field === 'Name') { v1 = a.label; v2 = b.label; }
+        else if (field === 'Icon') { v1 = a.icon; v2 = b.icon; }
+        else if (field === 'Formula') { v1 = a.value; v2 = b.value; }
+        else if (field === 'Group') { v1 = a.group; v2 = b.group; }
+        if (typeof v1 === 'string') { v1 = v1.toLowerCase(); v2 = v2.toLowerCase(); }
+        if (v1 < v2) return dir === 'asc' ? -1 : 1;
+        if (v1 > v2) return dir === 'asc' ? 1 : -1;
+        return 0;
+    });
+
     const sortedOperators = [...operators].sort((a, b) => {
         const field = state.operatorSortBy.value;
         const dir = state.operatorSortDir.value;
@@ -374,11 +632,11 @@ export const Documentation = ({ state, actions }) => {
         return 0;
     });
 
-    const renderSortHeader = (label, field) => {
-        const isActive = state.operatorSortBy.value === field;
-        const dir = state.operatorSortDir.value;
+    const renderSortHeader = (label, field, sortBySignal, sortDirSignal, onSortFn) => {
+        const isActive = sortBySignal.value === field;
+        const dir = sortDirSignal.value;
         return html`
-            <th onclick=${() => onSort(field)} class="sortable-header ${isActive ? 'active' : ''}">
+            <th onclick=${() => onSortFn(field)} class="sortable-header ${isActive ? 'active' : ''}">
                 <div class="th-content">
                     ${label}
                     <sl-icon name="${isActive ? (dir === 'asc' ? 'sort-up' : 'sort-down') : 'arrow-down-up'}" 
@@ -459,6 +717,9 @@ export const Documentation = ({ state, actions }) => {
                 <sl-tab slot="nav" panel="ops">
                     <sl-icon src="https://api.iconify.design/lucide/percent.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Operators
                 </sl-tab>
+                <sl-tab slot="nav" panel="library">
+                    <sl-icon src="https://api.iconify.design/lucide/bookmark.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> My Library
+                </sl-tab>
                 <sl-tab slot="nav" panel="settings">
                     <sl-icon src="https://api.iconify.design/lucide/settings-2.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Settings
                 </sl-tab>
@@ -526,11 +787,11 @@ export const Documentation = ({ state, actions }) => {
                         <table class="ops-table">
                             <thead>
                                 <tr>
-                                    ${renderSortHeader('Symbol', 'Symbol')}
-                                    ${renderSortHeader('Name', 'Name')}
-                                    ${renderSortHeader('Category', 'Category')}
-                                    ${renderSortHeader('Precedence', 'Precedence')}
-                                    ${renderSortHeader('Assoc', 'Associativity')}
+                                    ${renderSortHeader('Symbol', 'Symbol', state.operatorSortBy, state.operatorSortDir, onSort)}
+                                    ${renderSortHeader('Name', 'Name', state.operatorSortBy, state.operatorSortDir, onSort)}
+                                    ${renderSortHeader('Category', 'Category', state.operatorSortBy, state.operatorSortDir, onSort)}
+                                    ${renderSortHeader('Precedence', 'Precedence', state.operatorSortBy, state.operatorSortDir, onSort)}
+                                    ${renderSortHeader('Assoc', 'Associativity', state.operatorSortBy, state.operatorSortDir, onSort)}
                                 </tr>
                             </thead>
                             <tbody>
@@ -730,6 +991,61 @@ export const Documentation = ({ state, actions }) => {
                         </div>
                     </div>
                 </sl-tab-panel>
+
+                <sl-tab-panel name="library">
+                    <div class="ops-table-container">
+                        <table class="ops-table library-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">Pin</th>
+                                    ${renderSortHeader('Icon', 'Icon', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                    ${renderSortHeader('Name', 'Name', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                    ${renderSortHeader('Formula', 'Formula', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                    ${renderSortHeader('Group', 'Group', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                    <th style="width: 80px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sortedSnippets.map(s => html`
+                                    <tr class="${s.pinned ? 'pinned-row' : ''}">
+                                        <td>
+                                            <sl-icon-button 
+                                                name=${s.pinned ? 'pin-fill' : 'pin'} 
+                                                class="pin-btn ${s.pinned ? 'active' : ''}" 
+                                                onclick=${() => actions.togglePinSnippet(s.id)}>
+                                            </sl-icon-button>
+                                        </td>
+                                        <td>
+                                            <sl-icon src=${getCategoryIconUrl(s.icon)} class="u-text-primary" style="font-size: 1.1rem;"></sl-icon>
+                                        </td>
+                                        <td style="font-weight: 600;">${s.label}</td>
+                                        <td><code class="op-symbol">${s.value}</code></td>
+                                        <td>
+                                            <sl-badge size="small" class="shy-badge">
+                                                ${s.group}
+                                            </sl-badge>
+                                        </td>
+                                        <td>
+                                            <div class="u-flex u-gap-025">
+                                                <sl-icon-button name="pencil" onclick=${() => actions.editSnippet(s)}></sl-icon-button>
+                                                <sl-icon-button name="trash" class="u-text-danger" onclick=${() => {
+                if (confirm(`Delete "${s.label}"?`)) actions.deleteSnippet(s.id);
+            }}></sl-icon-button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `)}
+                                ${state.snippets.value.length === 0 ? html`
+                                    <tr>
+                                        <td colspan="5" class="u-text-center u-p-3" style="opacity: 0.5;">
+                                            Your library is empty. Save a formula to see it here!
+                                        </td>
+                                    </tr>
+                                ` : null}
+                            </tbody>
+                        </table>
+                    </div>
+                </sl-tab-panel>
             </sl-tab-group>
 
             <sl-button circle class="scroll-top-btn ${state.showScrollTop.value ? 'visible' : ''}" onclick=${scrollToTop}>
@@ -814,8 +1130,9 @@ export const App = ({ state, actions }) => {
             <${Header} state=${state} actions=${actions} />
             <${MainCard} state=${state} actions=${actions} />
             <${Documentation} state=${state} actions=${actions} />
-            <${ContactFooter} />
         </div>
+        <${ContactFooter} />
+        <${SaveSnippetDialog} state=${state} actions=${actions} />
     `;
 };
 

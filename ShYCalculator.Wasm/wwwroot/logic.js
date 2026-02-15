@@ -3,6 +3,7 @@ import { signal, effect } from 'https://esm.sh/@preact/signals@1.2.2?deps=preact
 // --- CONFIGURATION & CONSTANTS ---
 export const STORAGE_KEY_HISTORY = 'shy_calc_history';
 export const STORAGE_KEY_SETTINGS = 'shy_calc_settings';
+export const STORAGE_KEY_SNIPPETS = 'shy_calc_snippets';
 
 export const EXAMPLE_GROUPS = [
     {
@@ -111,19 +112,73 @@ export const getCategoryIconUrl = (cat) => {
     let icon = 'help-circle';
     switch (c) {
         case 'arithmetic':
-        case 'arithmetical': icon = 'calculator'; break;
+        case 'arithmetical':
+        case 'plus':
+        case 'minus':
+        case 'divide':
+        case 'multiply':
+        case 'calculator': icon = 'calculator'; break;
         case 'unary': icon = 'plus'; break;
-        case 'comparison': icon = 'equal'; break;
-        case 'grouping': icon = 'parentheses'; break;
-        case 'logical': icon = 'cpu'; break;
-        case 'bitwise': icon = 'binary'; break;
-        case 'scientific': icon = 'sigma'; break;
-        case 'numeric': icon = 'hash'; break;
-        case 'string': icon = 'type'; break;
+        case 'comparison':
+        case 'equal': icon = 'equal'; break;
+        case 'grouping':
+        case 'parentheses': icon = 'parentheses'; break;
+        case 'logical':
+        case 'logic':
+        case 'cpu': icon = 'cpu'; break;
+        case 'bitwise':
+        case 'bitwise operations':
+        case 'binary': icon = 'binary'; break;
+        case 'scientific':
+        case 'sigma': icon = 'sigma'; break;
+        case 'chemistry':
+        case 'flask-conical': icon = 'flask-conical'; break;
+        case 'physics':
+        case 'atom': icon = 'atom'; break;
+        case 'infinity': icon = 'infinity'; break;
+        case 'brain': icon = 'brain'; break;
+        case 'activity': icon = 'activity'; break;
+        case 'list-tree':
+        case 'logic tree': icon = 'list-tree'; break;
+        case 'network': icon = 'network'; break;
+        case 'numeric':
+        case 'hash': icon = 'hash'; break;
+        case 'list-ordered':
+        case 'list': icon = 'list-ordered'; break;
+        case 'percent': icon = 'percent'; break;
+        case 'dice':
+        case 'dice-5': icon = 'dice-5'; break;
+        case 'string':
+        case 'string operations':
+        case 'type': icon = 'type'; break;
+        case 'text-select':
+        case 'select text': icon = 'text-select'; break;
+        case 'message':
+        case 'message-square': icon = 'message-square'; break;
+        case 'tags': icon = 'tags'; break;
         case 'date':
-        case 'date & time': icon = 'calendar'; break;
-        case 'array': icon = 'layers'; break;
-        case 'all_categories': icon = 'layout-grid'; break;
+        case 'date & time':
+        case 'calendar': icon = 'calendar'; break;
+        case 'time':
+        case 'clock': icon = 'clock'; break;
+        case 'history': icon = 'history'; break;
+        case 'sun': icon = 'sun'; break;
+        case 'moon': icon = 'moon'; break;
+        case 'array':
+        case 'complex scenarios':
+        case 'layers': icon = 'layers'; break;
+        case 'all_categories':
+        case 'layout-grid': icon = 'layout-grid'; break;
+        case 'function-square':
+        case 'formulas (uses variables)': icon = 'function-square'; break;
+        case 'rocket': icon = 'rocket'; break;
+        case 'heart': icon = 'heart'; break;
+        case 'star': icon = 'star'; break;
+        case 'lightning':
+        case 'flash': icon = 'lightning'; break;
+        case 'bookmark': icon = 'bookmark'; break;
+        case 'tools':
+        case 'tool': icon = 'tools'; break;
     }
     return `https://api.iconify.design/lucide/${icon}.svg?color=%23cbd5e1`;
 };
@@ -146,6 +201,31 @@ const loadSavedHistory = () => {
     try {
         const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
         return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+};
+
+const loadSnippets = () => {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY_SNIPPETS);
+        if (saved) return JSON.parse(saved);
+
+        // Seed from EXAMPLE_GROUPS on first load
+        const seeded = [];
+        let idCount = 0;
+        EXAMPLE_GROUPS.forEach(group => {
+            group.items.forEach(item => {
+                seeded.push({
+                    id: `seeded_${idCount++}`,
+                    label: item.label,
+                    value: item.value,
+                    vars: item.vars || [],
+                    icon: group.icon || 'bookmark',
+                    group: group.label,
+                    isSeeded: true
+                });
+            });
+        });
+        return seeded;
     } catch { return []; }
 };
 
@@ -197,16 +277,25 @@ export const appState = {
     docCategory: signal(sessionStorage.getItem('docCategory') || 'All_Categories'),
     operatorSortBy: signal('Precedence'),
     operatorSortDir: signal('desc'),
+    librarySortBy: signal('Name'),
+    librarySortDir: signal('asc'),
     settings: signal(settings),
     showScrollTop: signal(false),
     isOfflineReady: signal(false),
     suggestions: signal([]),
+    snippets: signal(loadSnippets()),
+    saveSnippetOpen: signal(false),
+    editingSnippet: signal(null),
     knownNames: signal(new Set(['pi', 'e', 'true', 'false']))
 };
 
 // --- AUTO-SAVE EFFECTS ---
 effect(() => {
     localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(appState.history.value));
+});
+
+effect(() => {
+    localStorage.setItem(STORAGE_KEY_SNIPPETS, JSON.stringify(appState.snippets.value));
 });
 
 effect(() => {
@@ -596,6 +685,53 @@ export const actions = {
             }
         }
 
+        appState.result.value = '---';
+        actions.calculate();
+    },
+
+    saveSnippet: (name, icon, value, group) => {
+        const editing = appState.editingSnippet.value;
+        if (editing) {
+            appState.snippets.value = appState.snippets.value.map(s =>
+                s.id === editing.id ? { ...s, label: name, icon, value, group, vars: JSON.parse(JSON.stringify(appState.variables.value)) } : s
+            );
+            util.notify("Formula updated!", "success", "check2-circle");
+        } else {
+            const item = {
+                id: Date.now().toString(),
+                label: name,
+                value: value || appState.input.value,
+                vars: JSON.parse(JSON.stringify(appState.variables.value)),
+                icon: icon || 'bookmark',
+                group: group || 'Custom Formulas'
+            };
+            appState.snippets.value = [...appState.snippets.value, item];
+            util.notify("Formula saved to library!", "success", "bookmark");
+        }
+        appState.editingSnippet.value = null;
+    },
+
+    deleteSnippet: (id) => {
+        appState.snippets.value = appState.snippets.value.filter(s => s.id !== id);
+        util.notify("Formula removed from library.");
+    },
+    editSnippet: (snippet) => {
+        appState.editingSnippet.value = JSON.parse(JSON.stringify(snippet));
+        appState.saveSnippetOpen.value = true;
+    },
+    togglePinSnippet: (id) => {
+        appState.snippets.value = appState.snippets.value.map(s =>
+            s.id === id ? { ...s, pinned: !s.pinned } : s
+        );
+        const snippet = appState.snippets.value.find(s => s.id === id);
+        util.notify(snippet.pinned ? "Formula pinned!" : "Formula unpinned.");
+    },
+
+    loadSnippet: (snippet) => {
+        appState.input.value = snippet.value;
+        appState.variables.value = JSON.parse(JSON.stringify(snippet.vars || []));
+        appState.selectedIdx.value = '';
+        appState.docsOpen.value = false;
         appState.result.value = '---';
         actions.calculate();
     },
