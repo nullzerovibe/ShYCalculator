@@ -72,7 +72,7 @@ export const EXAMPLE_GROUPS = [
     },
     {
         label: "Expressions (Uses Variables)",
-        icon: "function-square",
+        icon: "square-function",
         items: [
             { label: "Area of Circle", value: "pi * r * r", vars: [{ name: "r", value: "5" }, { name: "pi", value: "3.14159" }] },
             { label: "Pythagoras", value: "a * a + b * b", vars: [{ name: "a", value: "3" }, { name: "b", value: "4" }] },
@@ -169,16 +169,19 @@ export const getCategoryIconUrl = (cat) => {
         case 'layers': icon = 'layers'; break;
         case 'all_categories':
         case 'layout-grid': icon = 'layout-grid'; break;
+        case 'square-function':
         case 'function-square':
-        case 'expressions (uses variables)': icon = 'function-square'; break;
+        case 'expressions (uses variables)': icon = 'square-function'; break;
         case 'rocket': icon = 'rocket'; break;
         case 'heart': icon = 'heart'; break;
         case 'star': icon = 'star'; break;
+        case 'zap':
         case 'lightning':
-        case 'flash': icon = 'lightning'; break;
+        case 'flash': icon = 'zap'; break;
         case 'bookmark': icon = 'bookmark'; break;
+        case 'wrench':
         case 'tools':
-        case 'tool': icon = 'tools'; break;
+        case 'tool': icon = 'wrench'; break;
     }
     return `https://api.iconify.design/lucide/${icon}.svg?color=%23cbd5e1`;
 };
@@ -275,18 +278,30 @@ export const appState = {
     exampleSearch: signal(''),
     docSearch: signal(sessionStorage.getItem('docSearch') || ''),
     docCategory: signal(sessionStorage.getItem('docCategory') || 'All_Categories'),
+    docActiveTab: signal('funcs'),
     operatorSortBy: signal('Precedence'),
     operatorSortDir: signal('desc'),
     librarySortBy: signal('Name'),
     librarySortDir: signal('asc'),
     settings: signal(settings),
+    settingsOriginal: signal(JSON.parse(JSON.stringify(settings))),
     showScrollTop: signal(false),
     isOfflineReady: signal(false),
     suggestions: signal([]),
     snippets: signal(loadSnippets()),
     saveSnippetOpen: signal(false),
     editingSnippet: signal(null),
-    knownNames: signal(new Set(['pi', 'e', 'true', 'false']))
+    knownNames: signal(new Set(['pi', 'e', 'true', 'false'])),
+    confirmDialog: {
+        open: signal(false),
+        title: signal('Confirm Action'),
+        message: signal('Are you sure you want to proceed?'),
+        variant: signal('primary'),
+        onConfirm: signal(null),
+        confirmLabel: signal('Confirm'),
+        cancelLabel: signal('Cancel'),
+        lastActiveElement: signal(null)
+    }
 };
 
 // --- AUTO-SAVE EFFECTS ---
@@ -299,10 +314,10 @@ effect(() => {
 });
 
 effect(() => {
-    let theme = appState.settings.value.theme || 'auto';
+    let theme = appState.settingsOriginal.value.theme || 'auto';
 
     if (theme === 'auto') {
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = globalThis.matchMedia('(prefers-color-scheme: dark)').matches;
         theme = isDark ? 'dark' : 'light';
     }
 
@@ -312,9 +327,9 @@ effect(() => {
 });
 
 // Listener for system preference changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (appState.settings.value.theme === 'auto') {
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+globalThis.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (appState.settingsOriginal.value.theme === 'auto') {
+        const isDark = globalThis.matchMedia('(prefers-color-scheme: dark)').matches;
         const theme = isDark ? 'dark' : 'light';
         document.body.dataset.theme = theme;
         document.documentElement.className = isDark ? 'sl-theme-dark' : 'sl-theme-light';
@@ -402,6 +417,7 @@ export const actions = {
 
             const s = appState.settings.value;
             await interop.invokeMethodAsync('ConfigureDates', s.dateFormat, s.culture);
+            appState.settingsOriginal.value = JSON.parse(JSON.stringify(s));
 
             loadDocumentation();
 
@@ -562,6 +578,7 @@ export const actions = {
             await interop.invokeMethodAsync('ConfigureDates', newSettings.dateFormat, newSettings.culture);
 
             appState.settings.value = { ...newSettings };
+            appState.settingsOriginal.value = JSON.parse(JSON.stringify(newSettings));
 
             const maxLen = parseInt(newSettings.historyLength) || 15;
             if (appState.history.value.length > maxLen) {
@@ -778,5 +795,27 @@ export const actions = {
         const next = current === 'dark' ? 'light' : 'dark';
         appState.settings.value = { ...appState.settings.value, theme: next };
         actions.saveSettings(appState.settings.value);
+    },
+
+    cancelSettings: () => {
+        appState.settings.value = JSON.parse(JSON.stringify(appState.settingsOriginal.value));
+        util.notify("Changes reverted", "neutral", "arrow-counterclockwise");
+    },
+    openConfirm: (title, message, callback, options = {}) => {
+        appState.confirmDialog.lastActiveElement.value = document.activeElement;
+        appState.confirmDialog.title.value = title || 'Confirm';
+        appState.confirmDialog.message.value = message || 'Are you sure?';
+        appState.confirmDialog.onConfirm.value = callback;
+        appState.confirmDialog.variant.value = options.variant || 'primary';
+        appState.confirmDialog.confirmLabel.value = options.confirmLabel || 'Confirm';
+        appState.confirmDialog.cancelLabel.value = options.cancelLabel || 'Cancel';
+        appState.confirmDialog.open.value = true;
+    },
+    closeConfirm: () => {
+        appState.confirmDialog.open.value = false;
+        const last = appState.confirmDialog.lastActiveElement.value;
+        if (last && typeof last.focus === 'function') {
+            last.focus();
+        }
     }
 };

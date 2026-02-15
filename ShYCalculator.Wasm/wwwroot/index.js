@@ -1,5 +1,5 @@
 import { h, render } from 'https://esm.sh/preact@10.19.3';
-import { useEffect } from 'https://esm.sh/preact@10.19.3/hooks';
+import { useEffect, useMemo } from 'https://esm.sh/preact@10.19.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { FLAT_MAP, EXAMPLE_GROUPS, getCategoryIconUrl, getTypeIconUrl, appState, actions } from './logic.js';
 
@@ -198,9 +198,9 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                 { name: 'Bookmark', value: 'bookmark' },
                 { name: 'Heart', value: 'heart' },
                 { name: 'Star', value: 'star' },
-                { name: 'Flash', value: 'lightning' },
+                { name: 'Flash', value: 'zap' },
                 { name: 'Rocket', value: 'rocket' },
-                { name: 'Tool', value: 'tools' },
+                { name: 'Tool', value: 'wrench' },
                 { name: 'Layers', value: 'layers' }
             ]
         }
@@ -218,7 +218,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
             state.editingSnippet.value = null;
         }}>
             <div slot="label" class="u-flex u-items-center u-gap-075">
-                <sl-icon src="https://api.iconify.design/lucide/bookmark-plugin.svg?color=%23cbd5e1" class="doc-header-icon"></sl-icon>
+                <sl-icon src="https://api.iconify.design/lucide/bookmark-plus.svg?color=%23cbd5e1" class="doc-header-icon"></sl-icon>
                 ${isEdit ? 'Edit Expression' : 'Save Expression to Library'}
             </div>
             <form id="save-snippet-form" onsubmit=${onSubmit} class="snippet-form">
@@ -353,7 +353,7 @@ export const MainCard = ({ state, actions }) => {
 
             return groups.map((g, i, arr) => html`
                                 <sl-menu-label>
-                                    <sl-icon name=${g.icon || 'collection'} class="ex-group-icon"></sl-icon>
+                                    <sl-icon src="${getCategoryIconUrl(g.icon || 'collection')}" class="ex-group-icon"></sl-icon>
                                     ${g.label}
                                 </sl-menu-label>
                                 ${g.items.map(s => html`
@@ -550,12 +550,12 @@ export const Documentation = ({ state, actions }) => {
         }
     }, [state.docsOpen.value]);
 
-    const categories = [ALL_CATS, ...new Set(functions.map(f => {
+    const categories = useMemo(() => [ALL_CATS, ...new Set(functions.map(f => {
         const c = f.Category || f.category;
         return c ? c.trim().replaceAll(' ', '_') : null;
-    }).filter(Boolean))];
+    }).filter(Boolean))], [functions]);
 
-    const filteredFunctions = (functions || []).filter(f => {
+    const filteredFunctions = useMemo(() => (functions || []).filter(f => {
         const name = (f.Name || f.name || '').trim().toLowerCase();
         const desc = (f.Description || f.description || '').trim().toLowerCase();
         const rawFCat = (f.Category || f.category || '').trim();
@@ -564,7 +564,7 @@ export const Documentation = ({ state, actions }) => {
         const matchesCategory = isWildcard || (fCategory === category);
         const matchesQuery = !query || name.includes(query) || desc.includes(query);
         return matchesQuery && matchesCategory;
-    });
+    }), [functions, query, category]);
 
     const onSearch = (e) => {
         const val = e.target.value;
@@ -596,22 +596,22 @@ export const Documentation = ({ state, actions }) => {
         }
     };
 
-    const sortedSnippets = [...state.snippets.value].sort((a, b) => {
+    const sortedSnippets = useMemo(() => [...state.snippets.value].sort((a, b) => {
         if (a.pinned !== b.pinned) return b.pinned ? 1 : -1;
         const field = state.librarySortBy.value;
         const dir = state.librarySortDir.value;
         let v1 = '', v2 = '';
         if (field === 'Name') { v1 = a.label; v2 = b.label; }
         else if (field === 'Icon') { v1 = a.icon; v2 = b.icon; }
-        else if (field === 'Formula') { v1 = a.value; v2 = b.value; }
+        else if (field === 'Expression') { v1 = a.value; v2 = b.value; }
         else if (field === 'Group') { v1 = a.group; v2 = b.group; }
         if (typeof v1 === 'string') { v1 = v1.toLowerCase(); v2 = v2.toLowerCase(); }
         if (v1 < v2) return dir === 'asc' ? -1 : 1;
         if (v1 > v2) return dir === 'asc' ? 1 : -1;
         return 0;
-    });
+    }), [state.snippets.value, state.librarySortBy.value, state.librarySortDir.value]);
 
-    const sortedOperators = [...operators].sort((a, b) => {
+    const sortedOperators = useMemo(() => [...operators].sort((a, b) => {
         const field = state.operatorSortBy.value;
         const dir = state.operatorSortDir.value;
 
@@ -635,7 +635,7 @@ export const Documentation = ({ state, actions }) => {
         if (v1 < v2) return dir === 'asc' ? -1 : 1;
         if (v1 > v2) return dir === 'asc' ? 1 : -1;
         return 0;
-    });
+    }), [operators, state.operatorSortBy.value, state.operatorSortDir.value]);
 
     const renderSortHeader = (label, field, sortBySignal, sortDirSignal, onSortFn) => {
         const isActive = sortBySignal.value === field;
@@ -655,22 +655,19 @@ export const Documentation = ({ state, actions }) => {
 
     const onSaveSettings = (e) => {
         e.preventDefault();
-        const form = e.target;
-        const getVal = (name) => form.querySelector(`[name="${name}"]`)?.value || '';
-        const isChecked = (name) => form.querySelector(`[name="${name}"]`)?.checked || false;
+        actions.saveSettings(state.settings.value);
+    };
 
-        actions.saveSettings({
-            theme: getVal('theme'),
-            dateFormat: getVal('dateFormat'),
-            culture: getVal('culture'),
-            enableHistory: isChecked('enableHistory'),
-            historyLength: getVal('historyLength')
-        });
+    const isSettingsDirty = () => {
+        const s1 = state.settings.value;
+        const s2 = state.settingsOriginal.value;
+        return JSON.stringify(s1) !== JSON.stringify(s2);
     };
 
     const onInputChange = (e) => {
         const { name, value } = e.target;
-        state.settings.value = { ...state.settings.value, [name]: value };
+        const finalValue = name === 'historyLength' ? (parseInt(value) || 0) : value;
+        state.settings.value = { ...state.settings.value, [name]: finalValue };
     };
 
     const setInputValue = (name, val) => {
@@ -715,7 +712,10 @@ export const Documentation = ({ state, actions }) => {
                     </sl-tooltip>
                 ` : null}
             </div>
-            <sl-tab-group onsl-tab-show=${() => state.showScrollTop.value = false}>
+            <sl-tab-group onsl-tab-show=${(e) => {
+            state.showScrollTop.value = false;
+            state.docActiveTab.value = e.detail.name;
+        }}>
                 <sl-tab slot="nav" panel="funcs">
                     <sl-icon src="https://api.iconify.design/lucide/variable.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Functions
                 </sl-tab>
@@ -753,8 +753,9 @@ export const Documentation = ({ state, actions }) => {
                             `)}
                         </sl-select>
                     </div>
-                    <div class="docs-list">
-                        ${filteredFunctions.map(fn => {
+                    ${state.docActiveTab.value === 'funcs' ? html`
+                        <div class="docs-list">
+                            ${filteredFunctions.map(fn => {
             const name = fn.Name || fn.name || 'Unknown';
             const args = fn.Arguments || fn.arguments || [];
             const fCat = fn.Category || fn.category || 'General';
@@ -762,176 +763,189 @@ export const Documentation = ({ state, actions }) => {
             const examples = fn.Examples || fn.examples || [];
 
             return html`
-                            <div class="doc-card">
-                                <div class="doc-card-header">
-                                    <span class="doc-name">${name}</span>
-                                    <sl-copy-button value=${name} class="doc-copy-btn"></sl-copy-button>
-                                    <span class="doc-args">(${args.join(', ') || ''})</span>
-                                    <sl-badge variant="primary" size="small" outline class="doc-category">
-                                        <sl-icon src="${getCategoryIconUrl(fCat)}" class="cat-icon"></sl-icon> ${fCat}
-                                    </sl-badge>
-                                </div>
-                                <div class="doc-desc">${description}</div>
-                                ${examples.length > 0 ? html`
-                                    <div class="doc-examples">
-                                        ${examples.map(ex => html`
-                                            <sl-button size="small" outline class="btn-example" onclick=${() => actions.insertExample(ex)}>
-                                                ${ex}
-                                            </sl-button>
-                                        `)}
+                                <div class="doc-card">
+                                    <div class="doc-card-header">
+                                        <span class="doc-name">${name}</span>
+                                        <sl-copy-button value=${name} class="doc-copy-btn"></sl-copy-button>
+                                        <span class="doc-args">(${args.join(', ') || ''})</span>
+                                        <sl-badge variant="primary" size="small" outline class="doc-category">
+                                            <sl-icon src="${getCategoryIconUrl(fCat)}" class="cat-icon"></sl-icon> ${fCat}
+                                        </sl-badge>
                                     </div>
-                                ` : null}
-                            </div>
-                        `})}
-                        ${filteredFunctions.length === 0 ? html`<div class="docs-empty">No functions found matching your criteria.</div>` : null}
-                    </div>
+                                    <div class="doc-desc">${description}</div>
+                                    ${examples.length > 0 ? html`
+                                        <div class="doc-examples">
+                                            ${examples.map(ex => html`
+                                                <sl-button size="small" outline class="btn-example" onclick=${() => actions.insertExample(ex)}>
+                                                    ${ex}
+                                                </sl-button>
+                                            `)}
+                                        </div>
+                                    ` : null}
+                                </div>
+                            `;
+        })}
+                            ${filteredFunctions.length === 0 ? html`<div class="docs-empty">No functions found matching your criteria.</div>` : null}
+                        </div>
+                    ` : null}
                 </sl-tab-panel>
 
                 <sl-tab-panel name="ops" onscroll=${onPanelScroll}>
-                    <div class="ops-table-container">
-                        <table class="ops-table">
-                            <thead>
-                                <tr>
-                                    ${renderSortHeader('Symbol', 'Symbol', state.operatorSortBy, state.operatorSortDir, onSort)}
-                                    ${renderSortHeader('Name', 'Name', state.operatorSortBy, state.operatorSortDir, onSort)}
-                                    ${renderSortHeader('Category', 'Category', state.operatorSortBy, state.operatorSortDir, onSort)}
-                                    ${renderSortHeader('Precedence', 'Precedence', state.operatorSortBy, state.operatorSortDir, onSort)}
-                                    ${renderSortHeader('Assoc', 'Associativity', state.operatorSortBy, state.operatorSortDir, onSort)}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${sortedOperators.map(op => {
-                const symbol = op.Symbol || op.symbol || '';
-                const name = op.Name || op.name || 'Unknown';
-                const cat = op.Category || op.category || 'General';
-                const precedence = op.Precedence !== undefined ? op.Precedence : (op.precedence !== undefined ? op.precedence : 0);
-                const associativity = op.Associativity || op.associativity || 'Left';
-
-                return html`
+                    ${state.docActiveTab.value === 'ops' ? html`
+                        <div class="ops-table-container">
+                            <table class="ops-table">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <div class="u-flex u-items-center u-justify-center u-gap-025">
-                                                <code class="op-symbol">${symbol}</code>
-                                                <sl-copy-button value=${symbol} class="doc-copy-btn"></sl-copy-button>
-                                            </div>
-                                        </td>
-                                        <td>${name}</td>
-                                        <td>
-                                            <sl-badge size="small" class="shy-badge op-category">
-                                                <sl-icon src="${getCategoryIconUrl(cat)}" class="cat-icon"></sl-icon> ${cat}
-                                            </sl-badge>
-                                        </td>
-                                        <td class="num">${precedence}</td>
-                                        <td>${associativity === 'Left' ? '← Left' : '→ Right'}</td>
+                                        ${renderSortHeader('Symbol', 'Symbol', state.operatorSortBy, state.operatorSortDir, onSort)}
+                                        ${renderSortHeader('Name', 'Name', state.operatorSortBy, state.operatorSortDir, onSort)}
+                                        ${renderSortHeader('Category', 'Category', state.operatorSortBy, state.operatorSortDir, onSort)}
+                                        ${renderSortHeader('Precedence', 'Precedence', state.operatorSortBy, state.operatorSortDir, onSort)}
+                                        ${renderSortHeader('Assoc', 'Associativity', state.operatorSortBy, state.operatorSortDir, onSort)}
                                     </tr>
-                                `;
-            })}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    ${sortedOperators.map(op => {
+            const symbol = op.Symbol || op.symbol || '';
+            const name = op.Name || op.name || 'Unknown';
+            const cat = op.Category || op.category || 'General';
+            const precedence = op.Precedence !== undefined ? op.Precedence : (op.precedence !== undefined ? op.precedence : 0);
+            const associativity = op.Associativity || op.associativity || 'Left';
+
+            return html`
+                                            <tr>
+                                                <td>
+                                                    <div class="u-flex u-items-center u-justify-center u-gap-025">
+                                                        <code class="op-symbol">${symbol}</code>
+                                                        <sl-copy-button value=${symbol} class="doc-copy-btn"></sl-copy-button>
+                                                    </div>
+                                                </td>
+                                                <td>${name}</td>
+                                                <td>
+                                                    <sl-badge size="small" class="shy-badge op-category">
+                                                        <sl-icon src="${getCategoryIconUrl(cat)}" class="cat-icon"></sl-icon> ${cat}
+                                                    </sl-badge>
+                                                </td>
+                                                <td class="num">${precedence}</td>
+                                                <td>${associativity === 'Left' ? '← Left' : '→ Right'}</td>
+                                            </tr>
+                                        `;
+        })}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : null}
                 </sl-tab-panel>
 
                 <sl-tab-panel name="settings">
-                    <form class="settings-form" onsubmit=${onSaveSettings}>
-                        <div class="form-group u-mb-2">
-                            <label>
-                                <sl-icon src="https://api.iconify.design/lucide/palette.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
-                                Appearance Theme
-                            </label>
-                            <sl-select name="theme" value=${state.settings.value.theme} onsl-change=${onInputChange}>
-                                <sl-option value="auto">System Default (Auto)</sl-option>
-                                <sl-option value="light">Industrial White (Light)</sl-option>
-                                <sl-option value="dark">Industrial Black (Dark)</sl-option>
-                            </sl-select>
-                        </div>
+                    <div class="settings-flex-wrapper">
+                        <div class="settings-content-area" onscroll=${onPanelScroll}>
+                            <form id="settings-form" class="settings-form" onsubmit=${onSaveSettings}>
+                                <div class="form-group">
+                                    <label>
+                                        <sl-icon src="https://api.iconify.design/lucide/palette.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
+                                        Appearance Theme
+                                    </label>
+                                    <sl-select name="theme" value=${state.settings.value.theme} onsl-change=${onInputChange} hoist>
+                                        <sl-option value="auto">System Default (Auto)</sl-option>
+                                        <sl-option value="light">Industrial White (Light)</sl-option>
+                                        <sl-option value="dark">Industrial Black (Dark)</sl-option>
+                                    </sl-select>
+                                </div>
 
-                        <div class="form-group">
-                            <label>
-                                <sl-icon src="https://api.iconify.design/lucide/calendar-clock.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
-                                Date Format (e.g. dd/MM/yyyy, MM/dd/yyyy)
-                            </label>
-                            <sl-input name="dateFormat" value=${state.settings.value.dateFormat} onsl-input=${onInputChange} clearable></sl-input>
-                            <div class="settings-presets">
-                                ${['dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd', 'd.M.yyyy', 'yyyy/MM/dd', 'd-M-yyyy', 'dd.MM.yyyy', 'yyyy.MM.dd', 'dd-MM-yyyy', 'M-d-yyyy'].map(f => html`
-                                    <sl-button size="small" variant="primary" outline=${state.settings.value.dateFormat !== f} onclick=${() => setInputValue('dateFormat', f)}>${f}</sl-button>
-                                `)}
-                            </div>
-                        </div>
+                                <div class="form-group">
+                                    <label>
+                                        <sl-icon src="https://api.iconify.design/lucide/calendar-clock.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
+                                        Date Format (e.g. dd/MM/yyyy, MM/dd/yyyy)
+                                    </label>
+                                    <sl-input name="dateFormat" value=${state.settings.value.dateFormat} onsl-input=${onInputChange} clearable></sl-input>
+                                    <div class="settings-presets">
+                                        ${['dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd', 'd.M.yyyy', 'yyyy/MM/dd', 'd-M-yyyy', 'dd.MM.yyyy', 'yyyy.MM.dd', 'dd-MM-yyyy', 'M-d-yyyy'].map(f => html`
+                                            <sl-button size="small" variant="primary" outline=${state.settings.value.dateFormat !== f} onclick=${() => setInputValue('dateFormat', f)}>${f}</sl-button>
+                                        `)}
+                                    </div>
+                                </div>
 
-                        <div class="form-group">
-                            <label>
-                                <sl-icon src="https://api.iconify.design/lucide/languages.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
-                                Culture (e.g. en-US, de-DE)
-                            </label>
-                            <sl-input name="culture" value=${state.settings.value.culture} onsl-input=${onInputChange} clearable></sl-input>
-                            <div class="settings-presets">
-                                ${[{ v: 'en-US', l: '🇺🇸 US' }, { v: 'en-GB', l: '🇬🇧 UK' }, { v: 'de-DE', l: '🇩🇪 DE' },
+                                <div class="form-group">
+                                    <label>
+                                        <sl-icon src="https://api.iconify.design/lucide/languages.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
+                                        Culture (e.g. en-US, de-DE)
+                                    </label>
+                                    <sl-input name="culture" value=${state.settings.value.culture} onsl-input=${onInputChange} clearable></sl-input>
+                                    <div class="settings-presets">
+                                        ${[{ v: 'en-US', l: '🇺🇸 US' }, { v: 'en-GB', l: '🇬🇧 UK' }, { v: 'de-DE', l: '🇩🇪 DE' },
         { v: 'nl-NL', l: '🇳🇱 NL' }, { v: 'it-IT', l: '🇮🇹 IT' }, { v: 'hr-HR', l: '🇭🇷 HR' },
         { v: 'es-ES', l: '🇪🇸 ES' }, { v: 'fr-FR', l: '🇫🇷 FR' }, { v: 'ru-RU', l: '🇷🇺 RU' },
         { v: 'en-CA', l: '🇨🇦 CA' }].map(c => html`
-                                    <sl-button size="small" variant="primary" outline=${state.settings.value.culture !== c.v} onclick=${() => setInputValue('culture', c.v)}>${c.l}</sl-button>
-                                `)}
-                            </div>
-                        </div>
+                                            <sl-button size="small" variant="primary" outline=${state.settings.value.culture !== c.v} onclick=${() => setInputValue('culture', c.v)}>${c.l}</sl-button>
+                                        `)}
+                                    </div>
+                                </div>
 
-                        <div class="u-mt-1">
-                            <div class="u-flex u-items-center u-justify-between u-mb-05">
-                                <label class="u-mt-0">
-                                    <sl-icon src="https://api.iconify.design/lucide/history.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
-                                    Enable History Recording
-                                </label>
-                                 <sl-switch name="enableHistory" checked=${state.settings.value.enableHistory} onsl-change=${(e) => {
+                                <div class="form-group">
+                                    <div class="u-flex u-items-center u-justify-between u-mb-05">
+                                        <label class="u-mt-0">
+                                            <sl-icon src="https://api.iconify.design/lucide/history.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
+                                            Enable History Recording
+                                        </label>
+                                         <sl-switch name="enableHistory" checked=${state.settings.value.enableHistory} onsl-change=${(e) => {
             const isChecked = e.target.checked;
             let newLen = state.settings.value.historyLength;
             if (isChecked && (!newLen || Number.parseInt(newLen) <= 0)) newLen = 10;
             state.settings.value = { ...state.settings.value, enableHistory: isChecked, historyLength: newLen };
         }}></sl-switch>
-                            </div>
+                                    </div>
 
-                            ${state.settings.value.enableHistory ? html`
-                                <div class="form-group u-mb-2" style="animation: fadeIn 0.15s ease-out;">
-                                    <sl-input name="historyLength" type="number" min="1" max="100" value=${state.settings.value.historyLength}>
-                                        <div slot="help-text" class="subtle-help">Maximum number of calculations to keep in history memory.</div>
-                                        <sl-button slot="prefix" variant="text" style="padding: 0; margin-left: 0.25rem;" 
-                                            onclick=${(e) => { e.preventDefault(); state.settings.value = { ...state.settings.value, historyLength: Math.max(1, parseInt(state.settings.value.historyLength) - 1) }; }}>
-                                            <sl-icon name="dash-lg" style="font-size: 0.8rem;"></sl-icon>
-                                        </sl-button>
-                                        <sl-button slot="suffix" variant="text" style="padding: 0; margin-right: 0.25rem;" 
-                                            onclick=${(e) => { e.preventDefault(); state.settings.value = { ...state.settings.value, historyLength: Math.min(100, parseInt(state.settings.value.historyLength) + 1) }; }}>
-                                            <sl-icon name="plus-lg" style="font-size: 0.8rem;"></sl-icon>
-                                        </sl-button>
-                                    </sl-input>
+                                    ${state.settings.value.enableHistory ? html`
+                                        <div class="form-group u-mb-2" style="animation: fadeIn 0.15s ease-out;">
+                                            <sl-input name="historyLength" type="number" min="1" max="100" value=${state.settings.value.historyLength} onsl-input=${onInputChange}>
+                                                <div slot="help-text" class="subtle-help">Maximum number of calculations to keep in history memory.</div>
+                                                <sl-button slot="prefix" variant="text" style="padding: 0; margin-left: 0.25rem;" 
+                                                    onclick=${(e) => { e.preventDefault(); state.settings.value = { ...state.settings.value, historyLength: Math.max(1, parseInt(state.settings.value.historyLength) - 1) }; }}>
+                                                    <sl-icon name="dash-lg" style="font-size: 0.8rem;"></sl-icon>
+                                                </sl-button>
+                                                <sl-button slot="suffix" variant="text" style="padding: 0; margin-right: 0.25rem;" 
+                                                    onclick=${(e) => { e.preventDefault(); state.settings.value = { ...state.settings.value, historyLength: Math.min(100, parseInt(state.settings.value.historyLength) + 1) }; }}>
+                                                    <sl-icon name="plus-lg" style="font-size: 0.8rem;"></sl-icon>
+                                                </sl-button>
+                                            </sl-input>
+                                        </div>
+                                    ` : html`
+                                        <div class="form-group u-mb-2" style="opacity: 0.5; pointer-events: none;">
+                                            <sl-input name="historyLength" type="number" value=${state.settings.value.historyLength} disabled>
+                                                <div slot="help-text" class="subtle-help">Enable history recording to adjust record limit.</div>
+                                                <sl-button slot="prefix" variant="text" style="padding: 0; margin-left: 0.25rem;" disabled>
+                                                    <sl-icon name="dash-lg" style="font-size: 0.8rem;"></sl-icon>
+                                                </sl-button>
+                                                <sl-button slot="suffix" variant="text" style="padding: 0; margin-right: 0.25rem;" disabled>
+                                                    <sl-icon name="plus-lg" style="font-size: 0.8rem;"></sl-icon>
+                                                </sl-button>
+                                            </sl-input>
+                                        </div>
+                                    `}
                                 </div>
-                            ` : html`
-                                <div class="form-group u-mb-2" style="opacity: 0.5; pointer-events: none;">
-                                    <sl-input name="historyLength" type="number" value=${state.settings.value.historyLength} disabled>
-                                        <div slot="help-text" class="subtle-help">Enable history recording to adjust record limit.</div>
-                                        <sl-button slot="prefix" variant="text" style="padding: 0; margin-left: 0.25rem;" disabled>
-                                            <sl-icon name="dash-lg" style="font-size: 0.8rem;"></sl-icon>
-                                        </sl-button>
-                                        <sl-button slot="suffix" variant="text" style="padding: 0; margin-right: 0.25rem;" disabled>
-                                            <sl-icon name="plus-lg" style="font-size: 0.8rem;"></sl-icon>
-                                        </sl-button>
-                                    </sl-input>
-                                </div>
-                            `}
+                            </form>
                         </div>
-                        <div class="form-actions u-mt-2">
-                            <sl-button variant="primary" type="submit" class="btn-calculate">
+                        <div class="settings-button-footer">
+                            <sl-button variant="default" outline class="btn-cancel-settings" onclick=${actions.cancelSettings} disabled=${!isSettingsDirty()}>
+                                Cancel
+                            </sl-button>
+                            <sl-button variant="primary" type="submit" form="settings-form" class="btn-save-settings" disabled=${!isSettingsDirty()}>
                                 Save Settings
                             </sl-button>
                         </div>
-                    </form>
+                    </div>
                 </sl-tab-panel>
 
                 <sl-tab-panel name="about">
-                    <div class="about-container">
+                    <div class="about-flex-wrapper">
+                        <div class="about-content-area" onscroll=${onPanelScroll}>
+                            <div class="about-container">
                         <section class="about-section">
                             <div class="about-header">
                                 <sl-icon src="https://api.iconify.design/lucide/cpu.svg?color=%23cbd5e1" class="about-icon"></sl-icon>
                                 <div>
                                     <strong>The Product.</strong>
-                                    <span>ShYCalculator is a high-performance .NET expression evaluator (Recursive Shunting Yard) designed for zero-allocation parsing and lightning-fast execution (~380,000 ops/sec). It supports complex mathematical functions, string manipulation, date-time operations, and custom variable injection.</span>
+                                    <span>ShYCalculator is a high-performance .NET expression evaluator (Recursive Shunting Yard) designed for zero-allocation parsing and lightning-fast execution. It achieves peak throughput of <strong>~380,000 ops/sec</strong> in single-threaded compiled batch mode (Benchmarked on AMD Ryzen™ 7 5800X3D). It supports complex mathematical functions, string manipulation, date-time operations, and custom variable injection with 100% logic and branch coverage.</span>
                                 </div>
                             </div>
                         </section>
@@ -942,11 +956,11 @@ export const Documentation = ({ state, actions }) => {
                                 <div>
                                     <div class="u-mb-1">
                                         <strong>The Demo App.</strong>
-                                        <span>This web application is a technology demonstration specifically built to test the ShYCalculator WebAssembly (WASM) build.</span>
+                                        <span>This is a browser-native playground built to test the <strong>WebAssembly (WASM)</strong> implementation of ShYCalculator. By running the engine directly in your client, it eliminates calculation latency and server roundtrips, though the initial WebAssembly module load may require a moment to initialize.</span>
                                     </div>
                                     <div>
-                                        <strong>Sandbox Mode:</strong>
-                                        <span>This environment is not intended for production calculations or secure data processing. It's a playground for the engine!</span>
+                                        <strong>Sandbox Mode.</strong>
+                                        <span>This diagnostic environment is intended for feature exploration and engine verification. It is not designed for production-grade security or permanent data processing.</span>
                                     </div>
                                 </div>
                             </div>
@@ -956,15 +970,25 @@ export const Documentation = ({ state, actions }) => {
                             <div class="about-header">
                                 <sl-icon src="https://api.iconify.design/lucide/scroll.svg?color=%23cbd5e1" class="about-icon"></sl-icon>
                                 <div>
-                                    <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank" class="about-link u-mb-025">Licensing & Vibe.</a>
-                                    <span>This project is released under the <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank" class="about-link">MIT License</a>. Feel free to download the <a href="https://www.nuget.org/packages/ShYCalculator" target="_blank" class="about-link">NuGet package</a>, integrate it into your projects, and enjoy the speed!</span>
+                                    <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank" class="about-link u-mb-025">Licensing & The Vibe. </a>
+                                    <span>Built with passion and released under the <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank" class="about-link">MIT License</a>. Open-source is the way—so please <a href="https://github.com/nullzerovibe/ShYCalculator" target="_blank" class="about-link">fork</a> and enjoy! ;) Feel free to contribute or bake the <a href="https://www.nuget.org/packages/ShYCalculator" target="_blank" class="about-link">NuGet package</a> into your own high-performance projects. Let's build something fast!</span>
                                 </div>
                             </div>
+                        </section>
+
+                        <section class="about-section">
                             <div class="vibe-card">
-                                <pre class="vibe-text">  _  _         _  _  ____                 _   _  _  _            
- | \\| | _  _  | || ||_  / ___  _ _  ___  | | | |(_)| |__  ___  _  
- | .  || || | | || | / / / -_)| '_|/ _ \\ | |_| || || '_ \\/ -_)(_) 
- |_|\\_| \\_,_| |_||_|/___|\\___||_|  \\___/  \\___/ |_||_.__/\\___|(_)
+                                <pre class="vibe-text"> _  _         _  _  ____                 _   _  _  _      
+| \\| | _  _  | || ||_  / ___  _ _  ___  | | | |(_)| |__  ___
+| .  || || | | || | / / / -_)| '_|/ _ \\ | |_| || || '_ \\/ -_)
+|_|\\_| \\_,_| |_||_|/___|\\___||_|  \\___/  \\___/ |_||_.__/\\___|
+ 
+ 
+                      ▄▀▀▄░█▀▀█░█▀▀▄░█▀▀ 
+                      █░░░░█░░█░█░░█░█▀▀ 
+                      ▀▄▄▀░█▄▄█░█▄▄▀░█▄▄ 
+ 
+     ░▒▒▓▓ LIFETIME OF SYNTAX // AGENTIC EVOLUTION ▓▓▒▒░ 
  </pre>
                                 <div class="vibe-description">
                                     VIBE CHECK: This code was orchestrated through intent.<br/>
@@ -973,88 +997,131 @@ export const Documentation = ({ state, actions }) => {
                                 </div>
                             </div>
                         </section>
-
-                        <div class="about-footer">
-                            <a href="https://github.com/nullzerovibe/ShYCalculator" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                                <img src="https://img.shields.io/github/stars/nullzerovibe/ShYCalculator?style=flat-square&logo=github&label=github&color=21262d" alt="GitHub Badge" />
-                            </a>
-                            <a href="https://www.nuget.org/packages/ShYCalculator" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                                <img src="https://img.shields.io/nuget/v/ShYCalculator?style=flat-square&logo=nuget&label=nuget&color=21262d" alt="NuGet Badge" />
-                            </a>
-                            <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                                <img src="https://img.shields.io/github/license/nullzerovibe/ShYCalculator?style=flat-square&label=license&color=21262d" alt="License Badge" />
-                            </a>
-                            <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                                <img src="https://img.shields.io/badge/vibe-MIT-21262d?style=flat-square&logo=sparkles" alt="Vibe Badge" />
-                            </a>
-                            <a href="https://x.com/nullzerovibe" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                                <img src="https://img.shields.io/twitter/follow/nullzerovibe?style=flat-square&logo=twitter&color=21262d" alt="Twitter Badge" />
-                            </a>
-                            <a href="mailto:nullzerovibe@gmail.com" class="footer-badge">
-                                <img src="https://img.shields.io/badge/email-contact-21262d?style=flat-square&logo=gmail" alt="Email Badge" />
-                            </a>
-                        </div>
                     </div>
-                </sl-tab-panel>
+                </div>
+
+                <div class="about-footer">
+                    <a href="https://github.com/nullzerovibe/ShYCalculator" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                        <img src="https://img.shields.io/github/stars/nullzerovibe/ShYCalculator?style=flat-square&logo=github&label=github&color=21262d" alt="GitHub Badge" />
+                    </a>
+                    <a href="https://www.nuget.org/packages/ShYCalculator" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                        <img src="https://img.shields.io/nuget/v/ShYCalculator?style=flat-square&logo=nuget&label=nuget&color=21262d" alt="NuGet Badge" />
+                    </a>
+                    <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                        <img src="https://img.shields.io/github/license/nullzerovibe/ShYCalculator?style=flat-square&label=license&color=21262d" alt="License Badge" />
+                    </a>
+                    <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                        <img src="https://img.shields.io/badge/vibe-MIT-21262d?style=flat-square&logo=sparkles" alt="Vibe Badge" />
+                    </a>
+                    <a href="https://x.com/nullzerovibe" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                        <img src="https://img.shields.io/twitter/follow/nullzerovibe?style=flat-square&logo=twitter&color=21262d" alt="Twitter Badge" />
+                    </a>
+                    <a href="mailto:nullzerovibe@gmail.com" class="footer-badge">
+                        <img src="https://img.shields.io/badge/email-contact-21262d?style=flat-square&logo=gmail" alt="Email Badge" />
+                    </a>
+                </div>
+            </div>
+        </sl-tab-panel>
 
                 <sl-tab-panel name="library">
-                    <div class="ops-table-container">
-                        <table class="ops-table library-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40px;">Pin</th>
-                                    ${renderSortHeader('Icon', 'Icon', state.librarySortBy, state.librarySortDir, onLibrarySort)}
-                                    ${renderSortHeader('Name', 'Name', state.librarySortBy, state.librarySortDir, onLibrarySort)}
-                                    ${renderSortHeader('Expression', 'Formula', state.librarySortBy, state.librarySortDir, onLibrarySort)}
-                                    ${renderSortHeader('Group', 'Group', state.librarySortBy, state.librarySortDir, onLibrarySort)}
-                                    <th style="width: 80px;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${sortedSnippets.map(s => html`
-                                    <tr class="${s.pinned ? 'pinned-row' : ''}">
-                                        <td>
-                                            <sl-icon-button 
-                                                name=${s.pinned ? 'pin-fill' : 'pin'} 
-                                                class="pin-btn ${s.pinned ? 'active' : ''}" 
-                                                onclick=${() => actions.togglePinSnippet(s.id)}>
-                                            </sl-icon-button>
-                                        </td>
-                                        <td>
-                                            <sl-icon src=${getCategoryIconUrl(s.icon)} class="u-text-primary" style="font-size: 1.1rem;"></sl-icon>
-                                        </td>
-                                        <td style="font-weight: 600;">${s.label}</td>
-                                        <td><code class="op-symbol" dangerouslySetInnerHTML=${{ __html: highlightExpression(s.value, state.knownNames.value, state.variables.value, true) }}></code></td>
-                                        <td>
-                                            <sl-badge size="small" class="shy-badge">
-                                                ${s.group}
-                                            </sl-badge>
-                                        </td>
-                                        <td>
-                                            <div class="u-flex u-gap-025">
-                                                <sl-icon-button name="pencil" onclick=${() => actions.editSnippet(s)}></sl-icon-button>
-                                                <sl-icon-button name="trash" class="u-text-danger" onclick=${() => {
-                if (confirm(`Delete "${s.label}"?`)) actions.deleteSnippet(s.id);
-            }}></sl-icon-button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `)}
-                                ${state.snippets.value.length === 0 ? html`
+                    ${state.docActiveTab.value === 'library' ? html`
+                        <div class="ops-table-container">
+                            <table class="ops-table library-table">
+                                <thead>
                                     <tr>
-                                        <td colspan="5" class="u-text-center u-p-3" style="opacity: 0.5;">
-                                            Your expression library is empty. Save an expression to see it here!
-                                        </td>
+                                        <th style="width: 40px;">Pin</th>
+                                        ${renderSortHeader('Icon', 'Icon', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                        ${renderSortHeader('Name', 'Name', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                        ${renderSortHeader('Expression', 'Expression', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                        ${renderSortHeader('Group', 'Group', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                        <th style="width: 80px;">Action</th>
                                     </tr>
-                                ` : null}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    ${sortedSnippets.map(s => html`
+                                        <tr class="${s.pinned ? 'pinned-row' : ''}">
+                                            <td>
+                                                <sl-icon-button 
+                                                    name=${s.pinned ? 'pin-fill' : 'pin'} 
+                                                    class="pin-btn ${s.pinned ? 'active' : ''}" 
+                                                    onclick=${() => actions.togglePinSnippet(s.id)}>
+                                                </sl-icon-button>
+                                            </td>
+                                            <td>
+                                                <sl-icon src=${getCategoryIconUrl(s.icon)} class="u-text-primary" style="font-size: 1.1rem;"></sl-icon>
+                                            </td>
+                                            <td style="font-weight: 600;">${s.label}</td>
+                                            <td><code class="op-symbol" dangerouslySetInnerHTML=${{ __html: highlightExpression(s.value, state.knownNames.value, state.variables.value, true) }}></code></td>
+                                            <td>
+                                                <sl-badge size="small" class="shy-badge">
+                                                    ${s.group}
+                                                </sl-badge>
+                                            </td>
+                                            <td>
+                                                <div class="u-flex u-gap-025">
+                                                    <sl-icon-button name="pencil" onclick=${() => actions.editSnippet(s)}></sl-icon-button>
+                                                    <sl-icon-button name="trash" class="danger-icon" onclick=${() => {
+                actions.openConfirm(
+                    "Delete Expression",
+                    `Are you sure you want to delete "${s.label}"? This action cannot be undone.`,
+                    () => actions.deleteSnippet(s.id),
+                    { variant: 'danger', confirmLabel: 'Delete' }
+                );
+            }}></sl-icon-button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `)}
+                                    ${state.snippets.value.length === 0 ? html`
+                                        <tr>
+                                            <td colspan="5" class="u-text-center u-p-3" style="opacity: 0.5;">
+                                                Your expression library is empty. Save an expression to see it here!
+                                            </td>
+                                        </tr>
+                                    ` : null}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : null}
                 </sl-tab-panel>
             </sl-tab-group>
 
             <sl-button circle class="scroll-top-btn ${state.showScrollTop.value ? 'visible' : ''}" onclick=${scrollToTop}>
                 <sl-icon name="chevron-up"></sl-icon>
+            </sl-button>
+        </sl-dialog>
+    `;
+};
+
+export const ConfirmDialog = ({ state, actions }) => {
+    const dialog = state.confirmDialog;
+
+    const onHide = () => {
+        actions.closeConfirm();
+    };
+
+    const handleConfirm = () => {
+        if (dialog.onConfirm.value) {
+            dialog.onConfirm.value();
+        }
+        actions.closeConfirm();
+    };
+
+    return html`
+        <sl-dialog 
+            label=${dialog.title.value} 
+            open=${dialog.open.value} 
+            class="confirm-dialog"
+            onsl-after-hide=${onHide}
+        >
+            <div class="confirm-content">
+                ${dialog.message.value}
+            </div>
+            <sl-button slot="footer" variant="text" onclick=${() => actions.closeConfirm()}>
+                ${dialog.cancelLabel.value}
+            </sl-button>
+            <sl-button slot="footer" variant=${dialog.variant.value} onclick=${handleConfirm} autofocus>
+                ${dialog.confirmLabel.value}
             </sl-button>
         </sl-dialog>
     `;
@@ -1138,6 +1205,7 @@ export const App = ({ state, actions }) => {
         <${Documentation} state=${state} actions=${actions} />
         <${ContactFooter} />
         <${SaveSnippetDialog} state=${state} actions=${actions} />
+        <${ConfirmDialog} state=${state} actions=${actions} />
     `;
 };
 

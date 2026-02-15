@@ -211,6 +211,10 @@
     color: var(--success);
 }
 
+.u-text-danger {
+    color: var(--error);
+}
+
 .u-text-accent {
     color: var(--accent);
 }
@@ -588,8 +592,12 @@ sl-icon-button::part(base):hover {
     color: var(--accent);
 }
 
-.danger-icon::part(base):hover {
+.danger-icon::part(base):hover,
+.danger-icon::part(base):focus-visible {
     color: var(--error);
+    --sl-color-primary-600: var(--error);
+    --sl-focus-ring-width: 1px;
+    --sl-focus-ring-color: rgba(239, 68, 68, 0.4);
 }
 
 .btn-clear-all::part(base):hover,
@@ -597,6 +605,13 @@ sl-icon-button::part(base):hover {
     color: var(--error) !important;
     border-color: var(--error) !important;
     background-color: rgba(239, 68, 68, 0.1) !important;
+    --sl-focus-ring-width: 1px !important;
+    --sl-focus-ring-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+sl-button[variant="danger"]::part(base):focus-visible {
+    --sl-focus-ring-width: 1px !important;
+    --sl-focus-ring-color: rgba(239, 68, 68, 0.4) !important;
 }
 
 .btn-secondary::part(base) {
@@ -977,7 +992,7 @@ sl-tab-panel {
     padding: 0.5rem 1rem;
     background: #1e293b;
     /* Solid opaque background */
-    border-bottom: 2px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
     position: sticky;
     top: 0;
     z-index: 15;
@@ -1256,12 +1271,12 @@ sl-tab-panel {
 
 .ops-table th {
     text-align: left;
-    padding: 1.29rem 1rem;
+    padding: 1.26rem 1rem;
     color: #cbd5e1;
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    border-bottom: 2px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
     background: #1e293b;
     position: sticky;
     top: 0;
@@ -1292,7 +1307,7 @@ sl-tab-panel {
 
 .sortable-header.active {
     color: var(--text);
-    border-bottom: 2px solid var(--accent) !important;
+    border-bottom: 1px solid var(--accent) !important;
     /* Force the blue line to stay sticky */
 }
 
@@ -1332,6 +1347,57 @@ sl-tab-panel {
 }
 
 /* Settings Form */
+/* Settings Tab Specific (Shadow DOM Bridge) */
+sl-tab-panel[name="settings"]::part(base),
+sl-tab-panel[name="about"]::part(base) {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.settings-flex-wrapper,
+.about-flex-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.settings-content-area,
+.about-content-area {
+    flex: 1;
+    overflow-y: auto;
+    width: 100%;
+    min-height: 0;
+}
+
+.settings-button-footer {
+    flex-shrink: 0;
+    padding: 1.25rem 1rem;
+    background: #1e293b;
+    border-top: 2px solid var(--glass-border);
+    display: flex;
+    gap: 1rem;
+}
+
+.settings-button-footer sl-button {
+    flex: 1;
+}
+
+.btn-cancel-settings::part(base) {
+    border-color: var(--glass-border);
+    color: var(--text-muted);
+}
+
+.btn-cancel-settings::part(base):hover:not([disabled]) {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-muted);
+    color: var(--text);
+}
+
 .settings-form {
     display: flex;
     flex-direction: column;
@@ -1339,9 +1405,6 @@ sl-tab-panel {
     padding: 1.5rem 1rem;
     box-sizing: border-box;
     max-width: 100%;
-    overflow-x: hidden;
-    min-height: 100%;
-    flex: 1;
 }
 
 .form-group {
@@ -1388,13 +1451,10 @@ sl-tab-panel {
 }
 
 .btn-save-settings {
-    margin-top: auto;
     width: 100%;
-    margin-bottom: 0.5rem;
 }
 
 .btn-save-settings::part(base) {
-    height: 3.5rem;
     font-size: 1.1rem;
     font-weight: 600;
     background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
@@ -1519,11 +1579,9 @@ sl-tab-panel {
 }
 
 .vibe-card {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    padding: 1.25rem;
-    margin-top: 1rem;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
     position: relative;
     overflow: hidden;
 }
@@ -1542,15 +1600,17 @@ sl-tab-panel {
     color: var(--accent);
     opacity: 0.8;
     line-height: 1.4;
+    text-align: center;
 }
 
 .about-footer {
+    flex-shrink: 0;
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.25rem 1rem;
+    background: #1e293b;
+    border-top: 2px solid var(--glass-border);
 }
 
 .footer-badge {
@@ -1755,6 +1815,66 @@ sl-tab-panel[active]::part(base) {
     overflow-y: auto;
 }
 
+/* Confirm Dialog */
+.confirm-dialog::part(panel) {
+    max-width: 450px;
+    height: auto !important;
+    max-height: none !important;
+}
+
+.confirm-dialog::part(header) {
+    border-bottom: none;
+    background: transparent;
+    padding: 1.5rem 1.5rem 0;
+}
+
+.confirm-dialog::part(title) {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #fca5a5;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0;
+}
+
+.confirm-dialog::part(close-button) {
+    display: none;
+}
+
+.confirm-dialog::part(body) {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    line-height: 1.5;
+}
+
+.confirm-dialog::part(footer) {
+    border-top: none;
+    background: transparent;
+    padding: 0 1.5rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.confirm-dialog sl-button[slot="footer"]+sl-button[slot="footer"] {
+    margin-left: 0.75rem;
+}
+
+.confirm-dialog sl-button[variant="danger"]::part(base) {
+    background: var(--error);
+    border: none;
+    color: white;
+}
+
+.confirm-dialog sl-button[variant="danger"]::part(base):hover {
+    background: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.confirm-dialog sl-button[variant="danger"]::part(base):focus-visible {
+    --sl-focus-ring-color: rgba(239, 68, 68, 0.4);
+}
+
 .save-dialog::part(footer) {
     border-top: 1px solid var(--glass-border);
     background: #1e293b;
@@ -1786,7 +1906,8 @@ sl-tab-panel[active]::part(base) {
     position: absolute;
     top: -0.65rem;
     left: 1.25rem;
-    background: #0ea5e9;
+    background: #075985;
+    /* Sky 800 for definitive contrast (>6:1) with white text */
     color: white;
     font-size: 0.65rem;
     font-weight: 800;
