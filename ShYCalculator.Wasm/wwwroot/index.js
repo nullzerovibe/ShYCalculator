@@ -1,465 +1,637 @@
 import { h, render } from 'https://esm.sh/preact@10.19.3';
-import { signal, effect } from 'https://esm.sh/@preact/signals@1.2.2?deps=preact@10.19.3';
+import { useEffect } from 'https://esm.sh/preact@10.19.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
-import { App, FLAT_MAP } from './template.js';
+import { FLAT_MAP, EXAMPLE_GROUPS, getCategoryIconUrl, getTypeIconUrl, appState, actions } from './logic.js';
 
 const html = htm.bind(h);
 
-// --- PERSISTENCE UTILS ---
-const STORAGE_KEY_HISTORY = 'shy_calc_history';
-const STORAGE_KEY_CONFIG = 'shy_calc_config';
+// --- COMPONENTS ---
 
-const loadSavedHistory = () => {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY_HISTORY);
-        return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+export const Header = ({ state }) => html`
+    <header class="app-header">
+        <div class="logo-area">
+            <h1 class="app-title">ShYCalculator</h1>
+            <p class="app-subtitle">
+                High-performance .NET WASM Expression Evaluator 
+                <span class="version-tag">v${state.version.value}</span>
+            </p>
+        </div>
+        <div class="status-indicator">
+            <sl-badge variant="${state.isReady.value ? 'success' : 'danger'}">
+                ${state.status.value}
+            </sl-badge>
+        </div>
+    </header>
+`;
+
+export const MainCard = ({ state, actions }) => {
+    const onInput = (e) => state.input.value = e.target.value;
+
+    const onExampleSelect = (e) => {
+        const idx = e.target.value;
+        if (idx !== '' && FLAT_MAP[Number.parseInt(idx)]) {
+            const item = FLAT_MAP[Number.parseInt(idx)];
+            actions.insertExample(item.value, item.vars, idx);
+        }
+    };
+
+    const vars = state.variables.value;
+
+    return html`
+        <sl-card class="main-card">
+            <div class="form-section">
+                <label class="section-label">
+                    <sl-icon src="https://api.iconify.design/lucide/list-plus.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
+                    Load Example
+                </label>
+                <div class="controls-top">
+                    <sl-select placeholder="Select an example" value=${state.selectedIdx.value} onsl-change=${onExampleSelect} hoist>
+                        ${EXAMPLE_GROUPS.map((g, i) => html`
+                            <sl-menu-label>
+                                <sl-icon src="https://api.iconify.design/lucide/${g.icon || 'help-circle'}.svg?color=%23cbd5e1" class="ex-group-icon"></sl-icon>
+                                ${g.label}
+                            </sl-menu-label>
+                            ${g.items.map(ex => html`
+                                <sl-option value="${ex._idx}">${ex.label}</sl-option>
+                            `)}
+                            ${i < EXAMPLE_GROUPS.length - 1 ? html`<sl-divider></sl-divider>` : null}
+                        `)}
+                    </sl-select>
+                    <sl-button outline class="btn-secondary" onclick=${actions.openDocs}>
+                        <sl-icon slot="prefix" name="book"></sl-icon> Reference Guide
+                    </sl-button>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <label class="section-label">
+                    <sl-icon src="https://api.iconify.design/lucide/terminal.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
+                    Mathematical Expression
+                </label>
+                <sl-input 
+                    placeholder="Enter expression..." 
+                    value=${state.input.value}
+                    oninput=${onInput}
+                    onkeydown=${e => e.key === 'Enter' && actions.calculate()}
+                    clearable
+                ></sl-input>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <label class="section-label">
+                        <sl-icon src="https://api.iconify.design/lucide/variable.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
+                        Variables (Context)
+                    </label>
+                    <div class="section-actions">
+                        <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary u-mr-05" onclick=${actions.clearVars}>
+                            <sl-icon slot="prefix" name="trash"></sl-icon> Clear
+                        </sl-button>
+                        <sl-button size="small" variant="neutral" outline class="btn-secondary" onclick=${actions.addVar}>
+                            <sl-icon slot="prefix" name="plus"></sl-icon> Add
+                        </sl-button>
+                    </div>
+                </div>
+                
+                <div class="vars-list">
+                    ${vars.length === 0 ? html`<div class="empty-state-small">No variables defined</div>` : null}
+                    ${vars.map((v, i) => html`
+                        <div class="var-row">
+                            <sl-input placeholder="Name" size="small" value=${v.name} oninput=${e => actions.updateVar(i, 'name', e.target.value)}></sl-input>
+                            <span class="eq">=</span>
+                            <sl-input placeholder="Value" size="small" value=${v.value} oninput=${e => actions.updateVar(i, 'value', e.target.value)}></sl-input>
+                            <sl-icon-button name="trash" label="Remove" class="danger-icon" onclick=${() => actions.removeVar(i)}></sl-icon-button>
+                        </div>
+                    `)}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <sl-button variant="primary" class="btn-calculate" disabled=${!state.isReady.value || state.isCalculating.value} onclick=${actions.calculate}>
+                    Calculate
+                </sl-button>
+
+                <div class="result-box ${state.result.value === 'Error' || state.result.value.startsWith('Interop') ? 'error' : ''}">
+                    <div class="result-body">
+                        <div class="result-value">${state.result.value}</div>
+                        <div class="result-actions ${state.result.value === '---' || state.result.value === 'Error' || state.result.value === 'null' ? 'u-hidden' : ''}">
+                            <sl-icon-button name="copy" label="Copy Result" onclick=${() => actions.copyToClipboard(state.result.value)} class="copy-btn"></sl-icon-button>
+                        </div>
+                    </div>
+
+                    <div class="result-footer">
+                        <div class="result-badge-area ${state.message.value ? 'u-visible' : 'u-invisible'}">
+                            <sl-badge size="small" class="shy-badge">
+                                <sl-icon src="${getTypeIconUrl(state.resultType.value)}" class="type-icon-sm"></sl-icon>
+                                ${state.resultType.value}
+                            </sl-badge>
+                            <span class="result-msg">${state.message.value}</span>
+                        </div>
+                        <div class="result-stats">
+                            ${state.calcTime.value === null ? null : html`
+                                <sl-badge size="small" class="shy-badge">
+                                    <sl-icon src="https://api.iconify.design/lucide/timer.svg?color=%23cbd5e1" class="type-icon-sm"></sl-icon>
+                                    ${state.calcTime.value}ms
+                                </sl-badge>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            ${state.settings.value.enableHistory && state.history.value.length > 0 ? html`
+                <div class="history-section">
+                    <div class="history-header">
+                        <label class="section-label">History</label>
+                        <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary" onclick=${actions.clearHistory}>
+                            <sl-icon slot="prefix" name="trash"></sl-icon> Clear
+                        </sl-button>
+                    </div>
+                    <div class="history-list">
+                        ${state.history.value.map(item => html`
+                            <div class="history-item" onclick=${() => actions.loadHistoryItem(item)}>
+                                <div class="history-item-main">
+                                    <span class="hist-expr">${item.expr}</span>
+                                    <span class="hist-res-group">
+                                        <span class="hist-eq">=</span>
+                                        <span class="hist-res">${item.result}</span>
+                                    </span>
+                                </div>
+                                <div class="history-item-meta">
+                                    <span class="hist-vars">
+                                        ${item.vars && item.vars.length > 0 ? item.vars.map(v => `${v.name}=${v.value}`).join(', ') : ''}
+                                    </span>
+                                    ${item.resultType ? html`
+                                        <sl-badge size="small" class="shy-badge u-flex u-items-center u-gap-025">
+                                            <sl-icon src="${getTypeIconUrl(item.resultType)}" class="type-icon-sm"></sl-icon>
+                                            ${item.resultType}
+                                        </sl-badge>
+                                    ` : null}
+                                </div>
+                            </div>
+                        `)}
+                    </div>
+                </div>
+            ` : null}
+        </sl-card>
+    `;
 };
 
+export const Documentation = ({ state, actions }) => {
+    const ALL_CATS = 'All_Categories';
+    const docs = state.docs.value || { functions: [], operators: [] };
+    const functions = docs.functions || docs.Functions || [];
+    const operators = docs.operators || docs.Operators || [];
+    const query = (state.docSearch.value || '').trim().toLowerCase();
+    const category = (state.docCategory.value || '').trim() || ALL_CATS;
 
-const STORAGE_KEY_SETTINGS = 'shy_calc_settings';
-const loadSavedSettings = () => {
-    const defaults = { dateFormat: 'dd/MM/yyyy', culture: 'en-US', enableHistory: true, historyLength: 15 };
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY_SETTINGS);
-        if (!saved) return defaults;
-        return { ...defaults, ...JSON.parse(saved) };
-    } catch { return defaults; }
-};
-
-const formatDate = (pattern) => {
-    const now = new Date();
-    const d = String(now.getDate()).padStart(2, '0');
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const y = now.getFullYear();
-
-    // Quick & Dirty C# to JS pattern mapper for common ones
-    return pattern
-        .replace('yyyy', y)
-        .replace('MM', m)
-        .replace('dd', d)
-        .replace('yyyy', y) // repeat for safety
-        .replace('M', now.getMonth() + 1)
-        .replace('d', now.getDate());
-};
-
-const settings = loadSavedSettings();
-
-// --- STATE ---
-const appState = {
-    input: signal(''),
-    selectedIdx: signal(''),
-    result: signal('---'),
-    status: signal('Initializing...'),
-    isReady: signal(false),
-    isLoading: signal(true),
-    isCalculating: signal(false),
-    variables: signal([]), // Array of { name, value }
-    history: signal(loadSavedHistory()),   // Array of { expr, result }
-    version: signal('Loading...'),
-    docsOpen: signal(false),
-    docs: signal({ functions: [], operators: [] }),
-    docsSafe: signal(false),
-    calcTime: signal(null),
-    message: signal(''),
-    resultType: signal(''),
-    exampleSearch: signal(''),
-    docSearch: signal(sessionStorage.getItem('docSearch') || ''),
-    docCategory: signal(sessionStorage.getItem('docCategory') || 'All_Categories'),
-    operatorSortBy: signal('Precedence'),
-    operatorSortDir: signal('desc'),
-    settings: signal(settings),
-    showScrollTop: signal(false)
-};
-
-// --- AUTO-SAVE EFFECTS ---
-effect(() => {
-    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(appState.history.value));
-});
-
-
-// --- INTEROP & LOGIC ---
-async function waitForInterop() {
-    if (globalThis.shyCalculator) return globalThis.shyCalculator;
-    return new Promise((resolve) => {
-        const handler = (e) => {
-            globalThis.removeEventListener('shy-calculator-ready', handler);
-            resolve(e.detail);
-        };
-        globalThis.addEventListener('shy-calculator-ready', handler);
-        const i = setInterval(() => {
-            if (globalThis.shyCalculator) {
-                clearInterval(i);
-                globalThis.removeEventListener('shy-calculator-ready', handler);
-                resolve(globalThis.shyCalculator);
+    useEffect(() => {
+        if (state.docsOpen.value) {
+            if (!state.docCategory.value || state.docCategory.value.trim() === '') {
+                state.docCategory.value = ALL_CATS;
             }
-        }, 100);
+            if (!state.docSearch.value) {
+                state.docSearch.value = '';
+            }
+        }
+    }, [state.docsOpen.value]);
+
+    const categories = [ALL_CATS, ...new Set(functions.map(f => {
+        const c = f.Category || f.category;
+        return c ? c.trim().replaceAll(' ', '_') : null;
+    }).filter(Boolean))];
+
+    const filteredFunctions = (functions || []).filter(f => {
+        const name = (f.Name || f.name || '').trim().toLowerCase();
+        const desc = (f.Description || f.description || '').trim().toLowerCase();
+        const rawFCat = (f.Category || f.category || '').trim();
+        const fCategory = rawFCat.replaceAll(' ', '_');
+        const isWildcard = !category || category === ALL_CATS || category === '';
+        const matchesCategory = isWildcard || (fCategory === category);
+        const matchesQuery = !query || name.includes(query) || desc.includes(query);
+        return matchesQuery && matchesCategory;
     });
-}
 
-async function loadDocumentation() {
-    if (appState.docsSafe.value) return;
-    try {
-        const interop = globalThis.shyCalculator;
-        const json = await interop.invokeMethodAsync('GetDocumentation');
-        const data = JSON.parse(json);
-        appState.docs.value = data;
-        appState.docsSafe.value = true;
-    } catch (e) {
-        console.error("Docs load failed", e);
-    }
-}
+    const onSearch = (e) => {
+        const val = e.target.value;
+        state.docSearch.value = val;
+        sessionStorage.setItem('docSearch', val);
+    };
+    const onCategory = (e) => {
+        e.stopPropagation();
+        const val = e.target.value || ALL_CATS;
+        state.docCategory.value = val;
+        sessionStorage.setItem('docCategory', val);
+    };
 
-const util = {
-    notify: async (message, variant = 'success', icon = 'check2-circle') => {
-        const alert = document.createElement('sl-alert');
-        alert.variant = variant;
-        alert.closable = true;
-        alert.duration = 3000;
-        alert.innerHTML = `
-            <sl-icon name="${icon}" slot="icon"></sl-icon>
-            ${message}
-        `;
+    const onSort = (field) => {
+        if (state.operatorSortBy.value === field) {
+            state.operatorSortDir.value = state.operatorSortDir.value === 'asc' ? 'desc' : 'asc';
+        } else {
+            state.operatorSortBy.value = field;
+            state.operatorSortDir.value = field === 'Precedence' ? 'desc' : 'asc';
+        }
+    };
 
-        document.body.append(alert);
+    const sortedOperators = [...operators].sort((a, b) => {
+        const field = state.operatorSortBy.value;
+        const dir = state.operatorSortDir.value;
 
-        // Defensive check: if .toast() is missing, wait for definition and a tiny hydration window
-        if (typeof alert.toast !== 'function') {
-            await customElements.whenDefined('sl-alert');
-            // Tiny delay to ensure the component is fully hydrated internally
-            await new Promise(r => setTimeout(r, 50));
+        const getVal = (obj, f) => {
+            if (obj[f] !== undefined) return obj[f];
+            const lowerF = f.charAt(0).toLowerCase() + f.slice(1);
+            if (obj[lowerF] !== undefined) return obj[lowerF];
+            const upperF = f.charAt(0).toUpperCase() + f.slice(1);
+            if (obj[upperF] !== undefined) return obj[upperF];
+            return 0;
+        };
+
+        let v1 = getVal(a, field);
+        let v2 = getVal(b, field);
+
+        if (typeof v1 === 'string') {
+            v1 = v1.toLowerCase();
+            v2 = v2.toLowerCase();
         }
 
-        return alert.toast();
-    }
+        if (v1 < v2) return dir === 'asc' ? -1 : 1;
+        if (v1 > v2) return dir === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    const renderSortHeader = (label, field) => {
+        const isActive = state.operatorSortBy.value === field;
+        const dir = state.operatorSortDir.value;
+        return html`
+            <th onclick=${() => onSort(field)} class="sortable-header ${isActive ? 'active' : ''}">
+                <div class="th-content">
+                    ${label}
+                    <sl-icon name="${isActive ? (dir === 'asc' ? 'sort-up' : 'sort-down') : 'arrow-down-up'}" 
+                             class="${isActive ? 'u-text-accent' : ''}"
+                             style="font-size: 0.7rem; opacity: ${isActive ? 1 : 0.4};">
+                    </sl-icon>
+                </div>
+            </th>
+        `;
+    };
+
+    const onSaveSettings = (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const getVal = (name) => form.querySelector(`[name="${name}"]`)?.value || '';
+        const isChecked = (name) => form.querySelector(`[name="${name}"]`)?.checked || false;
+
+        actions.saveSettings({
+            dateFormat: getVal('dateFormat'),
+            culture: getVal('culture'),
+            enableHistory: isChecked('enableHistory'),
+            historyLength: getVal('historyLength')
+        });
+    };
+
+    const onInputChange = (e) => {
+        const { name, value } = e.target;
+        state.settings.value = { ...state.settings.value, [name]: value };
+    };
+
+    const setInputValue = (name, val) => {
+        const input = document.querySelector(`sl-input[name="${name}"]`);
+        if (input) {
+            input.value = val;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('sl-input', { bubbles: true }));
+        }
+    };
+
+    const scrollToTop = () => {
+        const activePanel = document.querySelector('sl-tab-panel[active]');
+        if (activePanel) {
+            activePanel.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const onPanelScroll = (e) => {
+        state.showScrollTop.value = e.target.scrollTop > 200;
+    };
+
+    return html`
+        <sl-dialog class="docs-dialog" 
+            open=${state.docsOpen.value} 
+            onsl-request-close=${(e) => {
+            // Ensure only dialog-level close requests are honored
+            if (e.target !== e.currentTarget) return;
+        }}
+            onsl-after-hide=${(e) => {
+            // Ensure events from children (like sl-select) don't close the dialog
+            if (e.target !== e.currentTarget) return;
+            state.docsOpen.value = false;
+            state.showScrollTop.value = false;
+        }}>
+            <div slot="label" class="u-flex u-items-center u-gap-075">
+                <sl-icon src="https://api.iconify.design/lucide/book-open.svg?color=%23cbd5e1" class="doc-header-icon"></sl-icon>
+                Reference Guide
+            </div>
+            <sl-tab-group onsl-tab-show=${() => state.showScrollTop.value = false}>
+                <sl-tab slot="nav" panel="funcs">
+                    <sl-icon src="https://api.iconify.design/lucide/variable.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Functions
+                </sl-tab>
+                <sl-tab slot="nav" panel="ops">
+                    <sl-icon src="https://api.iconify.design/lucide/percent.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Operators
+                </sl-tab>
+                <sl-tab slot="nav" panel="settings">
+                    <sl-icon src="https://api.iconify.design/lucide/settings-2.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> Settings
+                </sl-tab>
+                <sl-tab slot="nav" panel="about">
+                    <sl-icon src="https://api.iconify.design/lucide/info.svg?color=%23cbd5e1" class="tab-icon"></sl-icon> About
+                </sl-tab>
+                
+                <sl-tab-panel name="funcs" onscroll=${onPanelScroll}>
+                    <div class="docs-header">
+                        <sl-input placeholder="Search functions..." clearable 
+                            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                            oninput=${onSearch} 
+                            onsl-clear=${() => { state.docSearch.value = ''; sessionStorage.setItem('docSearch', ''); }} 
+                            value=${state.docSearch.value} class="u-flex-2">
+                            <sl-icon name="search" slot="prefix"></sl-icon>
+                        </sl-input>
+                        <sl-select value=${category} onsl-change=${onCategory} clearable=${category !== ALL_CATS} hoist class="u-flex-1">
+                            <sl-icon src="${getCategoryIconUrl(category)}" slot="prefix" class="cat-icon-sm u-ml-05"></sl-icon>
+                            ${categories.map(cat => html`
+                                <sl-option value=${cat}>
+                                    <div class="cat-icon-wrapper">
+                                        <sl-icon src="${getCategoryIconUrl(cat)}" class="cat-icon-sm"></sl-icon>
+                                    </div>
+                                    ${cat.replaceAll('_', ' ')}
+                                </sl-option>
+                            `)}
+                        </sl-select>
+                    </div>
+                    <div class="docs-list">
+                        ${filteredFunctions.map(fn => {
+            const name = fn.Name || fn.name || 'Unknown';
+            const args = fn.Arguments || fn.arguments || [];
+            const fCat = fn.Category || fn.category || 'General';
+            const description = fn.Description || fn.description || '';
+            const examples = fn.Examples || fn.examples || [];
+
+            return html`
+                            <div class="doc-card">
+                                <div class="doc-card-header">
+                                    <span class="doc-name">${name}</span>
+                                    <span class="doc-args">(${args.join(', ') || ''})</span>
+                                    <sl-badge variant="primary" size="small" outline class="doc-category">
+                                        <sl-icon src="${getCategoryIconUrl(fCat)}" class="cat-icon"></sl-icon> ${fCat}
+                                    </sl-badge>
+                                </div>
+                                <div class="doc-desc">${description}</div>
+                                ${examples.length > 0 ? html`
+                                    <div class="doc-examples">
+                                        ${examples.map(ex => html`
+                                            <sl-button size="small" outline class="btn-example" onclick=${() => actions.insertExample(ex)}>
+                                                ${ex}
+                                            </sl-button>
+                                        `)}
+                                    </div>
+                                ` : null}
+                            </div>
+                        `})}
+                        ${filteredFunctions.length === 0 ? html`<div class="docs-empty">No functions found matching your criteria.</div>` : null}
+                    </div>
+                </sl-tab-panel>
+
+                <sl-tab-panel name="ops" onscroll=${onPanelScroll}>
+                    <div class="ops-table-container">
+                        <table class="ops-table">
+                            <thead>
+                                <tr>
+                                    ${renderSortHeader('Symbol', 'Symbol')}
+                                    ${renderSortHeader('Name', 'Name')}
+                                    ${renderSortHeader('Category', 'Category')}
+                                    ${renderSortHeader('Precedence', 'Precedence')}
+                                    ${renderSortHeader('Assoc', 'Associativity')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sortedOperators.map(op => {
+                const symbol = op.Symbol || op.symbol || '';
+                const name = op.Name || op.name || 'Unknown';
+                const cat = op.Category || op.category || 'General';
+                const precedence = op.Precedence !== undefined ? op.Precedence : (op.precedence !== undefined ? op.precedence : 0);
+                const associativity = op.Associativity || op.associativity || 'Left';
+
+                return html`
+                                    <tr>
+                                        <td><code class="op-symbol">${symbol}</code></td>
+                                        <td>${name}</td>
+                                        <td>
+                                            <sl-badge size="small" class="shy-badge op-category">
+                                                <sl-icon src="${getCategoryIconUrl(cat)}" class="cat-icon"></sl-icon> ${cat}
+                                            </sl-badge>
+                                        </td>
+                                        <td class="num">${precedence}</td>
+                                        <td>${associativity === 'Left' ? '← Left' : '→ Right'}</td>
+                                    </tr>
+                                `;
+            })}
+                            </tbody>
+                        </table>
+                    </div>
+                </sl-tab-panel>
+
+                <sl-tab-panel name="settings">
+                    <form class="settings-form" onsubmit=${onSaveSettings}>
+                        <div class="form-group">
+                            <label>
+                                <sl-icon src="https://api.iconify.design/lucide/calendar-clock.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
+                                Date Format (e.g. dd/MM/yyyy, MM/dd/yyyy)
+                            </label>
+                            <sl-input name="dateFormat" value=${state.settings.value.dateFormat} onsl-input=${onInputChange} clearable></sl-input>
+                            <div class="settings-presets">
+                                ${['dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd', 'd.M.yyyy', 'yyyy/MM/dd', 'd-M-yyyy', 'dd.MM.yyyy', 'yyyy.MM.dd', 'dd-MM-yyyy', 'M-d-yyyy'].map(f => html`
+                                    <sl-button size="small" variant="primary" outline=${state.settings.value.dateFormat !== f} onclick=${() => setInputValue('dateFormat', f)}>${f}</sl-button>
+                                `)}
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <sl-icon src="https://api.iconify.design/lucide/languages.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
+                                Culture (e.g. en-US, de-DE)
+                            </label>
+                            <sl-input name="culture" value=${state.settings.value.culture} onsl-input=${onInputChange} clearable></sl-input>
+                            <div class="settings-presets">
+                                ${[{ v: 'en-US', l: '🇺🇸 US' }, { v: 'en-GB', l: '🇬🇧 UK' }, { v: 'de-DE', l: '🇩🇪 DE' },
+        { v: 'nl-NL', l: '🇳🇱 NL' }, { v: 'it-IT', l: '🇮🇹 IT' }, { v: 'hr-HR', l: '🇭🇷 HR' },
+        { v: 'es-ES', l: '🇪🇸 ES' }, { v: 'fr-FR', l: '🇫🇷 FR' }, { v: 'ru-RU', l: '🇷🇺 RU' },
+        { v: 'en-CA', l: '🇨🇦 CA' }].map(c => html`
+                                    <sl-button size="small" variant="primary" outline=${state.settings.value.culture !== c.v} onclick=${() => setInputValue('culture', c.v)}>${c.l}</sl-button>
+                                `)}
+                            </div>
+                        </div>
+
+                        <div class="u-mt-1">
+                            <div class="u-flex u-items-center u-justify-between u-mb-05">
+                                <label class="u-mt-0">
+                                    <sl-icon src="https://api.iconify.design/lucide/history.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
+                                    Enable History Recording
+                                </label>
+                                 <sl-switch name="enableHistory" checked=${state.settings.value.enableHistory} onsl-change=${(e) => {
+            const isChecked = e.target.checked;
+            let newLen = state.settings.value.historyLength;
+            if (isChecked && (!newLen || parseInt(newLen) <= 0)) newLen = 10;
+            state.settings.value = { ...state.settings.value, enableHistory: isChecked, historyLength: newLen };
+        }}></sl-switch>
+                            </div>
+
+                            ${state.settings.value.enableHistory ? html`
+                                <div class="form-group u-mb-2" style="animation: fadeIn 0.15s ease-out;">
+                                    <sl-input name="historyLength" type="number" min="1" max="100" value=${state.settings.value.historyLength}>
+                                        <div slot="help-text" class="subtle-help">Maximum number of calculations to keep in history memory.</div>
+                                        <sl-button slot="prefix" variant="text" style="padding: 0; margin-left: 0.25rem;" 
+                                            onclick=${(e) => { e.preventDefault(); state.settings.value = { ...state.settings.value, historyLength: Math.max(1, parseInt(state.settings.value.historyLength) - 1) }; }}>
+                                            <sl-icon name="dash-lg" style="font-size: 0.8rem;"></sl-icon>
+                                        </sl-button>
+                                        <sl-button slot="suffix" variant="text" style="padding: 0; margin-right: 0.25rem;" 
+                                            onclick=${(e) => { e.preventDefault(); state.settings.value = { ...state.settings.value, historyLength: Math.min(100, parseInt(state.settings.value.historyLength) + 1) }; }}>
+                                            <sl-icon name="plus-lg" style="font-size: 0.8rem;"></sl-icon>
+                                        </sl-button>
+                                    </sl-input>
+                                </div>
+                            ` : html`
+                                <div class="form-group u-mb-2" style="opacity: 0.5; pointer-events: none;">
+                                    <sl-input name="historyLength" type="number" value=${state.settings.value.historyLength} disabled>
+                                        <div slot="help-text" class="subtle-help">Enable history recording to adjust record limit.</div>
+                                        <sl-button slot="prefix" variant="text" style="padding: 0; margin-left: 0.25rem;" disabled>
+                                            <sl-icon name="dash-lg" style="font-size: 0.8rem;"></sl-icon>
+                                        </sl-button>
+                                        <sl-button slot="suffix" variant="text" style="padding: 0; margin-right: 0.25rem;" disabled>
+                                            <sl-icon name="plus-lg" style="font-size: 0.8rem;"></sl-icon>
+                                        </sl-button>
+                                    </sl-input>
+                                </div>
+                            `}
+                        </div>
+                        <div class="form-actions u-mt-2">
+                            <sl-button variant="primary" type="submit" class="btn-calculate">
+                                Save Settings
+                            </sl-button>
+                        </div>
+                    </form>
+                </sl-tab-panel>
+
+                <sl-tab-panel name="about">
+                    <div class="about-container">
+                        <section class="about-section">
+                            <div class="about-header">
+                                <sl-icon src="https://api.iconify.design/lucide/cpu.svg?color=%23cbd5e1" class="about-icon"></sl-icon>
+                                <div>
+                                    <strong>The Product.</strong>
+                                    <span>ShYCalculator is a high-performance .NET expression evaluator (Recursive Shunting Yard) designed for zero-allocation parsing and lightning-fast execution (~380,000 ops/sec). It supports complex mathematical functions, string manipulation, date-time operations, and custom variable injection.</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="about-section">
+                            <div class="about-alert">
+                                <sl-icon src="https://api.iconify.design/lucide/alert-triangle.svg?color=%23f59e0b" class="alert-icon"></sl-icon>
+                                <div>
+                                    <div class="u-mb-1">
+                                        <strong>The Demo App.</strong>
+                                        <span>This web application is a technology demonstration specifically built to test the ShYCalculator WebAssembly (WASM) build.</span>
+                                    </div>
+                                    <div>
+                                        <strong>Sandbox Mode:</strong>
+                                        <span>This environment is not intended for production calculations or secure data processing. It's a playground for the engine!</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="about-section">
+                            <div class="about-header">
+                                <sl-icon src="https://api.iconify.design/lucide/scroll.svg?color=%23cbd5e1" class="about-icon"></sl-icon>
+                                <div>
+                                    <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank" class="about-link u-mb-025">Licensing & Vibe.</a>
+                                    <span>This project is released under the <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank" class="about-link">MIT License</a>. Feel free to download the <a href="https://www.nuget.org/packages/ShYCalculator" target="_blank" class="about-link">NuGet package</a>, integrate it into your projects, and enjoy the speed!</span>
+                                </div>
+                            </div>
+                            <div class="vibe-card">
+                                <pre class="vibe-text">  _  _         _  _  ____                 _   _  _  _            
+ | \\| | _  _  | || ||_  / ___  _ _  ___  | | | |(_)| |__  ___  _  
+ | .  || || | | || | / / / -_)| '_|/ _ \\ | |_| || || '_ \\/ -_)(_) 
+ |_|\\_| \\_,_| |_||_|/___|\\___||_|  \\___/  \\___/ |_||_.__/\\___|(_)
+ </pre>
+                                <div class="vibe-description">
+                                    VIBE CHECK: This code was orchestrated through intent.<br/>
+                                    You are free to use, modify, and distribute it.<br/>
+                                    Keep the legacy alive. Keep the vibe open.
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="about-footer">
+                            <a href="https://github.com/nullzerovibe/ShYCalculator" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                                <img src="https://img.shields.io/github/stars/nullzerovibe/ShYCalculator?style=flat-square&logo=github&label=github&color=21262d" alt="GitHub Badge" />
+                            </a>
+                            <a href="https://www.nuget.org/packages/ShYCalculator" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                                <img src="https://img.shields.io/nuget/v/ShYCalculator?style=flat-square&logo=nuget&label=nuget&color=21262d" alt="NuGet Badge" />
+                            </a>
+                            <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                                <img src="https://img.shields.io/github/license/nullzerovibe/ShYCalculator?style=flat-square&label=license&color=21262d" alt="License Badge" />
+                            </a>
+                            <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                                <img src="https://img.shields.io/badge/vibe-MIT-21262d?style=flat-square&logo=sparkles" alt="Vibe Badge" />
+                            </a>
+                            <a href="https://x.com/nullzerovibe" target="_blank" rel="noopener noreferrer" class="footer-badge">
+                                <img src="https://img.shields.io/twitter/follow/nullzerovibe?style=flat-square&logo=twitter&color=21262d" alt="Twitter Badge" />
+                            </a>
+                            <a href="mailto:nullzerovibe@gmail.com" class="footer-badge">
+                                <img src="https://img.shields.io/badge/email-contact-21262d?style=flat-square&logo=gmail" alt="Email Badge" />
+                            </a>
+                        </div>
+                    </div>
+                </sl-tab-panel>
+            </sl-tab-group>
+
+            <sl-button circle class="scroll-top-btn ${state.showScrollTop.value ? 'visible' : ''}" onclick=${scrollToTop}>
+                <sl-icon name="chevron-up"></sl-icon>
+            </sl-button>
+        </sl-dialog>
+    `;
 };
 
-const actions = {
-    init: async () => {
-        try {
-            appState.status.value = 'Connecting...';
-            const interop = await waitForInterop();
+export const ContactFooter = () => html`
+    <div class="contact-footer">
+        <a href="mailto:nullzerovibe@gmail.com" class="contact-link">
+            <sl-icon name="envelope"></sl-icon>
+            <span>nullzerovibe@gmail.com</span>
+        </a>
+        <a href="https://github.com/nullzerovibe" target="_blank" class="contact-link">
+            <sl-icon name="github"></sl-icon>
+            <span>github.com/nullzerovibe</span>
+        </a>
+        <a href="https://x.com/nullzerovibe" target="_blank" class="contact-link">
+            <sl-icon name="twitter"></sl-icon>
+            <span>x.com/nullzerovibe</span>
+        </a>
+    </div>
+`;
 
-            await interop.invokeMethodAsync('Ping');
-
-            try {
-                const ver = await interop.invokeMethodAsync('GetVersion');
-                appState.version.value = ver;
-            } catch (e) {
-                console.warn("Version check failed", e);
-                appState.version.value = "Unknown";
-            }
-
-            appState.status.value = 'Engine Ready';
-            appState.isReady.value = true;
-            appState.isLoading.value = false;
-
-            // Apply saved settings to engine
-            const s = appState.settings.value;
-            await interop.invokeMethodAsync('ConfigureDates', s.dateFormat, s.culture);
-
-            loadDocumentation();
-
-            // Auto-load first example on startup
-            if (FLAT_MAP && FLAT_MAP.length > 0) {
-                const first = FLAT_MAP[0];
-                actions.insertExample(first.value, first.vars, "0");
-            }
-
-        } catch (e) {
-            console.error("Initialization Failed", e);
-            appState.status.value = 'Error: ' + e.message;
-            appState.isLoading.value = false;
+export const App = ({ state, actions }) => {
+    useEffect(() => {
+        if (state.status.value === 'Initializing...') {
+            actions.init();
         }
-    },
+    }, []);
 
-    openDocs: () => {
-        appState.docsOpen.value = true;
-    },
-
-    calculate: async () => {
-        if (!appState.isReady.value || appState.isCalculating.value) return;
-        const expr = appState.input.value;
-        if (!expr.trim()) return;
-
-        appState.isCalculating.value = true;
-        // Artificial delay for visual feedback
-        await new Promise(r => setTimeout(r, 60));
-
-        const startTime = performance.now();
-        try {
-            const interop = globalThis.shyCalculator;
-            let res;
-
-            if (appState.variables.value.length > 0) {
-                let effectiveExpr = expr;
-                const vars = {};
-                for (const v of appState.variables.value) {
-                    let val = v.value;
-
-                    // --- Expression Expansion for Arrays ---
-                    // If value looks like an array [1, 2, 3], we expand it in the string
-                    // This allows aggregate functions like var($list) to work since the engine sees
-                    // them as separate arguments.
-                    if (val.trim().startsWith('[') && val.trim().endsWith(']')) {
-                        const items = val.trim().slice(1, -1); // Remove [ and ]
-                        const escapedName = v.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        // Use a regex that ensures the variable isn't part of a larger identifier
-                        const expandRegex = new RegExp(`(^|[^a-zA-Z0-9_$])${escapedName}($|[^a-zA-Z0-9_$])`, 'g');
-                        effectiveExpr = effectiveExpr.replace(expandRegex, (match, p1, p2) => p1 + items + p2);
-                    }
-
-                    if (!isNaN(parseFloat(val)) && isFinite(val)) val = parseFloat(val);
-                    else if (val.toLowerCase() === 'true') val = true;
-                    else if (val.toLowerCase() === 'false') val = false;
-
-                    vars[v.name] = val;
-                }
-                res = await interop.invokeMethodAsync('CalculateWithVars', effectiveExpr, vars);
-            } else {
-                res = await interop.invokeMethodAsync('Calculate', expr);
-            }
-
-            const endTime = performance.now();
-            appState.calcTime.value = (endTime - startTime).toFixed(1);
-
-            if (res.success || res.Success) {
-                // Extract value checking for camelCase and PascalCase
-                const getProps = (obj) => ({
-                    n: obj.nvalue ?? obj.Nvalue,
-                    b: obj.bvalue ?? obj.Bvalue,
-                    s: obj.svalue ?? obj.Svalue,
-                    d: obj.dvalue ?? obj.Dvalue,
-                    e: obj.error ?? obj.Error,
-                    m: obj.message ?? obj.Message,
-                    t: obj.dataType ?? obj.DataType
-                });
-
-                const p = getProps(res);
-                let val = null;
-
-                const typeMap = { 1: 'Number', 2: 'Boolean', 4: 'Date', 8: 'String' };
-                appState.resultType.value = typeMap[p.t] || '';
-
-                if (p.n !== null && p.n !== undefined) val = p.n;
-                else if (p.b !== null && p.b !== undefined) val = p.b;
-                else if (p.s !== null && p.s !== undefined) val = p.s;
-                else if (p.d !== null && p.d !== undefined) val = p.d;
-
-                appState.result.value = val?.toString() ?? "null";
-                appState.message.value = p.m || "Calculation successful";
-
-                if (appState.settings.value.enableHistory) {
-                    const historyItem = {
-                        expr: expr,
-                        result: appState.result.value,
-                        resultType: appState.resultType.value,
-                        vars: JSON.parse(JSON.stringify(appState.variables.value)),
-                        timestamp: Date.now()
-                    };
-
-                    // Deduplication Logic: Move to Top
-                    const currentHistory = appState.history.value;
-                    const varsStr = JSON.stringify(historyItem.vars);
-                    const filteredHistory = currentHistory.filter(h =>
-                        h.expr !== historyItem.expr || JSON.stringify(h.vars) !== varsStr
-                    );
-
-                    const maxLen = parseInt(appState.settings.value.historyLength) || 15;
-                    const newHistory = [historyItem, ...filteredHistory].slice(0, maxLen);
-                    appState.history.value = newHistory;
-                }
-            } else {
-                appState.result.value = "Error";
-                appState.message.value = res.error || res.Error || res.message || res.Message || "Unknown error";
-                appState.resultType.value = "";
-            }
-
-        } catch (e) {
-            appState.result.value = "Interop Error";
-            appState.message.value = e.message;
-            appState.resultType.value = "";
-        } finally {
-            appState.isLoading.value = false;
-            appState.isCalculating.value = false;
-        }
-    },
-
-    addVar: () => {
-        appState.variables.value = [...appState.variables.value, { name: 'x', value: '10' }];
-    },
-
-    updateVar: (index, field, val) => {
-        const newVars = [...appState.variables.value];
-        newVars[index][field] = val;
-        appState.variables.value = newVars;
-    },
-
-    removeVar: (index) => {
-        appState.variables.value = appState.variables.value.filter((_, i) => i !== index);
-    },
-    clearVars: () => {
-        appState.variables.value = [];
-        appState.result.value = '---';
-        appState.message.value = '';
-        appState.resultType.value = '';
-        appState.calcTime.value = null;
-    },
-    copyToClipboard: (text) => {
-        navigator.clipboard.writeText(text);
-        util.notify("Copied to clipboard!", "success", "copy");
-    },
-    clearHistory: () => {
-        appState.history.value = [];
-    },
-    loadHistoryItem: (item) => {
-        appState.input.value = item.expr;
-        appState.variables.value = JSON.parse(JSON.stringify(item.vars || []));
-        appState.result.value = item.result;
-        appState.resultType.value = item.resultType || '';
-        appState.calcTime.value = null; // Hide badge on load as we don't persist timing in history yet
-        // Don't auto-calculate, just load the state
-    },
-    saveSettings: async (newSettings) => {
-        if (!appState.isReady.value) return;
-        try {
-            const interop = globalThis.shyCalculator;
-            await interop.invokeMethodAsync('ConfigureDates', newSettings.dateFormat, newSettings.culture);
-
-            appState.settings.value = { ...newSettings };
-
-            // Trim current history if length was reduced
-            const maxLen = parseInt(newSettings.historyLength) || 15;
-            if (appState.history.value.length > maxLen) {
-                appState.history.value = appState.history.value.slice(0, maxLen);
-            }
-
-            localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings));
-            appState.message.value = "Settings saved & engine reconfigured";
-            util.notify("Settings saved successfully!");
-        } catch (e) {
-            console.error("Settings failed", e);
-            appState.message.value = "Error: " + e.message;
-        }
-    },
-    insertExample: (expr, predefinedVars, sourceIdx = '') => {
-        appState.input.value = expr;
-        appState.docsOpen.value = false;
-        appState.variables.value = []; // Absolute Reset
-        appState.selectedIdx.value = sourceIdx;
-
-        if (predefinedVars && predefinedVars.length > 0) {
-            appState.variables.value = predefinedVars.map(v => ({ ...v }));
-        } else {
-            // Smart Variable Extraction (Ignore literals)
-            // Strip everything inside single or double quotes to prevent matching 'Yes' as a variable
-            const strippedExpr = expr.replace(/'[^']*'|"[^"]*"/g, m => ' '.repeat(m.length));
-
-            const idRegex = /(?:^|[^a-zA-Z0-9_$])([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
-            const matches = [...strippedExpr.matchAll(idRegex)];
-            const docInfo = appState.docs.value;
-            const keywords = new Set(['true', 'false', 'null', 'pi', 'e', 'inf', 'nan', 'infinity']);
-            const docFuncs = new Set((docInfo.functions || []).map(f => (f.Name || f.name || '').toLowerCase()));
-
-            const uniqueVars = [];
-            const seen = new Set();
-            matches.forEach(m => {
-                const name = m[1];
-                const pos = m.index + m[0].indexOf(name);
-                if (!seen.has(name)) {
-                    const lower = name.toLowerCase();
-                    if (!keywords.has(lower) && !docFuncs.has(lower)) {
-                        uniqueVars.push({ name, pos });
-                        seen.add(name);
-                    }
-                }
-            });
-
-            if (uniqueVars.length > 0) {
-                const newVars = [];
-                uniqueVars.forEach(({ name, pos }) => {
-                    const lower = name.toLowerCase();
-                    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-                    // --- Signature-Based Inference ---
-                    function getArgContext(formula, startPos) {
-                        let depth = 0;
-                        let commas = 0;
-                        for (let i = startPos - 1; i >= 0; i--) {
-                            const c = formula[i];
-                            if (c === ')') depth++;
-                            else if (c === '(') {
-                                if (depth === 0) {
-                                    let nStart = i - 1;
-                                    while (nStart >= 0 && /[a-zA-Z0-9_$]/.test(formula[nStart])) nStart--;
-                                    return { name: formula.slice(nStart + 1, i).trim().toLowerCase(), index: commas };
-                                }
-                                depth--;
-                            } else if (c === ',' && depth === 0) {
-                                commas++;
-                            }
-                        }
-                        return null;
-                    }
-
-                    const ctx = getArgContext(expr, pos);
-                    let inferredType = null;
-
-                    if (ctx) {
-                        const func = (docInfo.functions || []).find(f => (f.Name || f.name || '').toLowerCase() === ctx.name);
-                        if (func && func.Arguments) {
-                            let argDef = null;
-                            let currentIdx = 0;
-                            for (const arg of func.Arguments) {
-                                if (arg.Type === 'array' || arg.type === 'array') {
-                                    argDef = (arg.Arguments || arg.arguments)?.[0];
-                                    break;
-                                }
-                                if (currentIdx === ctx.index) {
-                                    argDef = arg;
-                                    break;
-                                }
-                                currentIdx++;
-                            }
-                            if (argDef) inferredType = (argDef.Type || argDef.type || '').toLowerCase();
-                            // Fallback to Category if positional arg not found
-                            if (!inferredType) {
-                                const cat = (func.Category || func.category || '').toLowerCase();
-                                if (cat === 'datetime') inferredType = 'date';
-                                else if (cat === 'string') inferredType = 'string';
-                                else if (cat === 'logical') inferredType = 'boolean';
-                            }
-                        }
-                    }
-
-                    // --- Fallback Heuristics ---
-                    const isBool = inferredType === 'boolean' ||
-                        lower.includes('bool') || lower.includes('flag') || lower.includes('success') ||
-                        new RegExp(`(?:if|iif|any|all)\\s*\\(\\s*${escapedName}\\s*[,)]`, 'i').test(expr) ||
-                        new RegExp(`${escapedName}\\s*\\?`, 'i').test(expr);
-
-                    const isDate = inferredType === 'date' ||
-                        lower.includes('date') || lower.includes('time') || lower.includes('dt');
-
-                    const isString = inferredType === 'string' || lower.startsWith('str_');
-                    const isList = inferredType === 'array' || lower.includes('list') || lower.includes('arr');
-
-                    let val = '10';
-                    if (isBool) val = 'true';
-                    else if (isDate) val = formatDate(appState.settings.value.dateFormat);
-                    else if (isString) val = 'abc';
-                    else if (isList) val = '[1, 10, 100]';
-
-                    newVars.push({ name, value: val });
-                });
-                appState.variables.value = newVars;
-                appState.message.value = "Formula loaded. Smart defaults applied based on function context.";
-            }
-        }
-
-        appState.result.value = '---';
-        actions.calculate();
-    }
+    return html`
+        <div class="app-container single-column">
+            <${Header} state=${state} />
+            <${MainCard} state=${state} actions=${actions} />
+            <${Documentation} state=${state} actions=${actions} />
+            <${ContactFooter} />
+        </div>
+    `;
 };
 
 // --- RENDER ---
