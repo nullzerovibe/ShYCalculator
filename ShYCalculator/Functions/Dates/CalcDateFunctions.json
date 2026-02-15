@@ -147,7 +147,8 @@
     "Description": "Adds a specified interval string (e.g., '1y', '2m', '-16d') to a date.",
     "Examples": [
       "dt_add(dt_today(), '1y')",
-      "dt_add(dt_today(), '-1w')"
+      "dt_add(dt_today(), '-2m')",
+      "dt_add(dt_today(), '16d')"
     ],
     "Arguments": [
       {
