@@ -1,5 +1,5 @@
 import { h, render } from 'https://esm.sh/preact@10.19.3';
-import { useEffect, useMemo, useRef } from 'https://esm.sh/preact@10.19.3/hooks';
+import { useEffect, useMemo, useRef, useState } from 'https://esm.sh/preact@10.19.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { FLAT_MAP, EXAMPLE_GROUPS, getCategoryIconUrl, getTypeIconUrl, appState, actions } from './logic.js';
 
@@ -45,6 +45,17 @@ const detectVariables = (text, knownNames, variables) => {
     return Array.from(cand);
 };
 
+const toggleTransparency = (active) => {
+    const appContainer = document.querySelector('.app-container');
+    if (appContainer) {
+        if (active) {
+            appContainer.classList.add('panel-transparent');
+        } else {
+            appContainer.classList.remove('panel-transparent');
+        }
+    }
+};
+
 // --- COMPONENTS ---
 
 export const SyntaxEditor = ({ value, onInput, onKeyDown, state, name, forceKnown = false }) => {
@@ -88,8 +99,8 @@ export const Header = ({ state, actions }) => html`
 `;
 
 export const SaveSnippetDialog = ({ state, actions }) => {
-    const editing = state.editingSnippet.value;
-    if (!editing) return null; // Safety check
+    // Default to empty object if null to prevent crash, but keep dialog mounted
+    const editing = state.editingSnippet.value || { label: '', value: '', icon: '', id: null };
     const isEdit = !!editing.id;
 
 
@@ -224,13 +235,28 @@ export const SaveSnippetDialog = ({ state, actions }) => {
 
     const errors = state.snippetErrors.value;
 
+    useEffect(() => {
+        // Transparency handled via events for precise timing
+    }, [state.saveSnippetOpen.value]);
+
+    const timerRef = useRef(null);
+
     return html`
         <sl-dialog 
             class="save-dialog"
             open=${state.saveSnippetOpen.value} 
             label=${isEdit ? 'Edit expression' : 'Create new expression'}
+            onsl-show=${() => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => toggleTransparency(true), 100);
+        }}
             onsl-request-close=${(e) => {
             if (e.target !== e.currentTarget) return;
+        }}
+            onsl-hide=${(e) => {
+            if (e.target !== e.currentTarget) return;
+            if (timerRef.current) clearTimeout(timerRef.current);
+            toggleTransparency(false);
         }}
             onsl-after-hide=${(e) => {
             if (e.target !== e.currentTarget) return;
@@ -415,6 +441,10 @@ export const ExpressionCombobox = ({ state, actions }) => {
                         oninput=${(e) => state.snippetSearch.value = e.target.value}
                         clearable
                         onsl-clear=${() => state.snippetSearch.value = ''}
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
                     >
                         <sl-icon name="search" slot="prefix"></sl-icon>
                     </sl-input>
@@ -668,16 +698,12 @@ export const Documentation = ({ state, actions }) => {
     const query = (state.docSearch.value || '').trim().toLowerCase();
     const category = (state.docCategory.value || '').trim() || ALL_CATS;
 
-    useEffect(() => {
-        if (state.docsOpen.value) {
-            if (!state.docCategory.value || state.docCategory.value.trim() === '') {
-                state.docCategory.value = ALL_CATS;
-            }
-            if (!state.docSearch.value) {
-                state.docSearch.value = '';
-            }
-        }
-    }, [state.docsOpen.value]);
+    // State reset moved to actions.openDocs used to be here
+
+    // Defer heavy content rendering until animation is stable
+    const [contentReady, setContentReady] = useState(false);
+    const timerRef = useRef(null);
+    const contentTimerRef = useRef(null);
 
     const categories = useMemo(() => [ALL_CATS, ...new Set(functions.map(f => {
         const c = f.Category || f.category;
@@ -822,9 +848,23 @@ export const Documentation = ({ state, actions }) => {
     return html`
         <sl-dialog class="docs-dialog" 
             open=${state.docsOpen.value} 
+            onsl-show=${() => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (contentTimerRef.current) clearTimeout(contentTimerRef.current);
+            setContentReady(false);
+
+            timerRef.current = setTimeout(() => toggleTransparency(true), 100);
+            // Render content slightly after transparency triggers to strictly separate workload
+            contentTimerRef.current = setTimeout(() => setContentReady(true), 150);
+        }}
             onsl-request-close=${(e) => {
             // Ensure only dialog-level close requests are honored
             if (e.target !== e.currentTarget) return;
+        }}
+            onsl-hide=${(e) => {
+            if (e.target !== e.currentTarget) return;
+            if (timerRef.current) clearTimeout(timerRef.current);
+            toggleTransparency(false);
         }}
             onsl-after-hide=${(e) => {
             // Ensure events from children (like sl-select) don't close the dialog
@@ -877,7 +917,7 @@ export const Documentation = ({ state, actions }) => {
                             `)}
                         </sl-select>
                     </div>
-                    ${state.docActiveTab.value === 'funcs' ? html`
+                    ${state.docActiveTab.value === 'funcs' && contentReady ? html`
                         <div class="docs-list">
                             ${filteredFunctions.map(fn => {
             const name = fn.Name || fn.name || 'Unknown';
@@ -918,7 +958,7 @@ export const Documentation = ({ state, actions }) => {
                 </sl-tab-panel>
 
                 <sl-tab-panel name="ops" onscroll=${onPanelScroll}>
-                    ${state.docActiveTab.value === 'ops' ? html`
+                    ${state.docActiveTab.value === 'ops' && contentReady ? html`
                         <div class="ops-table-container">
                             <table class="ops-table">
                                 <thead>
@@ -1152,7 +1192,7 @@ export const Documentation = ({ state, actions }) => {
         </sl-tab-panel>
 
                 <sl-tab-panel name="library">
-                    ${state.docActiveTab.value === 'library' ? html`
+                    ${state.docActiveTab.value === 'library' && contentReady ? html`
                         <div class="ops-table-container">
                             <table class="ops-table library-table">
                                 <thead>
@@ -1314,15 +1354,16 @@ export const App = ({ state, actions }) => {
     }, [state.result.value]);
 
     return html`
-        <div class="status-indicator">
-            ${state.isOfflineReady?.value ? html`
+    <div class="status-indicator">
+        ${state.isOfflineReady?.value ? html`
                 <sl-tooltip content="Offline Ready — Application is fully cached and available for standalone use without an internet connection." hoist>
                     <sl-icon name="cloud-check" class="pwa-status"></sl-icon>
                 </sl-tooltip>
-            ` : null}
-            <sl-tooltip content="${state.isReady?.value ? 'Core Engine Active — High-performance .NET WASM runtime is initialized and ready for calculations.' : 'Engine Initializing...'}" hoist>
-                <sl-icon name="cpu" class="engine-status ${state.isReady?.value ? '' : 'is-loading'}"></sl-icon>
-            </sl-tooltip>
+            ` : null
+        }
+<sl-tooltip content="${state.isReady?.value ? 'Core Engine Active — High-performance .NET WASM runtime is initialized and ready for calculations.' : 'Engine Initializing...'}" hoist>
+    <sl-icon name="cpu" class="engine-status ${state.isReady?.value ? '' : 'is-loading'}"></sl-icon>
+</sl-tooltip>
         </div>
         <div class="app-container single-column">
             <${Header} state=${state} actions=${actions} />
@@ -1331,7 +1372,7 @@ export const App = ({ state, actions }) => {
         <${Documentation} state=${state} actions=${actions} />
         <${SaveSnippetDialog} state=${state} actions=${actions} />
         <${ConfirmDialog} state=${state} actions=${actions} />
-    `;
+`;
 };
 
 // --- RENDER ---

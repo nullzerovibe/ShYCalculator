@@ -431,6 +431,8 @@ export const actions = {
     },
 
     openDocs: () => {
+        appState.docCategory.value = 'All_Categories';
+        appState.docSearch.value = '';
         appState.docsOpen.value = true;
     },
 
