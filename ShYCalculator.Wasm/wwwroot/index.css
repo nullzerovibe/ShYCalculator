@@ -451,7 +451,7 @@ sl-tab-panel {
 }
 
 .doc-header-icon {
-    font-size: 1.6rem;
+    font-size: 1.15rem;
 }
 
 
@@ -1219,11 +1219,6 @@ sl-dialog::part(overlay) {
     transition: background-color 0.3s ease;
 }
 
-/* Prevent backdrop accumulation for nested dialogs */
-sl-dialog[open]~sl-dialog[open]::part(overlay) {
-    background-color: transparent;
-    backdrop-filter: none;
-}
 
 sl-dialog::part(panel) {
     background: #1e293b;
@@ -1725,6 +1720,7 @@ sl-tab-panel[name="about"]::part(base) {
 .btn-cancel::part(base) {
     border-color: var(--glass-border);
     color: var(--text-muted);
+    font-weight: 600;
 }
 
 .btn-cancel:not([disabled])::part(base):hover {
@@ -2315,17 +2311,21 @@ sl-tab-panel[active]::part(base) {
 
 /* Save Dialog & Premium Polish */
 /* Adaptive scaling for specific dialogs if needed, though sl-dialog generic now handles most of it */
-.save-dialog::part(panel),
 .docs-dialog::part(panel) {
-    /* Ensure they follow the adaptive pattern */
     width: 95%;
     height: 95%;
+}
+
+.save-dialog::part(panel) {
+    width: 65%;
+    height: 75%;
+    max-width: 800px;
 }
 
 .save-dialog::part(header) {
     border-bottom: 1px solid var(--glass-border);
     background: #1e293b;
-    padding: 0.65rem 1rem;
+    padding: 0.4rem 1rem;
 }
 
 .save-dialog::part(body) {
@@ -2396,11 +2396,22 @@ sl-tab-panel[active]::part(base) {
 .save-dialog::part(footer) {
     border-top: 1px solid var(--glass-border);
     background: #1e293b;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
     min-height: 4.5rem;
 }
+
+.snippet-dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
 
 .save-dialog .syntax-editor {
     min-height: 80px;
@@ -2417,50 +2428,14 @@ sl-tab-panel[active]::part(base) {
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 0.75rem;
     padding: 1.25rem;
-    position: relative;
-}
-
-.section-badge {
-    position: absolute;
-    top: -0.65rem;
-    left: 1.25rem;
-    background: #075985;
-    /* Sky 800 for definitive contrast (>6:1) with white text */
-    color: white;
-    font-size: 0.65rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 0.2rem 0.6rem;
-    border-radius: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-}
-
-.icon-categories {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 1.25rem 2.5rem;
-    margin-top: 0.75rem;
-}
-
-.icon-cat-group {
-    flex: 0 0 auto;
-}
-
-.icon-cat-label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #cbd5e1;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
 }
 
 .icon-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.65rem;
+    padding: 0.25rem;
+    justify-content: flex-start;
 }
 
 .icon-tile sl-radio-button::part(button) {
@@ -2519,7 +2494,7 @@ sl-tab-panel[active]::part(base) {
 }
 
 .premium-save-btn {
-    width: 100%;
+    flex: 0 0 auto;
     letter-spacing: 0.01em;
 }
 

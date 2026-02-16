@@ -100,9 +100,35 @@ export const SaveSnippetDialog = ({ state, actions }) => {
     const onSubmit = (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
-        const name = formData.get('name');
-        const value = formData.get('value');
+        const name = formData.get('name')?.trim();
+        const value = formData.get('value')?.trim();
         const icon = formData.get('icon');
+
+        // --- VALIDATION ---
+        if (!name) {
+            util.notify("Please enter a name for the expression.", "danger", "exclamation-triangle");
+            return;
+        }
+
+        // Check for unique name
+        const isDuplicate = state.snippets.value.some(s =>
+            s.label.toLowerCase() === name.toLowerCase() &&
+            (!isEdit || s.id !== editing.id)
+        );
+        if (isDuplicate) {
+            util.notify(`An expression named "${name}" already exists.`, "danger", "exclamation-triangle");
+            return;
+        }
+
+        if (!value) {
+            util.notify("Expression cannot be empty.", "danger", "exclamation-triangle");
+            return;
+        }
+
+        if (!icon) {
+            util.notify("Please select an icon category.", "danger", "exclamation-triangle");
+            return;
+        }
 
         // Find the group based on the icon selection
         let group = 'Custom Expressions';
@@ -112,8 +138,6 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                 break;
             }
         }
-
-        if (!name || !value) return;
 
         actions.saveSnippet(name, icon, value, group);
         state.saveSnippetOpen.value = false;
@@ -207,11 +231,10 @@ export const SaveSnippetDialog = ({ state, actions }) => {
         }}>
             <div slot="label" class="u-flex u-items-center u-gap-075">
                 <sl-icon src="https://api.iconify.design/lucide/bookmark-plus.svg?color=%23cbd5e1" class="doc-header-icon"></sl-icon>
-                ${isEdit ? 'Edit Expression' : 'Save Expression to Library'}
+                ${isEdit ? 'Edit expression' : 'Create new expression'}
             </div>
             <form id="save-snippet-form" onsubmit=${onSubmit} class="snippet-form">
                 <div class="dialog-section">
-                    <div class="section-badge">Expression Details</div>
                     <div class="form-group">
                         <label>Name</label>
                         <sl-input 
@@ -249,7 +272,6 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                 </div>
                 
                 <div class="dialog-section u-mt-15">
-                    <div class="section-badge">Library Placement</div>
                     <div class="form-group">
                         <label>Select Category</label>
                         <sl-radio-group 
@@ -262,37 +284,34 @@ export const SaveSnippetDialog = ({ state, actions }) => {
             }
         }}
                         >
-                            <div class="icon-categories">
-                                ${catIcons.map(cat => html`
-                                    <div class="icon-cat-group">
-                                        <div class="icon-cat-label">${cat.name}</div>
-                                        <div class="icon-grid">
-                                            ${cat.icons.map(icon => {
-            const isCat = cat.name !== 'Miscellaneous';
-            const iconSrc = isCat ? getCategoryIconUrl(icon.value) : null;
+                            <div class="icon-grid icon-grid-flat">
+                                ${catIcons.flatMap(cat => cat.icons).map(icon => {
+            const iconSrc = getCategoryIconUrl(icon.value);
             return html`
-                                                    <sl-tooltip content=${icon.name} hoist>
-                                                        <sl-radio-button value=${icon.value} class="icon-tile">
-                                                            <div class="tile-content">
-                                                                ${iconSrc ? html`<sl-icon src=${iconSrc}></sl-icon>` : html`<sl-icon name=${icon.value}></sl-icon>`}
-                                                            </div>
-                                                        </sl-radio-button>
-                                                    </sl-tooltip>
-                                                `;
+                                        <sl-tooltip content=${icon.name} hoist>
+                                            <sl-radio-button value=${icon.value} class="icon-tile">
+                                                <div class="tile-content">
+                                                    <sl-icon src=${iconSrc}></sl-icon>
+                                                </div>
+                                            </sl-radio-button>
+                                        </sl-tooltip>
+                                    `;
         })}
-                                        </div>
-                                    </div>
-                                `)}
                             </div>
                         </sl-radio-group>
                     </div>
                 </div>
             </form>
 
-            <sl-button variant="primary" type="submit" form="save-snippet-form" slot="footer" class="u-w-100 premium-save-btn">
-                <sl-icon slot="prefix" name=${isEdit ? 'check2-circle' : 'bookmark-star'}></sl-icon> 
-                ${isEdit ? 'Update Expression' : 'Save to Expression Library'}
-            </sl-button>
+            <div slot="footer" class="snippet-dialog-footer">
+                <sl-button variant="text" class="btn-cancel" onclick=${onHide}>
+                    Cancel
+                </sl-button>
+                <sl-button variant="primary" type="submit" form="save-snippet-form" class="premium-save-btn">
+                    <sl-icon slot="prefix" name=${isEdit ? 'check2-circle' : 'bookmark-star'}></sl-icon> 
+                    ${isEdit ? 'Update Expression' : 'Save to Expression Library'}
+                </sl-button>
+            </div>
         </sl-dialog>
     `;
 };
