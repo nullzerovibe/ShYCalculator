@@ -288,8 +288,9 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                         ></sl-input>
                         ${errors.name ? html`<div class="error-text">${errors.name}</div>` : html`<div class="subtle-help">Give your expression a descriptive title.</div>`}
                     </div>
-
-                    <div class="form-group u-mt-15">
+                </div>
+                <div class="dialog-section">
+                    <div class="form-group">
                         <label>Expression</label>
                         <${SyntaxEditor} 
                             name="value" 
@@ -307,17 +308,16 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                     </div>
                 </div>
                 
-                <div class="dialog-section u-mt-15">
+                <div class="dialog-section">
                     <div class="form-group">
                         <label>Select Category</label>
                         <sl-radio-group 
                             name="icon" 
-                            value=${isEdit ? editing.icon : 'bookmark'} 
+                            value=${editing.icon} 
                             class="icon-selector"
                             onsl-change=${(e) => {
-            if (isEdit) {
-                state.editingSnippet.value = { ...state.editingSnippet.value, icon: e.target.value };
-            }
+            state.editingSnippet.value = { ...state.editingSnippet.value, icon: e.target.value };
+
             if (state.snippetErrors.value.icon) {
                 state.snippetErrors.value = { ...state.snippetErrors.value, icon: '' };
             }

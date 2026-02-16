@@ -744,7 +744,7 @@ export const actions = {
             appState.editingSnippet.value = {
                 label: '',
                 value: appState.input.value,
-                icon: 'bookmark'
+                icon: ''
             };
         }
         appState.saveSnippetOpen.value = true;

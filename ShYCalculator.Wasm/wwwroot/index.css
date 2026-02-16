@@ -1751,7 +1751,6 @@ sl-tab-panel[name="about"]::part(base) {
 
 .form-group sl-input {
     width: 100%;
-    margin-top: 0.5rem;
 }
 
 .form-group label {
@@ -2439,39 +2438,77 @@ sl-tab-panel[active]::part(base) {
 }
 
 .dialog-section {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 0.75rem;
-    padding: 1.25rem;
+    padding: 0.75rem;
 }
 
+/* Ensure radio group takes full width */
+.icon-selector {
+    display: block;
+    width: 100%;
+}
+
+/* Flexbox Fallback - CSS Grid proving unstable with nested Web Components here */
 .icon-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.65rem;
-    padding: 0.25rem;
-    justify-content: flex-start;
-}
-
-.icon-tile sl-radio-button::part(button) {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0.5rem;
-    height: 2.8rem;
-    width: 2.8rem;
+    gap: 0.5rem;
     padding: 0;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 0.5rem;
+    width: 100%;
 }
 
-.icon-tile sl-radio-button:hover::part(button) {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.15);
+/* Tooltips as Flex Items */
+.icon-grid sl-tooltip {
+    flex: 1 0 3.25rem;
+    /* Grow, Don't Shrink below basis, Base width */
+    max-width: 1fr;
+    /* Allow expansion */
+    display: block;
+    height: 3rem;
+    /* Fixed height for consistency */
 }
 
-.icon-tile sl-radio-button[checked]::part(button) {
-    background: rgba(14, 165, 233, 0.1);
-    border-color: #0ea5e9;
-    box-shadow: 0 0 0 1px #0ea5e9;
+/* .icon-tile IS the sl-radio-button */
+.icon-tile {
+    width: 100%;
+    display: block;
+    flex: 1;
+    /* Grow to fill tooltip flex container */
+}
+
+.icon-tile::part(button) {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: 6px !important;
+    height: 3rem;
+    width: 100%;
+    padding: 0;
+    transition: all 0.2s ease;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-tile:hover::part(button) {
+    background: rgba(56, 189, 248, 0.15) !important;
+    border-color: #38bdf8 !important;
+    color: #f8fafc !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2) !important;
+    transform: translateY(0) !important;
+}
+
+.icon-tile:active::part(button) {
+    transform: translateY(0) !important;
+    background: rgba(56, 189, 248, 0.2) !important;
+}
+
+.icon-tile[checked]::part(button) {
+    background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%) !important;
+    background-clip: padding-box !important;
+    border: 1px solid #2e90f1 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
 }
 
 .tile-content {
@@ -2483,18 +2520,17 @@ sl-tab-panel[active]::part(base) {
 }
 
 .tile-content sl-icon {
-    font-size: 1.25rem;
-    color: #94a3b8;
+    font-size: 1.4rem;
+    color: inherit;
     transition: color 0.2s;
 }
 
-.icon-tile sl-radio-button[checked] sl-icon {
-    color: #0ea5e9;
+.icon-tile[checked] sl-icon {
+    color: white !important;
 }
 
 .snippet-form label {
     display: block;
-    margin-bottom: 0.4rem;
     font-size: 0.8rem;
     font-weight: 700;
     color: #94a3b8;
@@ -2600,24 +2636,21 @@ sl-tab-panel[active]::part(base) {
 /* --- Dialog Glass Effect (3D) --- */
 .docs-dialog::part(panel),
 .save-dialog::part(panel) {
-    /* 3D Glass Gradient: Top-Left Light -> Bottom-Right Dark */
-    background: linear-gradient(135deg,
-            rgba(45, 55, 72, 0.45) 0%,
-            rgba(15, 23, 42, 0.6) 100%);
+    /* MATCH MAIN CARD EXACTLY as per user request */
+    background: linear-gradient(145deg,
+            rgba(30, 41, 59, 0.6) 0%,
+            rgba(15, 23, 42, 0.7) 100%);
 
-    /* Heavy Blur for depth */
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    /* Match Main Card Blur */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 
-    /* Glass Border Highlight */
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    border-left: 1px solid rgba(255, 255, 255, 0.12);
+    /* Match Main Card Border */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 
-    /* 3D Shadow Lift */
-    box-shadow:
-        0 8px 32px 0 rgba(0, 0, 0, 0.35),
-        0 1px 2px 0 rgba(0, 0, 0, 0.1);
+    /* Match Main Card Shadow */
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
 
     border-radius: 16px;
 
