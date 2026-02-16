@@ -1988,7 +1988,7 @@ sl-input:has(.btn-stepper)::part(suffix) {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    z-index: 10000;
+    z-index: 100;
 }
 
 .contact-link {
