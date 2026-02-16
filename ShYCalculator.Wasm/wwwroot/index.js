@@ -88,8 +88,9 @@ export const Header = ({ state, actions }) => html`
 `;
 
 export const SaveSnippetDialog = ({ state, actions }) => {
-    const isEdit = state.editingSnippet.value !== null;
     const editing = state.editingSnippet.value;
+    if (!editing) return null; // Safety check
+    const isEdit = !!editing.id;
 
 
     const onHide = () => {
@@ -104,29 +105,32 @@ export const SaveSnippetDialog = ({ state, actions }) => {
         const value = formData.get('value')?.trim();
         const icon = formData.get('icon');
 
+        const errors = { name: '', value: '', icon: '' };
+
         // --- VALIDATION ---
         if (!name) {
-            util.notify("Please enter a name for the expression.", "danger", "exclamation-triangle");
-            return;
-        }
-
-        // Check for unique name
-        const isDuplicate = state.snippets.value.some(s =>
-            s.label.toLowerCase() === name.toLowerCase() &&
-            (!isEdit || s.id !== editing.id)
-        );
-        if (isDuplicate) {
-            util.notify(`An expression named "${name}" already exists.`, "danger", "exclamation-triangle");
-            return;
+            errors.name = "Please enter a name for the expression.";
+        } else {
+            // Check for unique name
+            const isDuplicate = state.snippets.value.some(s =>
+                s.label.toLowerCase() === name.toLowerCase() &&
+                (!isEdit || s.id !== editing.id)
+            );
+            if (isDuplicate) {
+                errors.name = `An expression named "${name}" already exists.`;
+            }
         }
 
         if (!value) {
-            util.notify("Expression cannot be empty.", "danger", "exclamation-triangle");
-            return;
+            errors.value = "Expression cannot be empty.";
         }
 
         if (!icon) {
-            util.notify("Please select an icon category.", "danger", "exclamation-triangle");
+            errors.icon = "Please select an icon category.";
+        }
+
+        if (errors.name || errors.value || errors.icon) {
+            state.snippetErrors.value = errors;
             return;
         }
 
@@ -218,56 +222,59 @@ export const SaveSnippetDialog = ({ state, actions }) => {
         }
     ];
 
+    const errors = state.snippetErrors.value;
+
     return html`
-        <sl-dialog class="save-dialog" 
+        <sl-dialog 
+            class="save-dialog"
             open=${state.saveSnippetOpen.value} 
+            label=${isEdit ? 'Edit expression' : 'Create new expression'}
             onsl-request-close=${(e) => {
             if (e.target !== e.currentTarget) return;
         }}
             onsl-after-hide=${(e) => {
             if (e.target !== e.currentTarget) return;
-            state.saveSnippetOpen.value = false;
-            state.editingSnippet.value = null;
-        }}>
+            onHide();
+        }}
+        >
             <div slot="label" class="u-flex u-items-center u-gap-075">
                 <sl-icon src="https://api.iconify.design/lucide/bookmark-plus.svg?color=%23cbd5e1" class="doc-header-icon"></sl-icon>
                 ${isEdit ? 'Edit expression' : 'Create new expression'}
             </div>
-            <form id="save-snippet-form" onsubmit=${onSubmit} class="snippet-form">
+            <form id="save-snippet-form" onsubmit=${onSubmit} class="snippet-form" novalidate>
                 <div class="dialog-section">
                     <div class="form-group">
                         <label>Name</label>
                         <sl-input 
                             name="name" 
                             placeholder="E.g., Monthly Compound Interest" 
-                            required 
                             autocomplete="off"
-                            value=${isEdit ? editing.label : ''}
+                            value=${editing.label}
                             onsl-input=${(e) => {
-            if (isEdit) {
-                state.editingSnippet.value = { ...state.editingSnippet.value, label: e.target.value };
+            state.editingSnippet.value = { ...state.editingSnippet.value, label: e.target.value };
+            if (state.snippetErrors.value.name) {
+                state.snippetErrors.value = { ...state.snippetErrors.value, name: '' };
             }
         }}
                         ></sl-input>
-                        <div class="subtle-help">Give your expression a descriptive title.</div>
+                        ${errors.name ? html`<div class="error-text">${errors.name}</div>` : html`<div class="subtle-help">Give your expression a descriptive title.</div>`}
                     </div>
 
                     <div class="form-group u-mt-15">
                         <label>Expression</label>
                         <${SyntaxEditor} 
-                            name="value"
-                            value=${isEdit ? editing.value : state.input.value}
+                            name="value" 
+                            value=${editing.value}
                             onInput=${(e) => {
-            if (isEdit) {
-                state.editingSnippet.value = { ...state.editingSnippet.value, value: e.target.value };
-            } else {
-                state.input.value = e.target.value;
+            state.editingSnippet.value = { ...state.editingSnippet.value, value: e.target.value };
+            if (state.snippetErrors.value.value) {
+                state.snippetErrors.value = { ...state.snippetErrors.value, value: '' };
             }
         }}
                             state=${state}
                             forceKnown=${true}
                         />
-                        <div class="subtle-help">You can refine the expression before saving.</div>
+                        ${errors.value ? html`<div class="error-text">${errors.value}</div>` : html`<div class="subtle-help">You can refine the expression before saving.</div>`}
                     </div>
                 </div>
                 
@@ -281,6 +288,9 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                             onsl-change=${(e) => {
             if (isEdit) {
                 state.editingSnippet.value = { ...state.editingSnippet.value, icon: e.target.value };
+            }
+            if (state.snippetErrors.value.icon) {
+                state.snippetErrors.value = { ...state.snippetErrors.value, icon: '' };
             }
         }}
                         >
@@ -299,6 +309,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
         })}
                             </div>
                         </sl-radio-group>
+                        ${errors.icon ? html`<div class="error-text u-mt-05">${errors.icon}</div>` : ''}
                     </div>
                 </div>
             </form>
@@ -308,8 +319,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                     Cancel
                 </sl-button>
                 <sl-button variant="primary" type="submit" form="save-snippet-form" class="premium-save-btn">
-                    <sl-icon slot="prefix" name=${isEdit ? 'check2-circle' : 'bookmark-star'}></sl-icon> 
-                    ${isEdit ? 'Update Expression' : 'Save to Expression Library'}
+                    ${isEdit ? 'Update' : 'Create'}
                 </sl-button>
             </div>
         </sl-dialog>
@@ -496,7 +506,7 @@ export const MainCard = ({ state, actions }) => {
                         Mathematical Expression
                     </label>
                     <sl-tooltip content="Save Expression" hoist>
-                        <sl-icon-button name="bookmark-star" class="btn-save-snippet" onclick=${() => state.saveSnippetOpen.value = true}></sl-icon-button>
+                        <sl-icon-button name="bookmark-star" class="btn-save-snippet" onclick=${() => actions.openSaveSnippet()}></sl-icon-button>
                     </sl-tooltip>
                 </div>
                 <${SyntaxEditor} 

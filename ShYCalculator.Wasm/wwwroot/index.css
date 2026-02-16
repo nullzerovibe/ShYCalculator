@@ -1663,12 +1663,12 @@ sl-tab-panel {
     display: inline-block;
     max-width: 100%;
     cursor: pointer;
-    transition: color 0.2s ease, transform 0.2s ease;
+    transition: color 0.2s ease, filter 0.2s ease;
 }
 
 .op-symbol:hover {
     color: #38bdf8;
-    transform: scale(1.1);
+    filter: brightness(1.25);
 }
 
 .ops-table td.num {
@@ -1789,10 +1789,10 @@ sl-tab-panel[name="about"]::part(base) {
     background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
     background-clip: padding-box;
     /* Fix color bleed on rounded corners */
-    border: 1px solid transparent;
+    border: 1px solid #2e90f1;
     color: white;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .settings-presets sl-button[variant="primary"][outline]::part(base) {
@@ -1828,9 +1828,14 @@ sl-tab-panel[name="about"]::part(base) {
     /* Industrial safety margin to avoid border overlap */
     border: none !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+}
+
+.btn-stepper::part(label) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    height: 100% !important;
     width: 2.25rem !important;
 }
 
@@ -1841,12 +1846,10 @@ sl-tab-panel[name="about"]::part(base) {
 .btn-stepper:hover::part(base) {
     background-color: rgba(56, 189, 248, 0.15);
     color: #38bdf8;
-    transform: scale(1.1);
 }
 
 .btn-stepper:active::part(base) {
     background-color: rgba(56, 189, 248, 0.25);
-    transform: scale(0.9);
 }
 
 .btn-stepper[disabled]::part(base) {
@@ -2046,8 +2049,12 @@ sl-input:has(.btn-stepper)::part(suffix) {
 .vibe-description {
     font-family: var(--font-mono);
     font-size: 0.85rem;
-    color: var(--accent);
-    opacity: 0.8;
+    background: linear-gradient(to right, #2563eb, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.9;
     line-height: 1.4;
     text-align: center;
 }
@@ -2325,7 +2332,7 @@ sl-tab-panel[active]::part(base) {
 .save-dialog::part(header) {
     border-bottom: 1px solid var(--glass-border);
     background: #1e293b;
-    padding: 0.4rem 1rem;
+    padding: 0.3rem 1rem;
 }
 
 .save-dialog::part(body) {
@@ -2394,22 +2401,29 @@ sl-tab-panel[active]::part(base) {
 }
 
 .save-dialog::part(footer) {
-    border-top: 1px solid var(--glass-border);
+    border-top: 2px solid var(--glass-border);
     background: #1e293b;
-    padding: 1rem 1.5rem;
+    padding: 1.25rem 1rem;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 1rem;
-    min-height: 4.5rem;
+    min-height: auto;
 }
 
 .snippet-dialog-footer {
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
     gap: 1rem;
     width: 100%;
+}
+
+.snippet-dialog-footer sl-button {
+    flex: 1;
+}
+
+.snippet-dialog-footer sl-button::part(base) {
+    height: 2.25rem;
+    font-weight: 600;
 }
 
 
@@ -2451,7 +2465,6 @@ sl-tab-panel[active]::part(base) {
 .icon-tile sl-radio-button:hover::part(button) {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-1px);
 }
 
 .icon-tile sl-radio-button[checked]::part(button) {
@@ -2483,7 +2496,47 @@ sl-tab-panel[active]::part(base) {
     margin-bottom: 0.4rem;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #f1f5f9;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.error-text {
+    color: #f87171;
+    /* red-400 */
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    animation: fadeInError 0.2s ease-out;
+}
+
+.error-text::before {
+    content: "!";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    background: #f87171;
+    color: #1e293b;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+@keyframes fadeInError {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .subtle-help {
@@ -2494,31 +2547,29 @@ sl-tab-panel[active]::part(base) {
 }
 
 .premium-save-btn {
-    flex: 0 0 auto;
+    flex: 1;
     letter-spacing: 0.01em;
 }
 
 .premium-save-btn::part(base) {
-    min-height: 3.25rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
+    height: 2.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
     border: none;
     color: #ffffff;
-    transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    transition: box-shadow 0.2s ease, background 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .premium-save-btn::part(base):hover {
-    background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .premium-save-btn::part(base):active {
-    transform: translateY(0);
     opacity: 0.9;
 }
 

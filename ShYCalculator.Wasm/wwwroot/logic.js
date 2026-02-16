@@ -302,7 +302,8 @@ export const appState = {
         confirmLabel: signal('Confirm'),
         cancelLabel: signal('Cancel'),
         lastActiveElement: signal(null)
-    }
+    },
+    snippetErrors: signal({ name: '', value: '', icon: '' })
 };
 
 // --- AUTO-SAVE EFFECTS ---
@@ -705,7 +706,7 @@ export const actions = {
 
     saveSnippet: (name, icon, value, group) => {
         const editing = appState.editingSnippet.value;
-        if (editing) {
+        if (editing && editing.id) {
             appState.snippets.value = appState.snippets.value.map(s =>
                 s.id === editing.id ? { ...s, label: name, icon, value, group, vars: JSON.parse(JSON.stringify(appState.variables.value)) } : s
             );
@@ -730,7 +731,20 @@ export const actions = {
         util.notify("Expression removed from library.");
     },
     editSnippet: (snippet) => {
-        appState.editingSnippet.value = JSON.parse(JSON.stringify(snippet));
+        actions.openSaveSnippet(snippet);
+    },
+    openSaveSnippet: (snippet = null) => {
+        appState.snippetErrors.value = { name: '', value: '', icon: '' };
+        if (snippet) {
+            appState.editingSnippet.value = JSON.parse(JSON.stringify(snippet));
+        } else {
+            // New snippet: use current input but separate state so we can track Name/Icon
+            appState.editingSnippet.value = {
+                label: '',
+                value: appState.input.value,
+                icon: 'bookmark'
+            };
+        }
         appState.saveSnippetOpen.value = true;
     },
     togglePinSnippet: (id) => {
