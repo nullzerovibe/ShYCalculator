@@ -96,6 +96,12 @@ public class CalculationResult : Result<Value> {
         set => _rpnTokens = value;
     }
 
+    /// <summary>
+    /// Gets or sets the generated Abstract Syntax Tree (AST), if requested.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public AstNode? Ast { get; set; }
+
     // Backward compatibility properties
     /// <summary>
     /// Gets the data type of the result value.

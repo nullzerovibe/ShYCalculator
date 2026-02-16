@@ -37,17 +37,18 @@ public class ShYCalculatorInterop {
     /// This method is callable from JavaScript.
     /// </summary>
     /// <param name="expression">The expression string to evaluate.</param>
+    /// <param name="includeAst">Whether to return the AST in the result.</param>
     /// <returns>The result of the calculation.</returns>
     [JSInvokable]
-    public CalculationResult Calculate(string expression) {
-        return _calculator.Calculate(expression);
+    public CalculationResult Calculate(string expression, bool includeAst = false) {
+        return _calculator.Calculate(expression, null, includeAst);
     }
 
     /// <summary>
     /// Validates an expression without executing it.
     /// Checks for syntax errors and compilation issues.
     /// </summary>
-    /// <param name="expression">The expression to validate.</param>
+    /// <param name="expression">The expression to evaluate.</param>
     /// <returns>A JSON string representing the Result (Success, Message, Errors).</returns>
     [JSInvokable]
     public string ValidateExpression(string expression) {
@@ -72,16 +73,17 @@ public class ShYCalculatorInterop {
     /// </summary>
     /// <param name="expression">The mathematical expression to evaluate.</param>
     /// <param name="variables">A dictionary of variable names and their values (can be number, bool, string).</param>
+    /// <param name="includeAst">Whether to return the AST in the result.</param>
     /// <returns>The result of the calculation.</returns>
     [JSInvokable]
-    public CalculationResult CalculateWithVars(string expression, Dictionary<string, object> variables) {
+    public CalculationResult CalculateWithVars(string expression, Dictionary<string, object> variables, bool includeAst = false) {
         var context = new Dictionary<string, Value>();
 
         foreach (var kvp in variables) {
             context[kvp.Key] = ConvertToValue(kvp.Value);
         }
 
-        return _calculator.Calculate(expression, context);
+        return _calculator.Calculate(expression, context, includeAst);
     }
 
     private Value ConvertToValue(object obj) {
@@ -161,6 +163,61 @@ public class ShYCalculatorInterop {
 
         return System.Text.Json.JsonSerializer.Serialize(doc);
     }
+    /// <summary>
+    /// Retrieves the AST of an expression as a JSON string.
+    /// </summary>
+    /// <param name="expression">The mathematical expression to analyze.</param>
+    /// <returns>A JSON string representing the AST node.</returns>
+    [JSInvokable]
+    public string GetAst(string expression) {
+        var result = _calculator.GetAst(expression);
+        
+        if (!result.Success) {
+            return System.Text.Json.JsonSerializer.Serialize(new {
+                error = result.Message,
+                details = result.Errors
+            });
+        }
+        
+        // Use a permissive serializer options to handle object? types correctly if needed,
+        // though default might be fine given AstNode structure.
+        return System.Text.Json.JsonSerializer.Serialize(result.Value, new System.Text.Json.JsonSerializerOptions { 
+            WriteIndented = false, 
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        });
+    }
+
+    /// <summary>
+    /// Retrieves the AST of an expression as a JSON string, using provided variables for evaluation.
+    /// </summary>
+    /// <param name="expression">The mathematical expression to analyze.</param>
+    /// <param name="variables">A dictionary of variable names and their values.</param>
+    /// <returns>A JSON string representing the AST node.</returns>
+    [JSInvokable]
+    public string GetAstWithVars(string expression, Dictionary<string, object> variables) {
+        var context = new Dictionary<string, Value>();
+
+        foreach (var kvp in variables) {
+            context[kvp.Key] = ConvertToValue(kvp.Value);
+        }
+
+        var result = _calculator.GetAst(expression, context);
+        
+        if (!result.Success) {
+            return System.Text.Json.JsonSerializer.Serialize(new {
+                error = result.Message,
+                details = result.Errors
+            });
+        }
+        
+        return System.Text.Json.JsonSerializer.Serialize(result.Value, new System.Text.Json.JsonSerializerOptions { 
+            WriteIndented = false, 
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        });
+    }
+
     /// <summary>
     /// Retrieves the version of the assembly.
     /// </summary>

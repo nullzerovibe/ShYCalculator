@@ -15,7 +15,7 @@ public class UT_UnaryOperations {
         var result = UnaryOperations.PerformUnaryOperation(operand, token);
 
         Assert.IsTrue(result.Success);
-        Assert.AreEqual(false, result.Value.Bvalue);
+        Assert.IsFalse(result.Value.Bvalue);
     }
 
     [TestMethod]
@@ -26,7 +26,7 @@ public class UT_UnaryOperations {
         var result = UnaryOperations.PerformUnaryOperation(operand, token);
 
         Assert.IsTrue(result.Success);
-        Assert.AreEqual(true, result.Value.Bvalue);
+        Assert.IsTrue(result.Value.Bvalue);
     }
 
     [TestMethod]
@@ -81,6 +81,6 @@ public class UT_UnaryOperations {
         var result = UnaryOperations.PerformUnaryOperation(operand, token);
 
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Message.Contains("non-negative"));
+        Assert.Contains("non-negative", result.Message);
     }
 }

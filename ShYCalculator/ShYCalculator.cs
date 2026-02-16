@@ -64,9 +64,10 @@ public class ShYCalculator {
     /// </summary>
     /// <param name="expression">The expression to evaluate.</param>
     /// <param name="variables">A collection of variables (name/value pairs) to use in the calculation.</param>
-    public CalculationResult Calculate(string expression, IEnumerable<KeyValuePair<string, double>> variables) {
+    /// <param name="includeAst">If true, the result will include the AST.</param>
+    public CalculationResult Calculate(string expression, IEnumerable<KeyValuePair<string, double>> variables, bool includeAst = false) {
         var contextWrapper = new DoubleDictionaryWrapper(variables);
-        return Calculate(expression, contextWrapper);
+        return Calculate(expression, contextWrapper, includeAst);
     }
 
     // Retained for backward compatibility but implemented efficiently
@@ -76,12 +77,12 @@ public class ShYCalculator {
     /// </summary>
     /// <param name="expression">The expression to evaluate.</param>
     /// <param name="variables">Dictionary of numeric variables.</param>
-    /// <returns>The result of the calculation.</returns>
-    public CalculationResult Calculate(string expression, Dictionary<string, double> variables) {
+    /// <param name="includeAst">If true, the result will include the AST.</param>
+    public CalculationResult Calculate(string expression, Dictionary<string, double> variables, bool includeAst = false) {
         // Re-use the interface-based overload to avoid code duplication, 
         // though specific optimization for exact Dictionary type could be done if needed.
         // For now, wrappers are struct-based so overhead is minimal.
-        return Calculate(expression, (IEnumerable<KeyValuePair<string, double>>)variables);
+        return Calculate(expression, (IEnumerable<KeyValuePair<string, double>>)variables, includeAst);
     }
 
     /// <summary>
@@ -89,7 +90,8 @@ public class ShYCalculator {
     /// </summary>
     /// <param name="expression">The expression to evaluate.</param>
     /// <param name="contextVariables">A dictionary of <see cref="Value"/> objects representing variables.</param>
-    public CalculationResult Calculate(string expression, IDictionary<string, Value>? contextVariables) {
+    /// <param name="includeAst">If true, the result will include the AST.</param>
+    public CalculationResult Calculate(string expression, IDictionary<string, Value>? contextVariables, bool includeAst = false) {
         try {
             var expTokenizerResult = m_tokenizer.Tokenize(expression);
             if (!expTokenizerResult.Success) {
@@ -124,27 +126,56 @@ public class ShYCalculator {
                 }
             }
 
-            var evaluationResult = m_parser.Evaluate(shyGeneratorResult.Value!, expression, effectiveContext);
-            if (!evaluationResult.Success) {
+            // Normal evaluation path if AST is not requested
+            if (!includeAst) {
+                var evaluationResult = m_parser.Evaluate(shyGeneratorResult.Value!, expression, effectiveContext);
+                if (!evaluationResult.Success) {
+                    return new CalculationResult() {
+                        Success = false,
+                        Message = evaluationResult.Message,
+                        Errors = evaluationResult.Errors?.ToArray() ?? [],
+                        Expression = expression,
+                        InternalExpressionTokens = expTokenizerResult.Value,
+                        InternalRPNTokens = shyGeneratorResult.Value,
+                    };
+                }
+
                 return new CalculationResult() {
-                    Success = false,
+                    Success = true,
                     Message = evaluationResult.Message,
-                    Errors = evaluationResult.Errors?.ToArray() ?? [],
                     Expression = expression,
                     InternalExpressionTokens = expTokenizerResult.Value,
                     InternalRPNTokens = shyGeneratorResult.Value,
+                    Value = evaluationResult.Value,
+                };
+            } 
+            else {
+                // AST requests use the builder which also evaluates
+                var builder = new AstBuilder(Environment);
+                var rootNode = builder.Build(shyGeneratorResult.Value!, effectiveContext);
+                
+                if (rootNode.Type == "error") {
+                     return new CalculationResult() {
+                        Success = false,
+                        Message = (string)rootNode.EvaluatedValue!,
+                        Expression = expression,
+                        InternalExpressionTokens = expTokenizerResult.Value,
+                        InternalRPNTokens = shyGeneratorResult.Value,
+                    };
+                }
+                
+                // Convert AST evaluated value back to Value struct
+                Value finalValue = CreateValueFromObject(rootNode.EvaluatedValue);
+
+                return new CalculationResult() {
+                    Success = true,
+                    Expression = expression,
+                    InternalExpressionTokens = expTokenizerResult.Value,
+                    InternalRPNTokens = shyGeneratorResult.Value,
+                    Value = finalValue,
+                    Ast = rootNode
                 };
             }
-
-            // We need to copy values from evaluationResult.Value to CalculationResult
-            return new CalculationResult() {
-                Success = true,
-                Message = evaluationResult.Message,
-                Expression = expression,
-                InternalExpressionTokens = expTokenizerResult.Value,
-                InternalRPNTokens = shyGeneratorResult.Value,
-                Value = evaluationResult.Value,
-            };
         }
         catch (BaseCalcException ex) {
             return new CalculationResult() {
@@ -160,6 +191,58 @@ public class ShYCalculator {
                 Errors = [new CalcError(ErrorCode.UnexpectedException, ex.Message)],
                 Expression = expression,
             };
+        }
+    }
+    
+    private Value CreateValueFromObject(object? obj) {
+        if (obj == null) return Value.Null(DataType.Number);
+        if (obj is double d) return Value.Number(d);
+        if (obj is bool b) return Value.Boolean(b);
+        if (obj is string s) return Value.String(s);
+        if (obj is DateTimeOffset dt) return Value.Date(dt);
+        if (obj is int i) return Value.Number(i);
+        return Value.Null(DataType.Number);
+    }
+    /// <summary>
+    /// Generates an Abstract Syntax Tree (AST) for the given expression, including position metadata and evaluated values.
+    /// </summary>
+    /// <param name="expression">The expression to analyze.</param>
+    /// <param name="contextVariables">Optional variables to use for evaluation.</param>
+    /// <returns>A result containing the root AST node.</returns>
+    public Result<AstNode> GetAst(string expression, IDictionary<string, Value>? contextVariables = null) {
+        try {
+            var expTokenizerResult = m_tokenizer.Tokenize(expression);
+            if (!expTokenizerResult.Success) {
+                return Result<AstNode>.Fail(expTokenizerResult.Message, expTokenizerResult.Errors);
+            }
+
+            var shyGeneratorResult = m_generator.Generate(expTokenizerResult.Value!);
+            if (!shyGeneratorResult.Success) {
+                return Result<AstNode>.Fail(shyGeneratorResult.Message, shyGeneratorResult.Errors);
+            }
+
+            // Fallback logic: If Environment has variables, include them in the context
+            IDictionary<string, Value>? effectiveContext = contextVariables;
+            if (Environment.Variables.Count > 0) {
+                if (contextVariables == null) {
+                    effectiveContext = Environment.Variables;
+                }
+                else {
+                    effectiveContext = new CompositeDictionary(contextVariables, Environment.Variables);
+                }
+            }
+
+            var builder = new AstBuilder(Environment);
+            var rootNode = builder.Build(shyGeneratorResult.Value!, effectiveContext);
+            
+            if (rootNode.Type == "error") {
+                 return Result<AstNode>.Fail((string)rootNode.EvaluatedValue!);
+            }
+
+            return Result<AstNode>.Ok(rootNode);
+        }
+        catch (Exception ex) {
+            return Result<AstNode>.Fail(ex.Message, [new CalcError(ErrorCode.UnexpectedException, ex.Message)]);
         }
     }
     #endregion Methods
