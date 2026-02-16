@@ -87,7 +87,7 @@ public class UT_Errors {
         Assert.IsFalse(result.Success);
         var error = result.Errors.Count > 0 ? result.Errors[0] : null;
         Assert.IsNotNull(error);
-        Assert.AreEqual(ErrorCode.VariableNotFound, error.Code);
+        Assert.AreEqual(ErrorCode.FunctionNotFound, error.Code);
     }
 
     [TestMethod]

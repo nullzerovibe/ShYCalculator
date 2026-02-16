@@ -35,7 +35,20 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
     public OpResult<IEnumerable<Token>> Generate(IEnumerable<Token> expressionTokens) {
         try {
             var expressionTokenPosition = 0;
-            return GenerateRecursive(expressionTokens, ref expressionTokenPosition);
+            var result = GenerateRecursive(expressionTokens, ref expressionTokenPosition);
+            
+            if (result.Success) {
+                // ToList() is needed if GenerateRecursive returns IEnumerable that isn't a list, 
+                // but implementation uses List<Token> for rpnOutput so checking cast is better.
+                var rpnList = result.Value as IList<Token> ?? result.Value!.ToList();
+                
+                var error = ValidateRPN(rpnList);
+                if (error != null) {
+                    return OpResult<IEnumerable<Token>>.Fail(error);
+                }
+            }
+
+            return result;
         }
         catch (ShuntingYardGeneratorException ex) {
             return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.UnexpectedException, "Unexpected exception while generating RPN. " + ex.Message));
@@ -99,9 +112,33 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                 }
             }
             else if (expressionToken.Type == TokenType.Number || expressionToken.Type == TokenType.String || expressionToken.Type == TokenType.Constant || expressionToken.Type == TokenType.Variable) {
-                AddFunctionArgsCount(funcStack, currentFuncDepth);
-                expressionToken.FunctionInfo?.Depth = currentFuncDepth;
-                rpnOutput.Add(expressionToken);
+                // Check if it's a variable token followed by an OpeningParenthesis
+                if (expressionToken.Type == TokenType.Variable && expressionTokenPosition + 1 < tokensList.Count && tokensList[expressionTokenPosition + 1].Type == TokenType.OpeningParenthesis) {
+                    // Treat as Function
+                    // Create new token as properties are init-only
+                    var funcToken = new Token {
+                        Type = TokenType.Function,
+                        Key = expressionToken.Key,
+                        FunctionInfo = new FunctionInfo {
+                            AwaitNextArgument = true,
+                            Depth = currentFuncDepth + 1
+                        },
+                        Index = expressionToken.Index,
+                        Length = expressionToken.Length
+                    };
+
+                    AddFunctionArgsCount(funcStack, currentFuncDepth);
+
+                    currentFuncDepth++;
+                    
+                    operatorStack.Push(funcToken);
+                    funcStack.TryAdd(currentFuncDepth, funcToken);
+                }
+                else {
+                    AddFunctionArgsCount(funcStack, currentFuncDepth);
+                    expressionToken.FunctionInfo?.Depth = currentFuncDepth;
+                    rpnOutput.Add(expressionToken);
+                }
             }
             else if (expressionToken.Type == TokenType.Function) {
                 // Special handling for 'if' function to support short-circuiting (lazy evaluation)
@@ -171,6 +208,16 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                         expressionTokenPosition++; // Consume closing parenthesis ')'
                         continue; // Continue main loop
                     }
+                }
+
+                // Find next non-whitespace token
+                var nextTokenIndex = expressionTokenPosition + 1;
+                while (nextTokenIndex < tokensList.Count && tokensList[nextTokenIndex].Type == TokenType.WhiteSpace) {
+                    nextTokenIndex++;
+                }
+
+                if (nextTokenIndex >= tokensList.Count || tokensList[nextTokenIndex].Type != TokenType.OpeningParenthesis) {
+                     return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, $"Function '{expressionToken.KeyString}' must be followed by '('", (int)expressionToken.Index, expressionToken.Length));
                 }
 
                 AddFunctionArgsCount(funcStack, currentFuncDepth);
@@ -247,7 +294,11 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
 
                 if (operatorStack.Count == 0 || (operatorStack.Peek().FunctionInfo != null && operatorStack.Peek().FunctionInfo!.Depth != currentFuncDepth)) {
                     if (funcStack.TryGetValue(currentFuncDepth, out var stackFunction)) {
-                        stackFunction.FunctionInfo?.AwaitNextArgument = false;
+                        if (stackFunction.FunctionInfo!.AwaitNextArgument && stackFunction.FunctionInfo.ArgumentsCount > 0) {
+                             return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, $"Trailing comma or missing argument in function '{stackFunction.KeyString}'", (int)expressionToken.Index, expressionToken.Length));
+                        }
+                        
+                        stackFunction.FunctionInfo!.AwaitNextArgument = false;
                         funcStack.Remove(currentFuncDepth);
                     }
                     currentFuncDepth--;
@@ -317,6 +368,59 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
         }
 
         throw new ShuntingYardGeneratorException($"GetOperatorAssociativity error for token '{ch}'");
+    }
+
+    private CalcError? ValidateRPN(IList<Token> rpnTokens) {
+        int stackDepth = 0;
+        var count = rpnTokens.Count;
+        
+        for (int i = 0; i < count; i++) {
+            var token = rpnTokens[i];
+            switch (token.Type) {
+                case TokenType.Number:
+                case TokenType.String:
+                case TokenType.Constant:
+                case TokenType.Variable:
+                    stackDepth++;
+                    break;
+                case TokenType.Operator:
+                    // Binary
+                    if (stackDepth < 2) return new CalcError(ErrorCode.MissingOperand, $"Missing operand for operator '{token.KeyString}'", (int)token.Index, token.Length);
+                    stackDepth--; 
+                    break;
+                case TokenType.UnaryPrefixOperator:
+                case TokenType.UnaryPostfixOperator:
+                    if (stackDepth < 1) return new CalcError(ErrorCode.MissingOperand, $"Missing operand for unary operator '{token.KeyString}'", (int)token.Index, token.Length);
+                    break;
+                case TokenType.Function:
+                    int args = token.FunctionInfo?.ArgumentsCount ?? 0;
+                    if (stackDepth < args) return new CalcError(ErrorCode.InvalidSyntax, $"Missing arguments for function '{token.KeyString}'", (int)token.Index, token.Length);
+                    stackDepth = stackDepth - args + 1;
+                    break;
+                case TokenType.Ternary:
+                    if (stackDepth < 1) return new CalcError(ErrorCode.MissingOperand, "Missing condition for ternary operator", (int)token.Index, token.Length);
+                    
+                    if (token.TernaryBranches != null) {
+                        var trueList = token.TernaryBranches.TrueBranch as IList<Token> ?? token.TernaryBranches.TrueBranch.ToList();
+                        var trueRes = ValidateRPN(trueList);
+                        if (trueRes != null) return trueRes;
+                        
+                        var falseList = token.TernaryBranches.FalseBranch as IList<Token> ?? token.TernaryBranches.FalseBranch.ToList();
+                        var falseRes = ValidateRPN(falseList);
+                        if (falseRes != null) return falseRes;
+                    }
+                    else {
+                         return new CalcError(ErrorCode.TernaryBranchError, "Ternary operator branches missing", (int)token.Index, token.Length);
+                    }
+                    break;
+            }
+        }
+
+        if (stackDepth != 1) {
+            if (stackDepth == 0 && count == 0) return new CalcError(ErrorCode.InvalidSyntax, "Empty expression or branch", 0, 0);
+            return new CalcError(ErrorCode.InvalidSyntax, "Invalid expression structure (incomplete or too many operands)", 0, 0);
+        }
+        return null; // Success
     }
     #endregion Private utils Methods
 }

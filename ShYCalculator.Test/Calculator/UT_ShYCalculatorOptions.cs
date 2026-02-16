@@ -80,7 +80,7 @@ public class UT_ShYCalculatorOptions {
         // It fails with "Unknown Variable" because the tokenizer/parser doesn't see it in the function registry.
         Assert.IsFalse(resultFail.Success);
         var msg = resultFail.Message;
-        Assert.IsTrue(msg.Contains("Unknown function") || msg.Contains("Unknown Variable"), $"Msg: {msg}");
+        Assert.IsTrue(msg.Contains("Unknown Function") || msg.Contains("Unknown Variable"), $"Msg: {msg}");
         Assert.Contains("str_contains", msg, $"Msg: {msg}");
     }
 }

@@ -19,8 +19,8 @@ public class UT_SyntaxErrors_Functions {
         var result = m_shyCalculator.Calculate("unknown_func(1)");
 
         Assert.IsFalse(result.Success);
-        // Usually reports as VariableNotFound if it looks like an identifier
-        Assert.Contains(e => e.Code == ErrorCode.VariableNotFound || e.Code == ErrorCode.UnknownToken, result.Errors);
+        // Previously VariableNotFound, now FunctionNotFound because of RPN fix
+        Assert.Contains(e => e.Code == ErrorCode.FunctionNotFound || e.Code == ErrorCode.UnknownToken, result.Errors);
     }
 
     [TestMethod]
