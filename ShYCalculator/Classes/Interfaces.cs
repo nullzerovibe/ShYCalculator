@@ -57,6 +57,11 @@ public interface ICompiledCalculator {
     IGlobalScope Environment { get; }
 
     /// <summary>
+    /// Gets the compiled Abstract Syntax Tree (AST), if generated during compilation.
+    /// </summary>
+    AstNode? Ast { get; }
+
+    /// <summary>
     /// Calculates the result of the compiled expression using current environment state.
     /// </summary>
     /// <returns>The calculation result.</returns>

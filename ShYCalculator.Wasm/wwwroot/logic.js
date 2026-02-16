@@ -578,9 +578,9 @@ export const actions = {
 
                     vars[v.name] = val;
                 }
-                res = await interop.invokeMethodAsync('CalculateWithVars', effectiveExpr, vars);
+                res = await interop.invokeMethodAsync('CalculateWithVars', effectiveExpr, vars, false);
             } else {
-                res = await interop.invokeMethodAsync('Calculate', expr);
+                res = await interop.invokeMethodAsync('Calculate', expr, false);
             }
 
             const endTime = performance.now();
@@ -797,10 +797,10 @@ export const actions = {
         actions.calculate();
     },
 
-    validateExpression: async (expr) => {
+    validateExpression: async (expr, includeAst = false) => {
         try {
             const interop = globalThis.shyCalculator;
-            const json = await interop.invokeMethodAsync('ValidateExpression', expr);
+            const json = await interop.invokeMethodAsync('ValidateExpression', expr, includeAst);
             return JSON.parse(json);
         } catch (e) {
             console.error("Validation failed", e);

@@ -128,7 +128,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
         if (state.saveSnippetOpen.value && editing.value) {
             // Auto-validate on open
             setIsValidating(true);
-            actions.validateExpression(editing.value).then(res => {
+            actions.validateExpression(editing.value, true).then(res => {
                 // Ensure we haven't closed or changed
                 if (state.saveSnippetOpen.value) {
                     setValidationResult(res);
@@ -163,7 +163,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
         // Short delay to show loading state
         await new Promise(r => setTimeout(r, 300));
 
-        const result = await actions.validateExpression(editing.value);
+        const result = await actions.validateExpression(editing.value, true);
         setValidationResult(result);
         setIsValidating(false);
     };

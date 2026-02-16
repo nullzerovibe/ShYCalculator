@@ -51,6 +51,9 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
         }
     }
 
+    /// <inheritdoc />
+    public AstNode? Ast { get; private set; }
+
     public IEnumerable<CalcError> Errors {
         get {
             if (!m_tokenizerResult.Success) return m_tokenizerResult.Errors;
@@ -61,7 +64,7 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
     #endregion Properties
 
     #region Methods
-    public bool Compile(string expression) {
+    public bool Compile(string expression, bool includeAst = false) {
         m_expression = expression;
         m_compiled = false;
         m_tokenizerResult = default;
@@ -81,6 +84,21 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
             m_cachedExpressionTokens = m_tokenizerResult.Value!;
             m_cachedRPNTokens = m_generatorResult.Value!;
 
+            if (includeAst) {
+                var builder = new AstBuilder(Environment);
+                // We don't have runtime variables at compile time, so we pass null for context
+                // This means the AST won't have fully evaluated values for variables, which is expected
+                Ast = builder.Build(m_generatorResult.Value!, null);
+                
+                if (Ast.Type == "error") {
+                     // Should we fail compilation if AST fails? 
+                     // The generator succeeded, but AST builder found an issue (e.g. stack mismatch not caught by generator?)
+                     // For now, let's treat it as a success but AST indicates error
+                }
+            } else {
+                Ast = null;
+            }
+
             m_compiled = true;
             return true;
         }
@@ -97,6 +115,7 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
         m_generatorResult = default;
         m_expression = "";
         m_compiled = false;
+        Ast = null;
     }
 
     public CalculationResult Calculate() {

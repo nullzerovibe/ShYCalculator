@@ -7,7 +7,7 @@
     <Company>nullzerovibe</Company>
     <Copyright>Copyright (c) nullzerovibe 2026</Copyright>
     <RepositoryUrl>https://github.com/nullzerovibe/ShYCalculator</RepositoryUrl>
-    <Version>0.9.2.9</Version>
+    <Version>0.9.2.10</Version>
     <Description>A high-performance, thread-safe, and extensible mathematical expression evaluator for .NET, based on the Shunting-Yard algorithm.</Description>
     <PackageTags>calculator;expression-evaluator;shunting-yard;math;parser;net-standard;performance;zero-allocation</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -21,6 +21,7 @@
     <None Include="$(MSBuildThisFileDirectory)README_NUGET.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
+
 
 
 

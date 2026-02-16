@@ -41,10 +41,11 @@ public class ShYCalculator {
     /// <param name="expression">The mathematical expression to compile.</param>
     /// <param name="globalScope">Optional scope definitions. Defaults to a standard environment.</param>
     /// <param name="options">Optional calculator options.</param>
+    /// <param name="includeAst">If true, the compiled result will include the AST.</param>
     /// <returns>A result containing the compiled calculator instance.</returns>
-    public static Result<ICompiledCalculator> Compile(string expression, IGlobalScope? globalScope = null, ShYCalculatorOptions? options = null) {
+    public static Result<ICompiledCalculator> Compile(string expression, IGlobalScope? globalScope = null, ShYCalculatorOptions? options = null, bool includeAst = false) {
         var compiledCalc = new ShYCompiledCalculator(globalScope, options);
-        if (!compiledCalc.Compile(expression)) {
+        if (!compiledCalc.Compile(expression, includeAst)) {
             return Result<ICompiledCalculator>.Fail(compiledCalc.Message, compiledCalc.Errors);
         }
         return Result<ICompiledCalculator>.Ok(compiledCalc);

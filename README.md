@@ -119,6 +119,48 @@ if (compiled.Success) {
 }
 ```
 
+## Advanced Features
+
+### Abstract Syntax Tree (AST)
+
+You can retrieve the parsed AST for analysis or visualization.
+
+```csharp
+var result = calculator.Calculate("1 + 2 * 3", includeAst: true);
+if (result.Success && result.Ast != null) {
+    Console.WriteLine($"Root Node Type: {result.Ast.Type}"); // "binary"
+    Console.WriteLine($"Operator: {result.Ast.Operator}");   // "+"
+}
+```
+
+### Expression Validation
+
+Validate syntax without executing the expression. Useful for UI feedback.
+
+```csharp
+var validation = ShYCalculator.Compile("1 + (2 * 3"); // Missing closing parenthesis
+if (!validation.Success) {
+    foreach (var error in validation.Errors) {
+        Console.WriteLine($"Error at {error.StartIndex}: {error.Message}");
+    }
+}
+```
+
+### WebAssembly (WASM) Interop
+
+When running in the browser, `ShYCalculator` exposes a JS-friendly API:
+
+```javascript
+// Calculate with AST
+const result = await dotNetHelper.invokeMethodAsync('Calculate', '1 + 2', true);
+console.log(result.ast); // { type: "binary", operator: "+", ... }
+
+// Validate Expression
+const validation = await dotNetHelper.invokeMethodAsync('ValidateExpression', '1 +');
+console.log(JSON.parse(validation).errors); // [{ message: "Unexpected end of expression", ... }]
+```
+
+
 ## Documentation
 
 See the [Documentation Tests](ShYCalculator/ShYCalculator.Test/UT_Documentation_Stateless.cs) for more executable examples.
