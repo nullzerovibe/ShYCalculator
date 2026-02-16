@@ -539,7 +539,6 @@ sl-tab-panel {
     object-fit: cover;
     display: block !important;
     /* Force display */
-    /* filter: saturate(0) contrast(1.2); */
 }
 
 /* --- Card & Section Styles --- */
@@ -1222,7 +1221,7 @@ sl-dialog::part(overlay) {
 
 
 sl-dialog::part(panel) {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(30, 41, 59, 0.65) 100%);
     backdrop-filter: blur(25px);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
@@ -1238,7 +1237,7 @@ sl-dialog::part(panel) {
 
 sl-dialog::part(header) {
     padding: 0rem;
-    background: #1e293b;
+    background: transparent;
 }
 
 sl-dialog::part(title) {
@@ -1276,7 +1275,7 @@ sl-tab-group {
 }
 
 sl-tab-group::part(nav) {
-    background: #1e293b;
+    background: transparent;
     border-bottom: 0;
     /* Removed horizontal line as per user request */
     z-index: 20;
@@ -1708,7 +1707,7 @@ sl-tab-panel[name="about"]::part(base) {
 .settings-button-footer {
     flex-shrink: 0;
     padding: 1.25rem 1rem;
-    background: #1e293b;
+    background: transparent;
     border-top: 2px solid var(--glass-border);
     display: flex;
     gap: 1rem;
@@ -2332,7 +2331,7 @@ sl-tab-panel[active]::part(base) {
 
 .save-dialog::part(header) {
     border-bottom: 1px solid var(--glass-border);
-    background: #1e293b;
+    background: transparent;
     padding: 0.3rem 1rem;
 }
 
@@ -2403,7 +2402,7 @@ sl-tab-panel[active]::part(base) {
 
 .save-dialog::part(footer) {
     border-top: 2px solid var(--glass-border);
-    background: #1e293b;
+    background: transparent;
     padding: 1.25rem 1rem;
     display: flex;
     justify-content: flex-end;
