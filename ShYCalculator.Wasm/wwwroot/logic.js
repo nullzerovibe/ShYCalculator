@@ -724,6 +724,10 @@ export const actions = {
             };
             appState.snippets.value = [...appState.snippets.value, item];
             util.notify("Expression saved to library!", "success", "bookmark");
+
+            // Auto-select the new snippet
+            actions.loadSnippet(item);
+            appState.selectedIdx.value = item.id;
         }
         appState.editingSnippet.value = null;
     },

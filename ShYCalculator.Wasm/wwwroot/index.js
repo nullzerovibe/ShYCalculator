@@ -538,7 +538,7 @@ export const MainCard = ({ state, actions }) => {
                         <sl-icon src="https://api.iconify.design/lucide/terminal.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
                         Mathematical Expression
                     </label>
-                    <sl-tooltip content="Save Expression" hoist>
+                    <sl-tooltip content="Save Expression" hoist trigger="hover">
                         <sl-icon-button name="bookmark-star" class="btn-save-snippet" onclick=${() => actions.openSaveSnippet()}></sl-icon-button>
                     </sl-tooltip>
                 </div>
