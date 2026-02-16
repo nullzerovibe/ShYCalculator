@@ -595,6 +595,189 @@ sl-card::part(body) {
     flex: 1;
 }
 
+.expression-combobox-dropdown {
+    flex: 1;
+}
+
+.combobox-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1rem;
+    height: var(--sl-input-height-medium);
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--sl-input-border-radius-medium);
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: var(--sl-transition-fast) border-color, var(--sl-transition-fast) box-shadow;
+    user-select: none;
+}
+
+.combobox-trigger:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.combobox-trigger:active {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .combobox-trigger {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+    color: #1e293b;
+}
+
+.trigger-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.trigger-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1rem;
+}
+
+.expression-combobox-dropdown::part(panel) {
+    width: var(--panel-width, 300px);
+    background: var(--glass-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    padding: 0;
+}
+
+.combobox-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.combobox-search {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--glass-border);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.combobox-menu {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.25rem;
+    border: none !important;
+}
+
+.combobox-menu::part(base) {
+    background: transparent;
+}
+
+.snippet-item {
+    border-radius: 8px;
+    margin: 2px 0;
+}
+
+.snippet-item::part(base) {
+    padding: 0.5rem 0.75rem;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.snippet-item:hover::part(base) {
+    background-color: rgba(56, 189, 248, 0.08) !important;
+    color: var(--text) !important;
+}
+
+.snippet-item.is-selected::part(base) {
+    background: rgba(56, 189, 248, 0.15) !important;
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.snippet-item.is-selected:hover::part(base) {
+    background: rgba(56, 189, 248, 0.2) !important;
+}
+
+/* Global Shoelace Override to kill that stubborn Cyan highlight */
+sl-menu-item::part(base) {
+    --sl-color-primary-600: var(--accent);
+}
+
+sl-menu-item:focus-visible::part(base) {
+    background-color: rgba(56, 189, 248, 0.1) !important;
+    color: var(--text) !important;
+}
+
+sl-menu-item::part(base):hover {
+    background-color: rgba(56, 189, 248, 0.1) !important;
+    color: var(--text) !important;
+}
+
+.snippet-icon {
+    font-size: 1.25rem;
+    opacity: 0.8;
+}
+
+.snippet-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.snippet-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.snippet-preview {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.6;
+}
+
+.snippet-actions {
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.snippet-item:hover .snippet-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    font-size: 0.9rem;
+}
+
+.action-btn.pinned {
+    color: var(--accent);
+}
+
+.action-btn.danger:hover {
+    color: var(--error);
+}
+
+.ml-auto {
+    margin-left: auto;
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
 .btn-calculate {
     width: 100%;
 }

@@ -292,6 +292,7 @@ export const appState = {
     saveSnippetOpen: signal(false),
     editingSnippet: signal(null),
     knownNames: signal(new Set(['pi', 'e', 'true', 'false'])),
+    snippetSearch: signal(''),
     confirmDialog: {
         open: signal(false),
         title: signal('Confirm Action'),

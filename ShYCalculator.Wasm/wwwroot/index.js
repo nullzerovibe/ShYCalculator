@@ -1,5 +1,5 @@
 import { h, render } from 'https://esm.sh/preact@10.19.3';
-import { useEffect, useMemo } from 'https://esm.sh/preact@10.19.3/hooks';
+import { useEffect, useMemo, useRef } from 'https://esm.sh/preact@10.19.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { FLAT_MAP, EXAMPLE_GROUPS, getCategoryIconUrl, getTypeIconUrl, appState, actions } from './logic.js';
 
@@ -297,6 +297,149 @@ export const SaveSnippetDialog = ({ state, actions }) => {
     `;
 };
 
+export const ExpressionCombobox = ({ state, actions }) => {
+    const dropdownRef = useRef();
+
+    useEffect(() => {
+        const updateWidth = () => {
+            if (!dropdownRef.current) return;
+
+            const container = dropdownRef.current.closest('.form-section');
+            const trigger = dropdownRef.current.querySelector('[slot="trigger"]');
+
+            if (container && trigger) {
+                const cRect = container.getBoundingClientRect();
+                const tRect = trigger.getBoundingClientRect();
+
+                if (cRect.width > 0) {
+                    dropdownRef.current.style.setProperty('--panel-width', `${cRect.width}px`);
+                    dropdownRef.current.skidding = cRect.left - tRect.left;
+                }
+            }
+        };
+
+        // Window resize is still important
+        globalThis.addEventListener('resize', updateWidth);
+
+        // Sync when dropdown opens
+        const handleShow = () => updateWidth();
+        dropdownRef.current?.addEventListener('sl-show', handleShow);
+
+        // One-time initial sync
+        updateWidth();
+
+        return () => {
+            globalThis.removeEventListener('resize', updateWidth);
+            dropdownRef.current?.removeEventListener('sl-show', handleShow);
+        };
+    }, []);
+
+    const onSnippetSelect = (snippet) => {
+        actions.loadSnippet(snippet);
+        state.selectedIdx.value = snippet.id;
+        if (dropdownRef.current) dropdownRef.current.hide();
+    };
+
+    const query = state.snippetSearch.value.toLowerCase().trim();
+    const snippets = state.snippets.value;
+
+    const filtered = snippets.filter(s =>
+        s.label.toLowerCase().includes(query) ||
+        s.value.toLowerCase().includes(query) ||
+        (s.group && s.group.toLowerCase().includes(query))
+    );
+
+    const pinned = filtered.filter(s => s.pinned);
+    const others = filtered.filter(s => !s.pinned);
+
+    const otherGroups = others.reduce((acc, s) => {
+        const g = s.group || 'Others';
+        if (!acc[g]) acc[g] = { label: g, icon: s.icon, items: [] };
+        acc[g].items.push(s);
+        return acc;
+    }, {});
+
+    const groups = [];
+    if (pinned.length > 0) {
+        groups.push({ label: 'Pinned', icon: 'pin', items: pinned });
+    }
+    groups.push(...Object.values(otherGroups));
+
+    const selectedSnippet = snippets.find(s => s.id === state.selectedIdx.value);
+
+    return html`
+        <sl-dropdown ref=${dropdownRef} class="expression-combobox-dropdown" distance="8" placement="bottom-start" hoist>
+            <div slot="trigger" class="combobox-trigger">
+                <sl-icon src="${getCategoryIconUrl(selectedSnippet?.icon || 'list-plus')}" class="trigger-icon"></sl-icon>
+                <div class="trigger-label">
+                    ${selectedSnippet ? selectedSnippet.label : 'Select an expression...'}
+                </div>
+                <sl-icon name="chevron-down" class="ml-auto opacity-50"></sl-icon>
+            </div>
+
+            <div class="combobox-panel">
+                <div class="combobox-search">
+                    <sl-input 
+                        placeholder="Search expressions..." 
+                        size="small" 
+                        value=${state.snippetSearch.value}
+                        oninput=${(e) => state.snippetSearch.value = e.target.value}
+                        clearable
+                        onsl-clear=${() => state.snippetSearch.value = ''}
+                    >
+                        <sl-icon name="search" slot="prefix"></sl-icon>
+                    </sl-input>
+                </div>
+                
+                <sl-menu class="combobox-menu">
+                    ${groups.length === 0 ? html`<div class="empty-state-small u-p-1">No matches found</div>` : null}
+                    ${groups.map((group, gIdx, gArr) => html`
+                        <sl-menu-label>
+                            <sl-icon src="${getCategoryIconUrl(group.icon || 'collection')}" class="ex-group-icon"></sl-icon>
+                            ${group.label}
+                        </sl-menu-label>
+                        ${group.items.map(s => html`
+                            <sl-menu-item class="snippet-item ${s.id === state.selectedIdx.value ? 'is-selected' : ''}" onclick=${() => onSnippetSelect(s)}>
+                                <sl-icon src="${getCategoryIconUrl(s.icon)}" slot="prefix" class="snippet-icon"></sl-icon>
+                                <div class="snippet-info">
+                                    <div class="snippet-label">${s.label}</div>
+                                    <div class="snippet-preview u-mono" dangerouslySetInnerHTML=${{ __html: highlightExpression(s.value, state.knownNames.value, state.variables.value, true) }}></div>
+                                </div>
+                                <div slot="suffix" class="snippet-actions" onclick=${(e) => e.stopPropagation()}>
+                                    <sl-tooltip content=${s.pinned ? 'Unpin' : 'Pin'}>
+                                        <sl-icon-button 
+                                            name=${s.pinned ? 'pin-fill' : 'pin'} 
+                                            class="action-btn ${s.pinned ? 'pinned' : ''}"
+                                            onclick=${() => actions.togglePinSnippet(s.id)}
+                                        ></sl-icon-button>
+                                    </sl-tooltip>
+                                    <sl-tooltip content="Edit">
+                                        <sl-icon-button 
+                                            name="pencil" 
+                                            class="action-btn"
+                                            onclick=${() => actions.editSnippet(s)}
+                                        ></sl-icon-button>
+                                    </sl-tooltip>
+                                    ${!s.isSeeded ? html`
+                                        <sl-tooltip content="Delete">
+                                            <sl-icon-button 
+                                                name="trash" 
+                                                class="action-btn danger"
+                                                onclick=${() => actions.deleteSnippet(s.id)}
+                                            ></sl-icon-button>
+                                        </sl-tooltip>
+                                    ` : null}
+                                </div>
+                            </sl-menu-item>
+                        `)}
+                        ${gIdx < gArr.length - 1 ? html`<sl-divider></sl-divider>` : null}
+                    `)}
+                </sl-menu>
+            </div>
+        </sl-dropdown>
+    `;
+};
+
 export const MainCard = ({ state, actions }) => {
     const onInput = (e) => state.input.value = e.target.value;
 
@@ -319,38 +462,7 @@ export const MainCard = ({ state, actions }) => {
                     Select an expression
                 </label>
                 <div class="controls-top">
-                    <sl-select placeholder="Select an expression..." value=${state.selectedIdx.value} onsl-change=${onSnippetSelect} hoist>
-                        ${(() => {
-            const pinned = state.snippets.value.filter(s => s.pinned);
-            const others = state.snippets.value.filter(s => !s.pinned);
-
-            const groups = [];
-
-            if (pinned.length > 0) {
-                groups.push({ label: 'Pinned', icon: 'pin', items: pinned });
-            }
-
-            const otherGroups = others.reduce((acc, s) => {
-                const g = s.group || 'Others';
-                if (!acc[g]) acc[g] = { label: g, icon: s.icon, items: [] };
-                acc[g].items.push(s);
-                return acc;
-            }, {});
-
-            groups.push(...Object.values(otherGroups));
-
-            return groups.map((g, i, arr) => html`
-                                <sl-menu-label>
-                                    <sl-icon src="${getCategoryIconUrl(g.icon || 'collection')}" class="ex-group-icon"></sl-icon>
-                                    ${g.label}
-                                </sl-menu-label>
-                                ${g.items.map(s => html`
-                                    <sl-option value="${s.id}">${s.label}</sl-option>
-                                `)}
-                                ${i < arr.length - 1 ? html`<sl-divider></sl-divider>` : null}
-                            `);
-        })()}
-                    </sl-select>
+                    <${ExpressionCombobox} state=${state} actions=${actions} />
                     <sl-button outline class="btn-secondary" onclick=${actions.openDocs}>
                         <sl-icon slot="prefix" name="book"></sl-icon> Docs & Settings
                     </sl-button>
