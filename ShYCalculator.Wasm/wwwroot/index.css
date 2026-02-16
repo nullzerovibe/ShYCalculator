@@ -2252,6 +2252,7 @@ sl-tab-panel[active]::part(base) {
     line-height: inherit;
     outline: none;
     display: block;
+    box-sizing: border-box;
 }
 
 .syntax-editor .highlight-overlay {
@@ -2266,6 +2267,7 @@ sl-tab-panel[active]::part(base) {
     word-wrap: break-word;
     pointer-events: none;
     color: var(--text-muted);
+    box-sizing: border-box;
 }
 
 .hl-op {
@@ -2724,4 +2726,16 @@ sl-tab-panel[active]::part(base) {
     box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
     border-radius: 16px;
+}
+
+/* Clear History Button */
+.btn-clear-all::part(base) {
+    transition: all 0.2s ease;
+}
+
+.btn-clear-all:hover::part(base),
+.btn-clear-all:focus-visible::part(base) {
+    color: var(--error);
+    border-color: var(--error);
+    background: rgba(239, 68, 68, 0.1);
 }

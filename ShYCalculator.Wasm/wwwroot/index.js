@@ -479,15 +479,18 @@ export const ExpressionCombobox = ({ state, actions }) => {
                                             onclick=${() => actions.editSnippet(s)}
                                         ></sl-icon-button>
                                     </sl-tooltip>
-                                    ${!s.isSeeded ? html`
-                                        <sl-tooltip content="Delete">
-                                            <sl-icon-button 
-                                                name="trash" 
-                                                class="action-btn danger"
-                                                onclick=${() => actions.deleteSnippet(s.id)}
-                                            ></sl-icon-button>
-                                        </sl-tooltip>
-                                    ` : null}
+                                    <sl-tooltip content="Delete">
+                                        <sl-icon-button 
+                                            name="trash" 
+                                            class="action-btn danger"
+                                            onclick=${() => actions.openConfirm(
+        'Delete Expression',
+        `Are you sure you want to permanently delete "${s.label}"?`,
+        () => actions.deleteSnippet(s.id),
+        { variant: 'danger', confirmLabel: 'Delete' }
+    )}
+                                        ></sl-icon-button>
+                                    </sl-tooltip>
                                 </div>
                             </sl-menu-item>
                         `)}
@@ -665,6 +668,9 @@ export const MainCard = ({ state, actions }) => {
                     <div class="history-header">
                         <label class="section-label">History</label>
                         <div class="section-actions">
+                            <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary" onclick=${actions.clearHistory}>
+                                <sl-icon slot="prefix" name="trash"></sl-icon> Clear
+                            </sl-button>
                             <sl-dropdown hoist>
                                 <sl-button slot="trigger" size="small" variant="neutral" outline class="btn-secondary u-mr-05" caret>
                                     <sl-icon slot="prefix" name="download"></sl-icon> Export
@@ -674,9 +680,6 @@ export const MainCard = ({ state, actions }) => {
                                     <sl-menu-item onclick=${() => actions.exportHistory('json')}>Export as JSON</sl-menu-item>
                                 </sl-menu>
                             </sl-dropdown>
-                            <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary" onclick=${actions.clearHistory}>
-                                <sl-icon slot="prefix" name="trash"></sl-icon> Clear
-                            </sl-button>
                         </div>
                     </div>
                     <div class="history-list">
