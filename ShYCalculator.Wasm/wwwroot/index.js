@@ -773,20 +773,31 @@ export const Documentation = ({ state, actions }) => {
         }
     };
 
-    const sortedSnippets = useMemo(() => [...state.snippets.value].sort((a, b) => {
-        if (a.pinned !== b.pinned) return b.pinned ? 1 : -1;
-        const field = state.librarySortBy.value;
-        const dir = state.librarySortDir.value;
-        let v1 = '', v2 = '';
-        if (field === 'Name') { v1 = a.label; v2 = b.label; }
-        else if (field === 'Icon') { v1 = a.icon; v2 = b.icon; }
-        else if (field === 'Expression') { v1 = a.value; v2 = b.value; }
-        else if (field === 'Group') { v1 = a.group; v2 = b.group; }
-        if (typeof v1 === 'string') { v1 = v1.toLowerCase(); v2 = v2.toLowerCase(); }
-        if (v1 < v2) return dir === 'asc' ? -1 : 1;
-        if (v1 > v2) return dir === 'asc' ? 1 : -1;
-        return 0;
-    }), [state.snippets.value, state.librarySortBy.value, state.librarySortDir.value]);
+    const sortedSnippets = useMemo(() => {
+        const q = (state.librarySearch.value || '').trim().toLowerCase();
+        let list = [...state.snippets.value];
+        if (q) {
+            list = list.filter(s =>
+                (s.label || '').toLowerCase().includes(q) ||
+                (s.group || '').toLowerCase().includes(q) ||
+                (s.value || '').toLowerCase().includes(q)
+            );
+        }
+        return list.sort((a, b) => {
+            if (a.pinned !== b.pinned) return b.pinned ? 1 : -1;
+            const field = state.librarySortBy.value;
+            const dir = state.librarySortDir.value;
+            let v1 = '', v2 = '';
+            if (field === 'Name') { v1 = a.label; v2 = b.label; }
+            else if (field === 'Icon') { v1 = a.icon; v2 = b.icon; }
+            else if (field === 'Expression') { v1 = a.value; v2 = b.value; }
+            else if (field === 'Group') { v1 = a.group; v2 = b.group; }
+            if (typeof v1 === 'string') { v1 = v1.toLowerCase(); v2 = v2.toLowerCase(); }
+            if (v1 < v2) return dir === 'asc' ? -1 : 1;
+            if (v1 > v2) return dir === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }, [state.snippets.value, state.librarySortBy.value, state.librarySortDir.value, state.librarySearch.value]);
 
     const sortedOperators = useMemo(() => [...operators].sort((a, b) => {
         const field = state.operatorSortBy.value;
@@ -1218,6 +1229,31 @@ export const Documentation = ({ state, actions }) => {
 
                 <sl-tab-panel name="library">
                     ${state.docActiveTab.value === 'library' && contentReady ? html`
+                        <div class="docs-header is-static">
+                            <sl-input 
+                                placeholder="Search library (Name, Group, Formula)..." 
+                                class="u-flex-2"
+                                value=${state.librarySearch.value}
+                                oninput=${(e) => state.librarySearch.value = e.target.value}
+                                clearable
+                                onsl-clear=${() => state.librarySearch.value = ''}
+                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                            >
+                                <sl-icon name="search" slot="prefix"></sl-icon>
+                            </sl-input>
+                            <div class="u-flex u-gap-05" style="align-self: flex-start; flex-shrink: 0;">
+                                <sl-button variant="neutral" outline class="doc-action-btn" onclick=${() => document.getElementById('file-import-lib').click()}>
+                                    <sl-icon slot="prefix" src="https://api.iconify.design/lucide/upload.svg?color=%2338bdf8"></sl-icon> Import
+                                </sl-button>
+                                <input type="file" id="file-import-lib" accept=".json" hidden onchange=${(e) => {
+                actions.importSnippets(e.target.files[0]);
+                e.target.value = '';
+            }} />
+                                <sl-button variant="neutral" outline class="doc-action-btn" onclick=${actions.exportSnippets}>
+                                    <sl-icon slot="prefix" src="https://api.iconify.design/lucide/download.svg?color=%2310b981"></sl-icon> Export
+                                </sl-button>
+                            </div>
+                        </div>
                         <div class="ops-table-container">
                             <table class="ops-table library-table">
                                 <thead>
@@ -1258,13 +1294,13 @@ export const Documentation = ({ state, actions }) => {
                                                 <div class="u-flex u-gap-025">
                                                     <sl-icon-button name="pencil" onclick=${() => actions.editSnippet(s)}></sl-icon-button>
                                                     <sl-icon-button name="trash" class="danger-icon" onclick=${() => {
-                actions.openConfirm(
-                    "Delete Expression",
-                    `Are you sure you want to delete "${s.label}"? This action cannot be undone.`,
-                    () => actions.deleteSnippet(s.id),
-                    { variant: 'danger', confirmLabel: 'Delete' }
-                );
-            }}></sl-icon-button>
+                    actions.openConfirm(
+                        "Delete Expression",
+                        `Are you sure you want to delete "${s.label}"? This action cannot be undone.`,
+                        () => actions.deleteSnippet(s.id),
+                        { variant: 'danger', confirmLabel: 'Delete' }
+                    );
+                }}></sl-icon-button>
                                                 </div>
                                             </td>
                                         </tr>

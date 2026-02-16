@@ -402,6 +402,7 @@ export const appState = {
     editingSnippet: signal(null),
     knownNames: signal(new Set(['pi', 'e', 'true', 'false'])),
     snippetSearch: signal(''),
+    librarySearch: signal(''),
     confirmDialog: {
         open: signal(false),
         title: signal('Confirm Action'),
@@ -831,6 +832,87 @@ export const actions = {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    },
+
+    exportSnippets: () => {
+        const snippets = appState.snippets.value;
+        const content = JSON.stringify(snippets, null, 2);
+        const fileName = `shy_snippets_${new Date().getTime()}.json`;
+        const blob = new Blob([content], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        util.notify("Expression library exported successfully!", "success", "download");
+    },
+
+    importSnippets: async (file) => {
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const imported = JSON.parse(text);
+            if (!Array.isArray(imported)) throw new Error("Invalid format");
+
+            // Basic validation
+            const valid = imported.filter(s => s && s.label && s.value);
+            if (valid.length === 0) throw new Error("No valid expressions found");
+
+            // Merge with existing, avoiding duplicates by ID if possible, otherwise by content
+            const current = appState.snippets.value;
+            // Create lookup for existing snippets by Name (normalized)
+            const existingByName = {};
+            current.forEach(s => existingByName[(s.label || '').toLowerCase()] = s);
+
+            const toAdd = [];
+            const idsToRemove = new Set(); // For overwrites
+
+            valid.forEach(s => {
+                const importLabel = (s.label || '').trim();
+                const importKey = importLabel.toLowerCase();
+                const existing = existingByName[importKey];
+
+                if (existing) {
+                    // Name conflict
+                    if (existing.value === s.value) {
+                        // Exact match (Name + Formula) -> Overwrite
+                        // We keep the EXISTING ID to preserve references, but update metadata
+                        // To do this, we remove the old one (by ID) and push the new one (with OLD ID)
+                        idsToRemove.add(existing.id);
+                        toAdd.push({ ...s, id: existing.id });
+                        addedCount++;
+                    } else {
+                        // Name match but different Formula -> Append/Rename
+                        // Create new snippet with modified name
+                        const newLabel = `${importLabel} (Imported)`;
+                        const newId = `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                        toAdd.push({ ...s, id: newId, label: newLabel });
+                        addedCount++;
+                    }
+                } else {
+                    // No name conflict -> Add as new
+                    // Check ID conflict just in case
+                    let newId = s.id;
+                    if (!newId || existingIds.has(newId)) {
+                        newId = `imported_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    }
+                    toAdd.push({ ...s, id: newId });
+                    addedCount++;
+                }
+            });
+
+            // Filter out overwritten snippets from current state
+            const remainingCurrent = current.filter(s => !idsToRemove.has(s.id));
+
+            appState.snippets.value = [...remainingCurrent, ...toAdd];
+            util.notify(`Imported ${addedCount} expressions!`, "success", "upload");
+        } catch (e) {
+            console.error(e);
+            util.notify("Failed to import expressions: " + e.message, "danger", "alert-triangle");
+        }
     },
 
     toggleTheme: () => {

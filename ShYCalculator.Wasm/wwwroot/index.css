@@ -1322,6 +1322,11 @@ sl-tab-panel {
     z-index: 15;
 }
 
+.docs-header.is-static {
+    position: relative;
+    z-index: 5;
+}
+
 .docs-list {
     padding: 1rem;
     display: flex;
@@ -2738,4 +2743,102 @@ sl-tab-panel[active]::part(base) {
     color: var(--error);
     border-color: var(--error);
     background: rgba(239, 68, 68, 0.1);
+}
+
+.combobox-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    border-top: 1px solid var(--glass-border);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.btn-import-export::part(base) {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.btn-import-export:hover::part(base) {
+    color: var(--text);
+}
+
+/* Stealth Action Buttons for Docs Toolbar */
+.doc-action-btn::part(base) {
+    /* Match standard input background for consistency */
+    background-color: var(--sl-input-background-color);
+    border-color: var(--glass-border);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    height: 40px;
+    min-width: 120px;
+    /* Ensure minimum width to prevent truncation */
+}
+
+.doc-action-btn:hover::part(base) {
+    /* Standard hover: slight brightness increase or default neutral behavior */
+    border-color: var(--text-muted);
+    color: var(--text);
+}
+
+.doc-action-btn sl-icon {
+    font-size: 1rem;
+    /* color: var(--text-muted);  <-- Removed to allow SVG original colors */
+    transition: filter 0.2s ease;
+}
+
+.doc-action-btn:hover sl-icon {
+    /* color: var(--primary); <-- Removed */
+    filter: brightness(1.2);
+}
+
+/* Fix Tooltip Z-Index to appear above sticky headers */
+sl-tooltip {
+    --sl-tooltip-z-index: 10000;
+}
+
+sl-tooltip::part(body) {
+    z-index: 10000;
+}
+
+/* --- Expression Library Table Fixes --- */
+/* Consolidated into main blocks above or handled here if specific tweaks needed */
+.ops-table-container {
+    flex: 1;
+    /* overflow: auto;  <-- REMOVED to allow full page scroll */
+    position: relative;
+    /* height: 100%; <-- REMOVED */
+}
+
+.ops-table {
+    width: 100%;
+    border-collapse: separate;
+    /* Required for sticky to work well with borders sometimes */
+    border-spacing: 0;
+    font-size: 0.9rem;
+}
+
+.ops-table thead th {
+    position: sticky;
+    top: 0;
+    background: #1e293b;
+    z-index: 20;
+    /* Ensure it stays on top of content */
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.ops-table tbody td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+}
+
+.ops-table tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
 }
