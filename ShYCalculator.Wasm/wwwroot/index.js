@@ -45,13 +45,32 @@ const detectVariables = (text, knownNames, variables) => {
     return Array.from(cand);
 };
 
-const toggleTransparency = (active) => {
+const toggleTransparency = (active, closingDialogName = null) => {
     const appContainer = document.querySelector('.app-container');
     if (appContainer) {
         if (active) {
             appContainer.classList.add('panel-transparent');
         } else {
-            appContainer.classList.remove('panel-transparent');
+            // Only remove transparency if NO other dialogs are open
+            let anyOpen = false;
+            if (closingDialogName !== 'docs' && appState.docsOpen.value) anyOpen = true;
+            if (closingDialogName !== 'save' && appState.saveSnippetOpen.value) anyOpen = true;
+
+            if (!anyOpen) {
+                // Force instant transition removal to prevent flicker
+                appContainer.style.transition = 'none';
+                appContainer.style.opacity = '1';
+                // Trigger reflow
+                void appContainer.offsetHeight;
+
+                appContainer.classList.remove('panel-transparent');
+
+                // restore natural behavior after paint
+                requestAnimationFrame(() => {
+                    appContainer.style.transition = '';
+                    appContainer.style.opacity = '';
+                });
+            }
         }
     }
 };
@@ -256,7 +275,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
             onsl-hide=${(e) => {
             if (e.target !== e.currentTarget) return;
             if (timerRef.current) clearTimeout(timerRef.current);
-            toggleTransparency(false);
+            toggleTransparency(false, 'save');
         }}
             onsl-after-hide=${(e) => {
             if (e.target !== e.currentTarget) return;
@@ -901,7 +920,7 @@ export const Documentation = ({ state, actions }) => {
             onsl-hide=${(e) => {
             if (e.target !== e.currentTarget) return;
             if (timerRef.current) clearTimeout(timerRef.current);
-            toggleTransparency(false);
+            toggleTransparency(false, 'docs');
         }}
             onsl-after-hide=${(e) => {
             // Ensure events from children (like sl-select) don't close the dialog
