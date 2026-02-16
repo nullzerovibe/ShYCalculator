@@ -120,7 +120,7 @@ body.is-booting {
     opacity: 0.15;
     pointer-events: none;
     object-fit: cover;
-    filter: saturate(0) contrast(1.2);
+    /* filter: saturate(0) contrast(1.2); */
 }
 
 .splash-logo {
@@ -539,7 +539,7 @@ sl-tab-panel {
     object-fit: cover;
     display: block !important;
     /* Force display */
-    filter: saturate(0) contrast(1.2);
+    /* filter: saturate(0) contrast(1.2); */
 }
 
 /* --- Card & Section Styles --- */
@@ -551,10 +551,11 @@ sl-card {
 }
 
 sl-card::part(base) {
-    background: var(--glass-bg);
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.4) 100%);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 sl-card::part(body) {
@@ -1221,7 +1222,7 @@ sl-dialog::part(overlay) {
 
 
 sl-dialog::part(panel) {
-    background: #1e293b;
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(30, 41, 59, 0.85) 100%);
     backdrop-filter: blur(25px);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
