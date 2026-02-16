@@ -2966,3 +2966,66 @@ sl-tooltip::part(body) {
     color: var(--warning, #f59e0b) !important;
     /* Yellow-500 */
 }
+
+/* Validation Result Styles */
+.validation-result {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.validation-result.valid {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.validation-result.invalid {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.valid-icon {
+    font-size: 1.25rem;
+    color: inherit;
+}
+
+.invalid-icon {
+    font-size: 1.25rem;
+    color: inherit;
+    flex-shrink: 0;
+}
+
+.error-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.error-list li {
+    margin-bottom: 0.25rem;
+}
+
+.btn-test::part(base) {
+    color: var(--text-muted);
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-test:hover::part(base) {
+    color: var(--primary-light);
+    background-color: rgba(56, 189, 248, 0.1);
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.action-btn.pinned::part(base) {
+    color: var(--warning, #f59e0b) !important;
+    /* Yellow-500 */
+}

@@ -44,6 +44,29 @@ public class ShYCalculatorInterop {
     }
 
     /// <summary>
+    /// Validates an expression without executing it.
+    /// Checks for syntax errors and compilation issues.
+    /// </summary>
+    /// <param name="expression">The expression to validate.</param>
+    /// <returns>A JSON string representing the Result (Success, Message, Errors).</returns>
+    [JSInvokable]
+    public string ValidateExpression(string expression) {
+        var result = ShYCalculator.Compile(expression, _calculator.Environment);
+        // We return a serialized Result object to the frontend
+        return System.Text.Json.JsonSerializer.Serialize(new {
+            result.Success,
+            result.Message,
+            Errors = result.Errors?.Select(e => new {
+                e.Code,
+                e.Message,
+                e.StartIndex,
+                e.Length,
+                Severity = e.Severity.ToString()
+            })
+        });
+    }
+
+    /// <summary>
     /// Calculates the result of a mathematical expression using provided variables.
     /// Supports numbers, booleans, and strings.
     /// </summary>

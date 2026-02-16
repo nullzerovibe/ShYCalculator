@@ -797,6 +797,17 @@ export const actions = {
         actions.calculate();
     },
 
+    validateExpression: async (expr) => {
+        try {
+            const interop = globalThis.shyCalculator;
+            const json = await interop.invokeMethodAsync('ValidateExpression', expr);
+            return JSON.parse(json);
+        } catch (e) {
+            console.error("Validation failed", e);
+            return { Success: false, Message: "Validation internal error: " + e.message, Errors: [] };
+        }
+    },
+
     exportHistory: (format) => {
         const history = appState.history.value;
         if (history.length === 0) return;

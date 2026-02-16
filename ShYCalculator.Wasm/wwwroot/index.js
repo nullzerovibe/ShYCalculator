@@ -119,10 +119,53 @@ export const SaveSnippetDialog = ({ state, actions }) => {
     const editing = state.editingSnippet.value || { label: '', value: '', icon: '', id: null };
     const isEdit = !!editing.id;
 
+    // Validation state
+    const [validationResult, setValidationResult] = useState(null);
+    const [isValidating, setIsValidating] = useState(false);
+
+    // Reset validation when dialog opens or value changes
+    useEffect(() => {
+        if (state.saveSnippetOpen.value && editing.value) {
+            // Auto-validate on open
+            setIsValidating(true);
+            actions.validateExpression(editing.value).then(res => {
+                // Ensure we haven't closed or changed
+                if (state.saveSnippetOpen.value) {
+                    setValidationResult(res);
+                }
+                setIsValidating(false);
+            });
+        } else {
+            setValidationResult(null);
+            setIsValidating(false);
+        }
+    }, [state.saveSnippetOpen.value]);
+
+    // Clear validation when user types
+    useEffect(() => {
+        if (state.saveSnippetOpen.value) {
+            setValidationResult(null);
+        }
+    }, [editing.value]);
+
 
     const onHide = () => {
         state.saveSnippetOpen.value = false;
         state.editingSnippet.value = null;
+        setValidationResult(null);
+    };
+
+    const onTest = async () => {
+        if (!editing.value) return;
+        setIsValidating(true);
+        setValidationResult(null);
+
+        // Short delay to show loading state
+        await new Promise(r => setTimeout(r, 300));
+
+        const result = await actions.validateExpression(editing.value);
+        setValidationResult(result);
+        setIsValidating(false);
     };
 
     const onSubmit = (e) => {
@@ -321,6 +364,29 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                             forceKnown=${true}
                         />
                         ${errors.value ? html`<div class="error-text">${errors.value}</div>` : html`<div class="subtle-help">You can refine the expression before saving.</div>`}
+                        
+                        ${validationResult ? html`
+                            <div class="validation-result ${validationResult.success || validationResult.Success ? 'valid' : 'invalid'}">
+                                ${validationResult.success || validationResult.Success ? html`
+                                    <div class="u-flex u-items-center u-gap-05">
+                                        <sl-icon name="check-circle" class="valid-icon"></sl-icon>
+                                        <span>Syntax is valid. Ready to save.</span>
+                                    </div>
+                                ` : html`
+                                    <div class="u-flex u-flex-col u-gap-05">
+                                        <div class="u-flex u-items-center u-gap-05">
+                                            <sl-icon name="x-circle" class="invalid-icon"></sl-icon>
+                                            <span class="u-font-semibold">Validation Errors:</span>
+                                        </div>
+                                        <ul class="error-list">
+                                            ${(validationResult.errors || validationResult.Errors || []).map(err => html`
+                                                <li>${err.message || err.Message} ${err.startIndex >= 0 ? `(at col ${err.startIndex})` : ''}</li>
+                                            `)}
+                                        </ul>
+                                    </div>
+                                `}
+                            </div>
+                        ` : null}
                     </div>
                 </div>
                 
@@ -360,6 +426,10 @@ export const SaveSnippetDialog = ({ state, actions }) => {
             </form>
 
             <div slot="footer" class="snippet-dialog-footer">
+                <sl-button variant="neutral" outline class="btn-test u-mr-auto" onclick=${onTest} loading=${isValidating} disabled=${!editing.value}>
+                    <sl-icon slot="prefix" name="cpu"></sl-icon> Test
+                </sl-button>
+
                 <sl-button variant="text" class="btn-cancel" onclick=${onHide}>
                     Cancel
                 </sl-button>
