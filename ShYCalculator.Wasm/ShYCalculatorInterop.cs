@@ -41,7 +41,7 @@ public class ShYCalculatorInterop {
     /// <returns>The result of the calculation.</returns>
     [JSInvokable]
     public CalculationResult Calculate(string expression, bool includeAst = false) {
-        return _calculator.Calculate(expression, null, includeAst);
+        return _calculator.Calculate(expression, (IDictionary<string, Value>?)null, includeAst);
     }
 
     /// <summary>
