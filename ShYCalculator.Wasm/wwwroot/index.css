@@ -219,16 +219,624 @@ body.is-booting {
     --accent: #0284c7;
     /* Sky 700 - darker for readability */
 
-    /* Shoelace Light Theme Sync */
+    /* Shoelace Light Theme Sync (Inverted for Contrast) */
     --sl-color-neutral-0: #ffffff;
+    --sl-color-neutral-50: #f8fafc;
     --sl-color-neutral-100: #f1f5f9;
     --sl-color-neutral-200: #e2e8f0;
-    --sl-input-background-color: #ffffff;
-    --sl-input-border-color: #e2e8f0;
-    --sl-input-color: #1e293b;
+    --sl-color-neutral-300: #cbd5e1;
+    --sl-color-neutral-400: #94a3b8;
+    --sl-color-neutral-500: #64748b;
+    --sl-color-neutral-600: #475569;
+    --sl-color-neutral-700: #334155;
+    --sl-color-neutral-800: #1e293b;
+    --sl-color-neutral-900: #0f172a;
+    --sl-color-neutral-950: #020617;
+
+    --sl-input-background-color: #f1f5f9;
+    /* Slate 100 */
+    --sl-input-border-color: #cbd5e1;
+    --sl-input-color: #0f172a;
+    --sl-input-placeholder-color: #64748b;
+    /* Slate 500 - Darker for visibility */
+
+    /* Syntax Highlighting Overrides for Light Mode */
+    --hl-op: #0284c7;
+    /* Sky 700 */
+    --hl-num: #0f172a;
+    /* Slate 900 */
+    --hl-func: #475569;
+    /* Slate 600 */
+    --hl-bool: #be123c;
+    /* Rose 700 */
+    --hl-var: #2563eb;
+    /* Blue 600 */
+    --hl-str: #b45309;
+    /* Amber 700 */
+    --hl-unknown: #e11d48;
+    /* Rose 600 */
 
     /* Document/Card Overrides */
-    --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Light Theme Syntax Mappings */
+[data-theme="light"] .hl-op {
+    color: var(--hl-op);
+}
+
+[data-theme="light"] .hl-num {
+    color: var(--hl-num);
+}
+
+[data-theme="light"] .hl-func {
+    color: var(--hl-func);
+}
+
+[data-theme="light"] .hl-bool {
+    color: var(--hl-bool);
+}
+
+[data-theme="light"] .hl-var {
+    color: var(--hl-var);
+}
+
+[data-theme="light"] .hl-str {
+    color: var(--hl-str);
+}
+
+[data-theme="light"] .hl-unknown {
+    color: var(--hl-unknown);
+}
+
+/* Light Theme Component Overrides */
+[data-theme="light"] .syntax-editor,
+[data-theme="light"] .result-box,
+[data-theme="light"] .history-item {
+    background: rgba(255, 255, 255, 0.4);
+    /* Slate 50 */
+    border: 1px solid #cbd5e1;
+    /* Slate 300 */
+}
+
+[data-theme="light"] .syntax-editor:focus-within {
+    background: #ffffff;
+    border-color: var(--accent);
+}
+
+[data-theme="light"] .result-value {
+    color: #0f172a;
+    /* Slate 900 */
+    font-weight: 600;
+}
+
+[data-theme="light"] sl-card::part(base),
+[data-theme="light"] sl-dialog::part(panel) {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+    backdrop-filter: blur(12px);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="light"] sl-dialog::part(title) {
+    color: #0f172a;
+    /* Slate 900 */
+}
+
+/* Light Theme Dialog Internals */
+[data-theme="light"] sl-tab-panel {
+    background: transparent !important;
+}
+
+[data-theme="light"] .docs-header {
+    background: rgba(255, 255, 255, 0.8);
+    border-bottom-color: #cbd5e1;
+}
+
+[data-theme="light"] .ops-table th {
+    background: #f1f5f9;
+    /* Slate 100 */
+    color: #475569;
+    /* Slate 600 */
+    border-bottom-color: #cbd5e1;
+}
+
+[data-theme="light"] .ops-table td {
+    color: #334155;
+    /* Slate 700 */
+    border-bottom-color: #b5bbc385
+}
+
+[data-theme="light"] .sortable-header:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a;
+}
+
+[data-theme="light"] .doc-item {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid #cbd5e1;
+}
+
+[data-theme="light"] .doc-item strong {
+    color: #0369a1;
+    /* Sky 700 */
+}
+
+/* Light Theme Lists & Controls */
+[data-theme="light"] .doc-card {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .doc-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent);
+    /* transform: translateY(-1px); */
+    /* box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); */
+}
+
+[data-theme="light"] .doc-name {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+[data-theme="light"] .doc-desc {
+    color: #475569;
+}
+
+[data-theme="light"] sl-input::part(base),
+[data-theme="light"] sl-select::part(combobox),
+[data-theme="light"] sl-textarea::part(base) {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+[data-theme="light"] sl-input:focus-within::part(base),
+[data-theme="light"] sl-select[open]::part(combobox),
+[data-theme="light"] sl-textarea:focus-within::part(base) {
+    border-color: var(--accent);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+[data-theme="light"] sl-button[variant="neutral"][outline]::part(base) {
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+[data-theme="light"] sl-button[variant="neutral"][outline]:hover::part(base) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+[data-theme="light"] sl-button.btn-clear-all:hover::part(base) {
+    color: #ef4444 !important;
+    /* Red 500 */
+    border-color: #ef4444 !important;
+    background-color: #fee2e2 !important;
+    /* Red 100 */
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Force override for inputs and stepper buttons */
+[data-theme="light"] sl-input::part(base),
+[data-theme="light"] sl-select::part(combobox),
+[data-theme="light"] sl-textarea::part(base),
+[data-theme="light"] sl-input:has(.btn-stepper)::part(base) {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure Input Text is Dark in Light Theme */
+[data-theme="light"] sl-input::part(input),
+[data-theme="light"] sl-textarea::part(textarea),
+[data-theme="light"] sl-select::part(display-input),
+[data-theme="light"] sl-select::part(combobox) {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+}
+
+/* Specific Fix for Dialog Inputs (Name, etc.) */
+[data-theme="light"] .snippet-form sl-input::part(input),
+[data-theme="light"] .settings-form sl-input::part(input),
+[data-theme="light"] .u-dialog-content sl-input::part(input) {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    background-color: transparent !important;
+}
+
+[data-theme="light"] .btn-stepper::part(base) {
+    background: #f1f5f9;
+    /* Slate 100 */
+    border: 1px solid #cbd5e1;
+    color: #475569;
+}
+
+[data-theme="light"] .btn-stepper:hover::part(base) {
+    background: #e2e8f0;
+    /* Slate 200 */
+    color: #0f172a;
+}
+
+/* Light Theme Dropdown Menus */
+[data-theme="light"] sl-select::part(listbox) {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] sl-option::part(base) {
+    background-color: transparent;
+    color: #475569;
+}
+
+/* Light Theme Result & Copy Button (Green) */
+[data-theme="light"] .result-value {
+    color: #059669 !important;
+    /* Emerald 600 */
+}
+
+[data-theme="light"] .copy-btn::part(base) {
+    color: #059669 !important;
+    /* Emerald 600 */
+}
+
+[data-theme="light"] .copy-btn:hover::part(base) {
+    color: #047857 !important;
+    /* Emerald 700 */
+    background-color: #ecfdf5 !important;
+    /* Emerald 50 */
+}
+
+[data-theme="light"] sl-option::part(base):hover,
+[data-theme="light"] sl-option[current]::part(base) {
+    background-color: #f1f5f9;
+    /* Slate 100 */
+    color: #0f172a;
+}
+
+[data-theme="light"] sl-option[checked]::part(base) {
+    background-color: #e2e8f0;
+    /* Slate 200 */
+    color: #0f172a;
+    font-weight: 600;
+}
+
+/* Light Theme Expression Combobox */
+[data-theme="light"] .combobox-panel {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Light Theme Settings Text Contrast */
+[data-theme="light"] .form-group label {
+    color: #0f172a !important;
+    /* Slate 900 */
+}
+
+[data-theme="light"] .subtle-help {
+    color: #64748b !important;
+    /* Slate 500 */
+}
+
+[data-theme="light"] .setting-icon,
+[data-theme="light"] .doc-header-icon {
+    filter: brightness(0.2) saturate(0) !important;
+    /* Turn light gray icons dark/black */
+}
+
+/* Settings Preset Buttons (Light Theme) */
+[data-theme="light"] .settings-presets sl-button[variant="primary"][outline]::part(base) {
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+    /* Slate 600 */
+    background: white !important;
+}
+
+[data-theme="light"] .settings-presets sl-button[variant="primary"][outline]:hover::part(base),
+[data-theme="light"] .settings-presets sl-button[variant="primary"][outline][class*="button--outline"]::part(base):hover {
+    background: #e2e8f0 !important;
+    /* Slate 200 */
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+}
+
+/* History Stepper Buttons in Settings */
+[data-theme="light"] .form-group sl-button.btn-stepper::part(base) {
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] .form-group sl-button.btn-stepper:hover::part(base) {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .action-btn.pinned::part(base) {
+    color: #b45309 !important;
+    /* Amber 700 for better contrast on white */
+}
+
+/* Light Theme About Tab */
+[data-theme="light"] .about-section,
+[data-theme="light"] .about-content-area,
+[data-theme="light"] .about-block {
+    color: #475569;
+    /* Slate 600 */
+}
+
+[data-theme="light"] .about-section strong,
+[data-theme="light"] .about-block strong {
+    color: #0f172a;
+    /* Slate 900 */
+}
+
+[data-theme="light"] .about-icon,
+[data-theme="light"] .alert-icon {
+    filter: brightness(0.2) saturate(0) !important;
+}
+
+[data-theme="light"] .about-alert {
+    background: rgba(245, 158, 11, 0.1);
+    /* Slightly darker bg for contrast */
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="light"] .about-alert strong {
+    color: #b45309;
+    /* Amber 700 */
+}
+
+[data-theme="light"] .about-footer {
+    border-top-color: #cbd5e1;
+}
+
+[data-theme="light"] .about-footer sl-button::part(base) {
+    color: #475569;
+    border-color: #cbd5e1;
+    background: white;
+}
+
+[data-theme="light"] .about-footer sl-button:hover::part(base) {
+    color: #0f172a;
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+[data-theme="light"] sl-menu-item::part(base),
+[data-theme="light"] sl-menu-label::part(base) {
+    color: #475569;
+    /* Slate 600 */
+    background: transparent;
+}
+
+/* Light Theme Brand Button Hovers */
+[data-theme="light"] .brand-github:hover::part(base),
+[data-theme="light"] .brand-x:hover::part(base) {
+    border-color: #0f172a !important;
+    /* Slate 900 */
+    color: #0f172a !important;
+    background: #e2e8f0 !important;
+    /* Slate 200 */
+}
+
+[data-theme="light"] .brand-github sl-icon,
+[data-theme="light"] .brand-x sl-icon {
+    filter: brightness(0.1) saturate(0) !important;
+    /* Turn white icons black */
+}
+
+[data-theme="light"] .brand-nuget:hover::part(base) {
+    background: rgba(0, 72, 128, 0.1) !important;
+    border-color: #004880 !important;
+    color: #004880 !important;
+}
+
+[data-theme="light"] .brand-vibe:hover::part(base) {
+    background: rgba(236, 72, 153, 0.1) !important;
+}
+
+/* Light Theme Action Buttons (Docs, History, Library) */
+[data-theme="light"] .btn-secondary::part(base),
+[data-theme="light"] .doc-action-btn::part(base) {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+    /* Slate 600 */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .btn-secondary:hover::part(base),
+[data-theme="light"] .doc-action-btn:hover::part(base) {
+    background-color: #f1f5f9 !important;
+    /* Slate 100 */
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+    /* Slate 900 */
+}
+
+/* Light Theme Table Icons (Edit/Delete) */
+[data-theme="light"] sl-icon-button::part(base) {
+    color: #64748b !important;
+    /* Slate 500 */
+}
+
+[data-theme="light"] sl-icon-button:hover::part(base) {
+    color: #0f172a !important;
+    /* Slate 900 */
+    /* background-color: #f1f5f9 !important; */
+    background: transparent !important;
+}
+
+[data-theme="light"] sl-icon-button.danger-icon:hover::part(base) {
+    color: #ef4444 !important;
+    /* Red 500 */
+    /* //background-color: #fef2f2 !important; */
+    background: transparent !important;
+    /* Red 50 */
+}
+
+/* Light Theme Tooltips */
+[data-theme="light"] sl-tooltip {
+    --sl-tooltip-background-color: #ffffff !important;
+    --sl-tooltip-color: #0f172a !important;
+    /* Slate 900 */
+    --sl-tooltip-arrow-size: 6px;
+    --sl-tooltip-padding: 0.5rem 0.75rem;
+    --sl-tooltip-border-radius: 6px;
+}
+
+[data-theme="light"] sl-tooltip::part(body) {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    /* Slate 300 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    font-weight: 500;
+}
+
+[data-theme="light"] sl-menu-item::part(base):hover,
+[data-theme="light"] .snippet-item.is-selected::part(base) {
+    background: #f1f5f9 !important;
+    /* Slate 100 */
+    color: #0f172a !important;
+}
+
+/* Settings Cancel & Test need to be solid white/slate like Docs button */
+/* Settings Cancel, Test, and Dialog Cancel need to be solid white/slate like Docs button */
+[data-theme="light"] .btn-cancel::part(base),
+[data-theme="light"] .btn-cancel-settings::part(base),
+[data-theme="light"] .btn-test::part(base) {
+    background-color: transparent !important;
+    border: 1px solid #c1d3ec !important;
+    color: #334155 !important;
+    /* Slate 700 */
+    font-weight: 500;
+}
+
+[data-theme="light"] .btn-cancel:not([disabled])::part(base):hover,
+[data-theme="light"] .btn-cancel-settings:not([disabled])::part(base):hover,
+[data-theme="light"] .btn-test:not([disabled])::part(base):hover {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #94a3b8 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .btn-cancel::part(label),
+[data-theme="light"] .btn-cancel-settings::part(label),
+[data-theme="light"] .btn-test::part(label) {
+    background-color: transparent !important;
+}
+
+/* Light Theme Category Selection */
+[data-theme="light"] .icon-tile::part(button) {
+    color: #475569 !important;
+    /* Slate 600 - Darker than 500 */
+    border-color: #cbd5e1 !important;
+    /* Slate 300 - Visible border */
+    background: #f8fafc !important;
+    /* Very light slate bg */
+    opacity: 1 !important;
+    /* Ensure no opacity reduction */
+}
+
+[data-theme="light"] .icon-tile:hover::part(button) {
+    color: #0f172a !important;
+    border-color: #38bdf8 !important;
+    background: rgba(56, 189, 248, 0.1) !important;
+}
+
+[data-theme="light"] .icon-tile[checked]::part(button) {
+    color: white !important;
+    background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%) !important;
+    border-color: #2e90f1 !important;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3) !important;
+}
+
+[data-theme="light"] sl-menu-label {
+    color: #94a3b8 !important;
+    /* Slate 400 */
+}
+
+[data-theme="light"] .snippet-preview {
+    color: #64748b;
+    /* Slate 500 */
+    background: #f8fafc;
+    /* Slate 50 */
+    border: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .section-icon {
+    color: #475569 !important;
+    /* Slate 600 - High visibility */
+    opacity: 1 !important;
+}
+
+/* Light Theme Badges (Softer Look) */
+[data-theme="light"] .shy-badge::part(base),
+[data-theme="light"] .stats-badge::part(base),
+[data-theme="light"] .result-type-badge::part(base),
+[data-theme="light"] .result-type-badge-sm::part(base),
+[data-theme="light"] .doc-category::part(base),
+[data-theme="light"] .op-category::part(base) {
+    background-color: rgba(241, 245, 249, 0.4) !important;
+    /* Slate 100 at 90% Opacity */
+    border: 1px solid #cbd5e1 !important;
+    /* Slate 300 */
+    color: #475569 !important;
+    /* Slate 600 */
+    box-shadow: none !important;
+    /* backdrop-filter: blur(4px); */
+    /* -webkit-backdrop-filter: blur(4px); */
+    /* backdrop-filter: blur(4px); */
+    /* -webkit-backdrop-filter: blur(4px); */
+}
+
+/* Light Theme "Premium" Hover (Crystal White) */
+[data-theme="light"] .btn-calculate::part(base):hover,
+[data-theme="light"] .btn-save-settings::part(base):hover,
+[data-theme="light"] .premium-save-btn::part(base):hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%) !important;
+    /* Blue 500 -> Cyan 500 */
+    box-shadow: 0 10px 30px -4px rgba(59, 130, 246, 0.5), 0 4px 12px -2px rgba(59, 130, 246, 0.3) !important;
+    /* Soft Blue Glow */
+    /* transform: translateY(-2px); */
+    /* Distinct Lift */
+}
+
+/* Light Theme Validation Messages (Inverted - Dark Bg / Light Text) */
+[data-theme="light"] .validation-result.valid {
+    background-color: #059669 !important;
+    /* Emerald 600 */
+    border: 1px solid #059669 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .validation-result.valid .valid-icon {
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .validation-result.invalid {
+    background-color: #dc2626 !important;
+    /* Red 600 */
+    border: 1px solid #dc2626 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .validation-result.invalid .invalid-icon,
+[data-theme="light"] .validation-result.invalid .error-list {
+    color: #ffffff !important;
 }
 
 /* --- Utilities --- */
@@ -630,9 +1238,35 @@ sl-card::part(body) {
 }
 
 [data-theme="light"] .combobox-trigger {
-    background-color: #ffffff;
-    border-color: #e2e8f0;
-    color: #1e293b;
+    background-color: rgba(255, 255, 255, 0.6);
+    /* Semi-transparent White */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #334155;
+    /* Slate 700 */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+[data-theme="light"] .combobox-trigger:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: #cbd5e1;
+    /* Slate 300 */
+    color: #0f172a;
+    /* Slate 900 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .combobox-trigger sl-icon {
+    color: #475569;
+    /* Slate 600 - Muted Icon */
+    transition: color 0.2s;
+}
+
+[data-theme="light"] .combobox-trigger:hover sl-icon {
+    color: #0f172a;
+    /* Darken on hover */
 }
 
 .trigger-icon {
@@ -706,6 +1340,85 @@ sl-card::part(body) {
 
 .snippet-item.is-selected:hover::part(base) {
     background: rgba(56, 189, 248, 0.2) !important;
+}
+
+/* Light Theme Combobox Refinement (White/Transparent Glass) */
+[data-theme="light"] .expression-combobox-dropdown::part(panel) {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+    /* More White, Transparent */
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+[data-theme="light"] .combobox-search {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    /* Slate 200 */
+}
+
+[data-theme="light"] .combobox-search sl-input::part(base) {
+    background-color: rgba(248, 250, 252, 0.7);
+    /* Slate 50 Transparent */
+    border-color: rgba(226, 232, 240, 0.8);
+    color: #334155;
+    box-shadow: none !important;
+}
+
+[data-theme="light"] sl-menu-label {
+    color: #64748b !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem 0.25rem 1rem;
+}
+
+[data-theme="light"] .snippet-item::part(base) {
+    border-radius: 6px;
+    margin: 0 0.25rem;
+    color: #334155;
+    transition: all 0.15s ease;
+    background-color: transparent;
+    /* Ensure default is transparent */
+}
+
+[data-theme="light"] .snippet-item:hover::part(base) {
+    background-color: rgba(241, 245, 249, 0.6) !important;
+    /* Slate 100 transparent */
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .snippet-item.is-selected::part(base) {
+    background-color: rgba(239, 246, 255, 0.7) !important;
+    /* Blue 50 transparent */
+    color: #2563eb !important;
+    border: 1px solid rgba(191, 219, 254, 0.6);
+}
+
+[data-theme="light"] .snippet-preview {
+    background-color: rgba(248, 250, 252, 0.6) !important;
+    /* Slate 50 */
+    border: 1px solid rgba(226, 232, 240, 0.6) !important;
+    /* Slate 200 */
+    color: #64748b !important;
+    /* Slate 500 */
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* Scrollbar refinement for light theme dropdown */
+[data-theme="light"] .combobox-menu::-webkit-scrollbar-thumb {
+    background-color: rgba(203, 213, 225, 0.6);
+    /* Slate 300 Transparent */
+    border-radius: 4px;
+}
+
+[data-theme="light"] .combobox-menu::-webkit-scrollbar-track {
+    background-color: transparent;
 }
 
 /* Global Shoelace Override to kill that stubborn Cyan highlight */
@@ -1087,6 +1800,12 @@ sl-button[variant="danger"]::part(base):focus-visible {
     font-size: 0.85rem;
 }
 
+[data-theme="light"] .var-row sl-input::part(input) {
+    color: #0f172a !important;
+    /* Slate 900 - Dark for visibility */
+    -webkit-text-fill-color: #0f172a !important;
+}
+
 .var-row .eq {
     color: var(--text-muted);
     font-weight: bold;
@@ -1382,7 +2101,7 @@ sl-tab-panel {
 }
 
 .about-container {
-    padding: 1rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -1788,7 +2507,7 @@ sl-tab-panel[name="about"]::part(base) {
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    padding: 1.5rem 1rem;
+    padding: 2rem;
     box-sizing: border-box;
     max-width: 100%;
 }
@@ -2115,13 +2834,21 @@ sl-input:has(.btn-stepper)::part(suffix) {
 }
 
 .about-footer {
-    flex-shrink: 0;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 0.75rem;
     padding: 1.25rem 1rem;
     background: transparent;
     border-top: 2px solid var(--glass-border);
+
+    .about-footer-links {
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: wrap;
+        min-height: 40px;
+        gap: 1rem;
+        align-items: center;
+    }
 }
 
 /* --- About Footer (Brand Buttons) --- */

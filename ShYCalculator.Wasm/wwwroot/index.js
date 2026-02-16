@@ -626,7 +626,7 @@ export const MainCard = ({ state, actions }) => {
         <sl-card class="main-card">
             <div class="form-section">
                 <label class="section-label">
-                    <sl-icon src="https://api.iconify.design/lucide/list-plus.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
+                    <sl-icon src="https://api.iconify.design/lucide/list-plus.svg" class="section-icon"></sl-icon>
                     Select an expression
                 </label>
                 <div class="controls-top">
@@ -641,7 +641,7 @@ export const MainCard = ({ state, actions }) => {
             <div class="form-section">
                 <div class="section-header">
                     <label class="section-label">
-                        <sl-icon src="https://api.iconify.design/lucide/terminal.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
+                        <sl-icon src="https://api.iconify.design/lucide/terminal.svg" class="section-icon"></sl-icon>
                         Mathematical Expression
                     </label>
                     ${!state.selectedIdx.value && state.input.value ? html`
@@ -664,7 +664,7 @@ export const MainCard = ({ state, actions }) => {
             <div class="form-section">
                 <div class="section-header">
                     <label class="section-label">
-                        <sl-icon src="https://api.iconify.design/lucide/variable.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
+                        <sl-icon src="https://api.iconify.design/lucide/variable.svg" class="section-icon"></sl-icon>
                         Variables (Context)
                     </label>
                     <div class="section-actions">
@@ -757,7 +757,10 @@ export const MainCard = ({ state, actions }) => {
             ${state.settings.value.enableHistory && state.history.value.length > 0 ? html`
                 <div class="history-section">
                     <div class="history-header">
-                        <label class="section-label">History</label>
+                        <label class="section-label">
+                            <sl-icon src="https://api.iconify.design/lucide/history.svg" class="section-icon"></sl-icon>
+                            History
+                        </label>
                         <div class="section-actions">
                             <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary u-mr-05" onclick=${actions.clearHistory}>
                                 <sl-icon slot="prefix" name="trash"></sl-icon> Clear
@@ -1220,7 +1223,7 @@ export const Documentation = ({ state, actions }) => {
                             </form>
                         </div>
                         <div class="settings-button-footer">
-                            <sl-button variant="default" outline class="btn-cancel-settings btn-cancel" onclick=${actions.cancelSettings} disabled=${!isSettingsDirty()}>
+                            <sl-button variant="text" class="btn-cancel-settings btn-cancel" onclick=${actions.cancelSettings} disabled=${!isSettingsDirty()}>
                                 Cancel
                             </sl-button>
                             <sl-button variant="primary" type="submit" form="settings-form" class="btn-save-settings" disabled=${!isSettingsDirty()}>
@@ -1295,29 +1298,31 @@ export const Documentation = ({ state, actions }) => {
                 </div>
 
                 <div class="about-footer">
-                    <sl-button variant="neutral" outline size="small" class="brand-github" href="https://github.com/nullzerovibe/ShYCalculator" target="_blank">
-                        <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/github.svg?color=%23ffffff"></sl-icon> GitHub
-                    </sl-button>
-                    
-                    <sl-button variant="neutral" outline size="small" class="brand-nuget" href="https://www.nuget.org/packages/ShYCalculator" target="_blank">
-                        <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/nuget.svg?color=%23004880"></sl-icon> NuGet
-                    </sl-button>
-                    
-                    <sl-button variant="neutral" outline size="small" class="brand-license" href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank">
-                        <sl-icon slot="prefix" src="https://api.iconify.design/lucide/scale.svg?color=%23f59e0b"></sl-icon> MIT License
-                    </sl-button>
-                    
-                    <sl-button variant="neutral" outline size="small" class="brand-vibe" href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank">
-                        <sl-icon slot="prefix" src="https://api.iconify.design/lucide/sparkles.svg?color=%23ec4899"></sl-icon> The Vibe
-                    </sl-button>
-                    
-                    <sl-button variant="neutral" outline size="small" class="brand-x" href="https://x.com/nullzerovibe" target="_blank">
-                        <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/x.svg?color=%23ffffff"></sl-icon> Follow
-                    </sl-button>
-                    
-                    <sl-button variant="neutral" outline size="small" class="brand-email" href="mailto:nullzerovibe@gmail.com">
-                        <sl-icon slot="prefix" src="https://api.iconify.design/lucide/mail.svg?color=%23ea4335"></sl-icon> Contact
-                    </sl-button>
+                    <div class="about-footer-links">
+                        <sl-button variant="neutral" outline size="small" class="brand-github" href="https://github.com/nullzerovibe/ShYCalculator" target="_blank">
+                            <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/github.svg?color=%23ffffff"></sl-icon> GitHub
+                        </sl-button>
+                        
+                        <sl-button variant="neutral" outline size="small" class="brand-nuget" href="https://www.nuget.org/packages/ShYCalculator" target="_blank">
+                            <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/nuget.svg?color=%23004880"></sl-icon> NuGet
+                        </sl-button>
+                        
+                        <sl-button variant="neutral" outline size="small" class="brand-license" href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank">
+                            <sl-icon slot="prefix" src="https://api.iconify.design/lucide/scale.svg?color=%23f59e0b"></sl-icon> MIT License
+                        </sl-button>
+                        
+                        <sl-button variant="neutral" outline size="small" class="brand-vibe" href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank">
+                            <sl-icon slot="prefix" src="https://api.iconify.design/lucide/sparkles.svg?color=%23ec4899"></sl-icon> The Vibe
+                        </sl-button>
+                        
+                        <sl-button variant="neutral" outline size="small" class="brand-x" href="https://x.com/nullzerovibe" target="_blank">
+                            <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/x.svg?color=%23ffffff"></sl-icon> Follow
+                        </sl-button>
+                        
+                        <sl-button variant="neutral" outline size="small" class="brand-email" href="mailto:nullzerovibe@gmail.com">
+                            <sl-icon slot="prefix" src="https://api.iconify.design/lucide/mail.svg?color=%23ea4335"></sl-icon> Contact
+                        </sl-button>
+                    </div>
                 </div>
             </div>
         </sl-tab-panel>

@@ -183,7 +183,7 @@ export const getCategoryIconUrl = (cat) => {
         case 'tools':
         case 'tool': icon = 'wrench'; break;
     }
-    return `https://api.iconify.design/lucide/${icon}.svg?color=%23cbd5e1`;
+    return `https://api.iconify.design/lucide/${icon}.svg`;
 };
 
 export const getTypeIconUrl = (type) => {
@@ -196,7 +196,7 @@ export const getTypeIconUrl = (type) => {
         case 'boolean': icon = 'toggle-left'; break;
         case 'array': icon = 'layers'; break;
     }
-    return `https://api.iconify.design/lucide/${icon}.svg?color=%23cbd5e1`;
+    return `https://api.iconify.design/lucide/${icon}.svg`;
 };
 
 // --- PERSISTENCE UTILS ---
@@ -434,6 +434,7 @@ effect(() => {
     }
 
     document.body.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme;
     const slTheme = theme === 'dark' ? 'sl-theme-dark' : 'sl-theme-light';
     document.documentElement.className = slTheme;
 });
@@ -444,6 +445,7 @@ globalThis.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',
         const isDark = globalThis.matchMedia('(prefers-color-scheme: dark)').matches;
         const theme = isDark ? 'dark' : 'light';
         document.body.dataset.theme = theme;
+        document.documentElement.dataset.theme = theme;
         document.documentElement.className = isDark ? 'sl-theme-dark' : 'sl-theme-light';
     }
 });
