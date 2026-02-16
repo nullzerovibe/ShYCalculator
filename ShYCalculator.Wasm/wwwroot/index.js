@@ -557,7 +557,9 @@ export const MainCard = ({ state, actions }) => {
                     </label>
                     ${!state.selectedIdx.value ? html`
                         <sl-tooltip content="Create new expression" hoist trigger="hover">
-                            <sl-icon-button name="bookmark-star" class="btn-save-snippet" onclick=${() => actions.openSaveSnippet()}></sl-icon-button>
+                            <sl-button size="small" variant="neutral" outline class="btn-save-snippet btn-secondary" onclick=${() => actions.openSaveSnippet()}>
+                                <sl-icon slot="prefix" name="bookmark-star"></sl-icon> Create
+                            </sl-button>
                         </sl-tooltip>
                     ` : null}
                 </div>
@@ -668,7 +670,7 @@ export const MainCard = ({ state, actions }) => {
                     <div class="history-header">
                         <label class="section-label">History</label>
                         <div class="section-actions">
-                            <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary" onclick=${actions.clearHistory}>
+                            <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary u-mr-05" onclick=${actions.clearHistory}>
                                 <sl-icon slot="prefix" name="trash"></sl-icon> Clear
                             </sl-button>
                             <sl-dropdown hoist>
@@ -1099,7 +1101,7 @@ export const Documentation = ({ state, actions }) => {
                                     </div>
 
                                     ${state.settings.value.enableHistory ? html`
-                                        <div class="form-group u-mb-2" style="animation: fadeIn 0.15s ease-out;">
+                                        <div class="form-group u-mb-2">
                                             <sl-input name="historyLength" type="number" min="1" max="100" value=${state.settings.value.historyLength} onsl-input=${onInputChange}>
                                                 <div slot="help-text" class="subtle-help">Maximum number of calculations to keep in history memory.</div>
                                                 <sl-button slot="prefix" variant="text" class="btn-stepper"

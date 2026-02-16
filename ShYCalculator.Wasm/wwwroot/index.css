@@ -1312,11 +1312,12 @@ sl-tab:focus::part(base),
 sl-tab:focus-visible::part(base) {
     outline: none !important;
     box-shadow: none !important;
-    /* Slightly clearer background */
-    color: var(--accent) !important;
-    border-radius: 6px;
-    /* Softer corners */
     transition: all 0.2s ease;
+    color: var(--accent) !important;
+}
+
+sl-tab:hover::part(base) {
+    color: var(--accent) !important;
 }
 
 @keyframes fadeIn {
@@ -1332,7 +1333,7 @@ sl-tab:focus-visible::part(base) {
 }
 
 sl-tab[active]::part(base) {
-    color: #cbd5e1;
+    color: var(--accent) !important;
 }
 
 sl-tab-panel {
@@ -2939,6 +2940,17 @@ sl-tooltip::part(body) {
     background-color: rgba(56, 189, 248, 0.15);
 }
 
+
 .btn-stepper:hover::part(base) {
     background-color: rgba(56, 189, 248, 0.15);
+}
+
+/* Explicitly style action buttons in dropdown */
+.action-btn.danger {
+    transition: color 0.2s;
+}
+
+.action-btn.danger:hover::part(base) {
+    color: var(--error, #ef4444) !important;
+    /* Red-500 */
 }
