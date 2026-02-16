@@ -246,7 +246,10 @@ export const SaveSnippetDialog = ({ state, actions }) => {
             class="save-dialog"
             open=${state.saveSnippetOpen.value} 
             label=${isEdit ? 'Edit expression' : 'Create new expression'}
-            onsl-show=${() => {
+            onsl-show=${(e) => {
+            // Prevent tooltips from re-triggering show logic
+            if (e.target !== e.currentTarget) return;
+
             if (timerRef.current) clearTimeout(timerRef.current);
             timerRef.current = setTimeout(() => toggleTransparency(true), 100);
         }}
@@ -848,7 +851,10 @@ export const Documentation = ({ state, actions }) => {
     return html`
         <sl-dialog class="docs-dialog" 
             open=${state.docsOpen.value} 
-            onsl-show=${() => {
+            onsl-show=${(e) => {
+            // Critical: Prevent tooltips/children from triggering full reload of content!
+            if (e.target !== e.currentTarget) return;
+
             if (timerRef.current) clearTimeout(timerRef.current);
             if (contentTimerRef.current) clearTimeout(contentTimerRef.current);
             setContentReady(false);

@@ -2597,11 +2597,33 @@ sl-tab-panel[active]::part(base) {
     background: rgba(245, 158, 11, 0.02) !important;
 }
 
-/* --- Docs Dialog Glass Effect --- */
-.docs-dialog::part(panel) {
-    background: rgba(30, 41, 59, 0.25);
-    backdrop-filter: blur(25px);
-    border: 1px solid var(--glass-border);
+/* --- Dialog Glass Effect (3D) --- */
+.docs-dialog::part(panel),
+.save-dialog::part(panel) {
+    /* 3D Glass Gradient: Top-Left Light -> Bottom-Right Dark */
+    background: linear-gradient(135deg,
+            rgba(45, 55, 72, 0.45) 0%,
+            rgba(15, 23, 42, 0.6) 100%);
+
+    /* Heavy Blur for depth */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    /* Glass Border Highlight */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+
+    /* 3D Shadow Lift */
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.35),
+        0 1px 2px 0 rgba(0, 0, 0, 0.1);
+
+    border-radius: 16px;
+
+    /* Fix for Tooltip Flickering: Force GPU layer to stabilize backdrop-filter */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .docs-dialog::part(header),
@@ -2653,8 +2675,20 @@ sl-tab-panel[active]::part(base) {
 .app-container.panel-transparent {
     /* Slower fade-out (going transparent) - 400ms to exceed dialog fade-in */
     transition: opacity 0.2s ease, filter 0.2s ease;
-    opacity: 0.30;
-    filter: blur(2px);
+    /* When faded, main panel becomes a ghost layer */
+    opacity: 0.25;
+    filter: blur(4px);
     pointer-events: none;
-    /* Prevent clicks while faded */
+}
+
+/* Main Card 3D Glass */
+.main-card::part(base) {
+    background: linear-gradient(145deg,
+            rgba(30, 41, 59, 0.6) 0%,
+            rgba(15, 23, 42, 0.7) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
 }
