@@ -61,9 +61,6 @@ const toggleTransparency = (active) => {
 export const SyntaxEditor = ({ value, onInput, onKeyDown, state, name, forceKnown = false }) => {
     const onInternalInput = (e) => {
         onInput(e);
-        // Detect suggestions
-        const cands = detectVariables(e.target.value, state.knownNames.value, state.variables.value);
-        state.suggestions.value = cands;
     };
 
     const htmlContent = highlightExpression(value, state.knownNames.value, state.variables.value, forceKnown);
@@ -503,7 +500,12 @@ export const ExpressionCombobox = ({ state, actions }) => {
 };
 
 export const MainCard = ({ state, actions }) => {
-    const onInput = (e) => state.input.value = e.target.value;
+    const onInput = (e) => {
+        state.input.value = e.target.value;
+        if (state.selectedIdx.value) {
+            state.selectedIdx.value = '';
+        }
+    };
 
     const onSnippetSelect = (e) => {
         const id = e.target.value;
@@ -515,6 +517,18 @@ export const MainCard = ({ state, actions }) => {
     };
 
     const vars = state.variables.value;
+
+    useEffect(() => {
+        const cands = detectVariables(state.input.value, state.knownNames.value, state.variables.value);
+        // Only update if changed to avoid loop (though signal setting usually handles check, array ref is always new)
+        // Simple check: length and content
+        const current = state.suggestions.value;
+        const changed = cands.length !== current.length || cands.some((c, i) => c !== current[i]);
+
+        if (changed) {
+            state.suggestions.value = cands;
+        }
+    }, [state.input.value, state.variables.value, state.knownNames.value]);
 
     return html`
         <sl-card class="main-card">
@@ -538,9 +552,11 @@ export const MainCard = ({ state, actions }) => {
                         <sl-icon src="https://api.iconify.design/lucide/terminal.svg?color=%23cbd5e1" class="section-icon"></sl-icon>
                         Mathematical Expression
                     </label>
-                    <sl-tooltip content="Save Expression" hoist trigger="hover">
-                        <sl-icon-button name="bookmark-star" class="btn-save-snippet" onclick=${() => actions.openSaveSnippet()}></sl-icon-button>
-                    </sl-tooltip>
+                    ${!state.selectedIdx.value ? html`
+                        <sl-tooltip content="Create new expression" hoist trigger="hover">
+                            <sl-icon-button name="bookmark-star" class="btn-save-snippet" onclick=${() => actions.openSaveSnippet()}></sl-icon-button>
+                        </sl-tooltip>
+                    ` : null}
                 </div>
                 <${SyntaxEditor} 
                     value=${state.input.value}

@@ -255,6 +255,115 @@ const formatDate = (pattern) => {
         .replace('d', now.getDate());
 };
 
+const inferVariables = (expr) => {
+    if (!expr) return [];
+
+    const strippedExpr = expr.replace(/'[^']*'|"[^"]*"/g, m => ' '.repeat(m.length));
+    const idRegex = /(?:^|[^a-zA-Z0-9_$])([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
+    const matches = [...strippedExpr.matchAll(idRegex)];
+
+    // We need access to appState.docs.value, so this function must be called where appState is available.
+    // Ideally appState should be defined before this, but due to hoisting/module structure, we access it directly if available, 
+    // or we pass it in. For now, we assume appState is imported/available in scope (which it is in this file).
+
+    const docInfo = appState.docs.value;
+    const keywords = new Set(['true', 'false', 'null', 'pi', 'e', 'inf', 'nan', 'infinity']);
+    const docFuncs = new Set((docInfo.functions || []).map(f => (f.Name || f.name || '').toLowerCase()));
+
+    const uniqueVars = [];
+    const seen = new Set();
+    matches.forEach(m => {
+        const name = m[1];
+        const pos = m.index + m[0].indexOf(name);
+        if (!seen.has(name)) {
+            const lower = name.toLowerCase();
+            if (!keywords.has(lower) && !docFuncs.has(lower)) {
+                uniqueVars.push({ name, pos });
+                seen.add(name);
+            }
+        }
+    });
+
+    if (uniqueVars.length === 0) return [];
+
+    const newVars = [];
+    uniqueVars.forEach(({ name, pos }) => {
+        const lower = name.toLowerCase();
+        const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        function getArgContext(formula, startPos) {
+            let depth = 0;
+            let commas = 0;
+            for (let i = startPos - 1; i >= 0; i--) {
+                const c = formula[i];
+                if (c === ')') depth++;
+                else if (c === '(') {
+                    if (depth === 0) {
+                        let nStart = i - 1;
+                        while (nStart >= 0 && /[a-zA-Z0-9_$]/.test(formula[nStart])) nStart--;
+                        return { name: formula.slice(nStart + 1, i).trim().toLowerCase(), index: commas };
+                    }
+                    depth--;
+                } else if (c === ',' && depth === 0) {
+                    commas++;
+                }
+            }
+            return null;
+        }
+
+        const ctx = getArgContext(expr, pos);
+        let inferredType = null;
+
+        if (ctx) {
+            const func = (docInfo.functions || []).find(f => (f.Name || f.name || '').toLowerCase() === ctx.name);
+            if (func && func.Arguments) {
+                let argDef = null;
+                let currentIdx = 0;
+                for (const arg of func.Arguments) {
+                    if (arg.Type === 'array' || arg.type === 'array') {
+                        argDef = (arg.Arguments || arg.arguments)?.[0];
+                        break;
+                    }
+                    if (currentIdx === ctx.index) {
+                        argDef = arg;
+                        break;
+                    }
+                    currentIdx++;
+                }
+                if (argDef) inferredType = (argDef.Type || argDef.type || '').toLowerCase();
+                if (!inferredType) {
+                    const cat = (func.Category || func.category || '').toLowerCase();
+                    if (cat === 'datetime') inferredType = 'date';
+                    else if (cat === 'string') inferredType = 'string';
+                    else if (cat === 'logical') inferredType = 'boolean';
+                }
+            }
+        }
+
+        const isBool = inferredType === 'boolean' ||
+            lower.includes('bool') || lower.includes('flag') || lower.includes('success') ||
+            new RegExp(`(?:if|iif|any|all)\\s*\\(\\s*${escapedName}\\s*[,)]`, 'i').test(expr) ||
+            new RegExp(`${escapedName}\\s*\\?`, 'i').test(expr);
+
+        const isDate = inferredType === 'date' ||
+            lower.includes('date') || lower.includes('time') || lower.includes('dt');
+
+        const isString = inferredType === 'string' || lower.startsWith('str_');
+        const isList = inferredType === 'array' || lower.includes('list') || lower.includes('arr');
+
+        let val = '10';
+        if (isBool) val = 'true';
+        // formatDate depends on appState being available, which it is.
+        else if (isDate) val = formatDate(appState.settings.value.dateFormat);
+        else if (isString) val = 'abc';
+        else if (isList) val = '[1, 10, 100]';
+
+        newVars.push({ name, value: val });
+    });
+
+    return newVars;
+};
+
 // --- STATE ---
 const settings = loadSavedSettings();
 
@@ -602,101 +711,8 @@ export const actions = {
         if (predefinedVars && predefinedVars.length > 0) {
             appState.variables.value = predefinedVars.map(v => ({ ...v }));
         } else {
-            const strippedExpr = expr.replace(/'[^']*'|"[^"]*"/g, m => ' '.repeat(m.length));
-            const idRegex = /(?:^|[^a-zA-Z0-9_$])([a-zA-Z_$][a-zA-Z0-9_$]*)/g;
-            const matches = [...strippedExpr.matchAll(idRegex)];
-            const docInfo = appState.docs.value;
-            const keywords = new Set(['true', 'false', 'null', 'pi', 'e', 'inf', 'nan', 'infinity']);
-            const docFuncs = new Set((docInfo.functions || []).map(f => (f.Name || f.name || '').toLowerCase()));
-
-            const uniqueVars = [];
-            const seen = new Set();
-            matches.forEach(m => {
-                const name = m[1];
-                const pos = m.index + m[0].indexOf(name);
-                if (!seen.has(name)) {
-                    const lower = name.toLowerCase();
-                    if (!keywords.has(lower) && !docFuncs.has(lower)) {
-                        uniqueVars.push({ name, pos });
-                        seen.add(name);
-                    }
-                }
-            });
-
-            if (uniqueVars.length > 0) {
-                const newVars = [];
-                uniqueVars.forEach(({ name, pos }) => {
-                    const lower = name.toLowerCase();
-                    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-                    function getArgContext(formula, startPos) {
-                        let depth = 0;
-                        let commas = 0;
-                        for (let i = startPos - 1; i >= 0; i--) {
-                            const c = formula[i];
-                            if (c === ')') depth++;
-                            else if (c === '(') {
-                                if (depth === 0) {
-                                    let nStart = i - 1;
-                                    while (nStart >= 0 && /[a-zA-Z0-9_$]/.test(formula[nStart])) nStart--;
-                                    return { name: formula.slice(nStart + 1, i).trim().toLowerCase(), index: commas };
-                                }
-                                depth--;
-                            } else if (c === ',' && depth === 0) {
-                                commas++;
-                            }
-                        }
-                        return null;
-                    }
-
-                    const ctx = getArgContext(expr, pos);
-                    let inferredType = null;
-
-                    if (ctx) {
-                        const func = (docInfo.functions || []).find(f => (f.Name || f.name || '').toLowerCase() === ctx.name);
-                        if (func && func.Arguments) {
-                            let argDef = null;
-                            let currentIdx = 0;
-                            for (const arg of func.Arguments) {
-                                if (arg.Type === 'array' || arg.type === 'array') {
-                                    argDef = (arg.Arguments || arg.arguments)?.[0];
-                                    break;
-                                }
-                                if (currentIdx === ctx.index) {
-                                    argDef = arg;
-                                    break;
-                                }
-                                currentIdx++;
-                            }
-                            if (argDef) inferredType = (argDef.Type || argDef.type || '').toLowerCase();
-                            if (!inferredType) {
-                                const cat = (func.Category || func.category || '').toLowerCase();
-                                if (cat === 'datetime') inferredType = 'date';
-                                else if (cat === 'string') inferredType = 'string';
-                                else if (cat === 'logical') inferredType = 'boolean';
-                            }
-                        }
-                    }
-
-                    const isBool = inferredType === 'boolean' ||
-                        lower.includes('bool') || lower.includes('flag') || lower.includes('success') ||
-                        new RegExp(`(?:if|iif|any|all)\\s*\\(\\s*${escapedName}\\s*[,)]`, 'i').test(expr) ||
-                        new RegExp(`${escapedName}\\s*\\?`, 'i').test(expr);
-
-                    const isDate = inferredType === 'date' ||
-                        lower.includes('date') || lower.includes('time') || lower.includes('dt');
-
-                    const isString = inferredType === 'string' || lower.startsWith('str_');
-                    const isList = inferredType === 'array' || lower.includes('list') || lower.includes('arr');
-
-                    let val = '10';
-                    if (isBool) val = 'true';
-                    else if (isDate) val = formatDate(appState.settings.value.dateFormat);
-                    else if (isString) val = 'abc';
-                    else if (isList) val = '[1, 10, 100]';
-
-                    newVars.push({ name, value: val });
-                });
+            const newVars = inferVariables(expr);
+            if (newVars.length > 0) {
                 appState.variables.value = newVars;
                 appState.message.value = "Expression loaded. Smart defaults applied based on function context.";
             }
@@ -714,11 +730,21 @@ export const actions = {
             );
             util.notify("Expression updated!", "success", "check2-circle");
         } else {
+            let vars = JSON.parse(JSON.stringify(appState.variables.value));
+
+            // If the user modified the expression in the dialog, or if variables are missing, try to infer them
+            if (value && (value !== appState.input.value || vars.length === 0)) {
+                const inferred = inferVariables(value);
+                if (inferred.length > 0) {
+                    vars = inferred;
+                }
+            }
+
             const item = {
                 id: Date.now().toString(),
                 label: name,
                 value: value || appState.input.value,
-                vars: JSON.parse(JSON.stringify(appState.variables.value)),
+                vars: vars,
                 icon: icon || 'bookmark',
                 group: group || 'Custom Expressions'
             };
