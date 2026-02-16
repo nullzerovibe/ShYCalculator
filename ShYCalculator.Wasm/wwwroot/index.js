@@ -789,7 +789,6 @@ export const Documentation = ({ state, actions }) => {
             const dir = state.librarySortDir.value;
             let v1 = '', v2 = '';
             if (field === 'Name') { v1 = a.label; v2 = b.label; }
-            else if (field === 'Icon') { v1 = a.icon; v2 = b.icon; }
             else if (field === 'Expression') { v1 = a.value; v2 = b.value; }
             else if (field === 'Group') { v1 = a.group; v2 = b.group; }
             if (typeof v1 === 'string') { v1 = v1.toLowerCase(); v2 = v2.toLowerCase(); }
@@ -941,7 +940,7 @@ export const Documentation = ({ state, actions }) => {
                             value=${state.docSearch.value} class="u-flex-2">
                             <sl-icon name="search" slot="prefix"></sl-icon>
                         </sl-input>
-                        <sl-select value=${category} onsl-change=${onCategory} clearable=${category !== ALL_CATS} hoist class="u-flex-1">
+                        <sl-select value=${category} onsl-change=${onCategory} clearable=${category !== ALL_CATS} hoist class="u-flex-1 function-cat-select">
                             <sl-icon src="${getCategoryIconUrl(category)}" slot="prefix" class="cat-icon-sm u-ml-05"></sl-icon>
                             ${categories.map(cat => html`
                                 <sl-option value=${cat}>
@@ -1205,24 +1204,29 @@ export const Documentation = ({ state, actions }) => {
                 </div>
 
                 <div class="about-footer">
-                    <a href="https://github.com/nullzerovibe/ShYCalculator" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                        <img src="https://img.shields.io/github/stars/nullzerovibe/ShYCalculator?style=flat-square&logo=github&label=github&color=21262d" alt="GitHub Badge" />
-                    </a>
-                    <a href="https://www.nuget.org/packages/ShYCalculator" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                        <img src="https://img.shields.io/nuget/v/ShYCalculator?style=flat-square&logo=nuget&label=nuget&color=21262d" alt="NuGet Badge" />
-                    </a>
-                    <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                        <img src="https://img.shields.io/github/license/nullzerovibe/ShYCalculator?style=flat-square&label=license&color=21262d" alt="License Badge" />
-                    </a>
-                    <a href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                        <img src="https://img.shields.io/badge/vibe-MIT-21262d?style=flat-square&logo=sparkles" alt="Vibe Badge" />
-                    </a>
-                    <a href="https://x.com/nullzerovibe" target="_blank" rel="noopener noreferrer" class="footer-badge">
-                        <img src="https://img.shields.io/twitter/follow/nullzerovibe?style=flat-square&logo=twitter&color=21262d" alt="Twitter Badge" />
-                    </a>
-                    <a href="mailto:nullzerovibe@gmail.com" class="footer-badge">
-                        <img src="https://img.shields.io/badge/email-contact-21262d?style=flat-square&logo=gmail" alt="Email Badge" />
-                    </a>
+                    <sl-button variant="neutral" outline size="small" class="brand-github" href="https://github.com/nullzerovibe/ShYCalculator" target="_blank">
+                        <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/github.svg?color=%23ffffff"></sl-icon> GitHub
+                    </sl-button>
+                    
+                    <sl-button variant="neutral" outline size="small" class="brand-nuget" href="https://www.nuget.org/packages/ShYCalculator" target="_blank">
+                        <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/nuget.svg?color=%23004880"></sl-icon> NuGet
+                    </sl-button>
+                    
+                    <sl-button variant="neutral" outline size="small" class="brand-license" href="https://github.com/nullzerovibe/ShYCalculator/blob/main/LICENSE" target="_blank">
+                        <sl-icon slot="prefix" src="https://api.iconify.design/lucide/scale.svg?color=%23f59e0b"></sl-icon> MIT License
+                    </sl-button>
+                    
+                    <sl-button variant="neutral" outline size="small" class="brand-vibe" href="https://github.com/nullzerovibe/ShYCalculator/blob/main/VIBE.md" target="_blank">
+                        <sl-icon slot="prefix" src="https://api.iconify.design/lucide/sparkles.svg?color=%23ec4899"></sl-icon> The Vibe
+                    </sl-button>
+                    
+                    <sl-button variant="neutral" outline size="small" class="brand-x" href="https://x.com/nullzerovibe" target="_blank">
+                        <sl-icon slot="prefix" src="https://api.iconify.design/simple-icons/x.svg?color=%23ffffff"></sl-icon> Follow
+                    </sl-button>
+                    
+                    <sl-button variant="neutral" outline size="small" class="brand-email" href="mailto:nullzerovibe@gmail.com">
+                        <sl-icon slot="prefix" src="https://api.iconify.design/lucide/mail.svg?color=%23ea4335"></sl-icon> Contact
+                    </sl-button>
                 </div>
             </div>
         </sl-tab-panel>
@@ -1259,10 +1263,9 @@ export const Documentation = ({ state, actions }) => {
                                 <thead>
                                     <tr>
                                         <th style="width: 40px;">Pin</th>
-                                        ${renderSortHeader('Icon', 'Icon', state.librarySortBy, state.librarySortDir, onLibrarySort)}
                                         ${renderSortHeader('Name', 'Name', state.librarySortBy, state.librarySortDir, onLibrarySort)}
-                                        ${renderSortHeader('Expression', 'Expression', state.librarySortBy, state.librarySortDir, onLibrarySort)}
                                         ${renderSortHeader('Group', 'Group', state.librarySortBy, state.librarySortDir, onLibrarySort)}
+                                        ${renderSortHeader('Expression', 'Expression', state.librarySortBy, state.librarySortDir, onLibrarySort)}
                                         <th style="width: 80px;">Action</th>
                                     </tr>
                                 </thead>
@@ -1276,19 +1279,16 @@ export const Documentation = ({ state, actions }) => {
                                                     onclick=${() => actions.togglePinSnippet(s.id)}>
                                                 </sl-icon-button>
                                             </td>
-                                            <td>
-                                                <sl-icon src=${getCategoryIconUrl(s.icon)} class="u-text-primary" style="font-size: 1.1rem;"></sl-icon>
-                                            </td>
                                             <td style="font-weight: 600;">${s.label}</td>
+                                            <td>
+                                                <sl-badge size="small" class="shy-badge op-category">
+                                                    <sl-icon src="${getCategoryIconUrl(s.icon)}" class="cat-icon"></sl-icon> ${s.group}
+                                                </sl-badge>
+                                            </td>
                                             <td>
                                                 <sl-tooltip content="Copy Expression" hoist>
                                                     <code class="op-symbol" onclick=${() => actions.copyToClipboard(s.value)} dangerouslySetInnerHTML=${{ __html: highlightExpression(s.value, state.knownNames.value, state.variables.value, true) }}></code>
                                                 </sl-tooltip>
-                                            </td>
-                                            <td>
-                                                <sl-badge size="small" class="shy-badge">
-                                                    ${s.group}
-                                                </sl-badge>
                                             </td>
                                             <td>
                                                 <div class="u-flex u-gap-025">

@@ -1266,7 +1266,8 @@ sl-tab {
 
 sl-tab-group {
     --indicator-color: var(--accent);
-    --track-color: var(--glass-border);
+    --track-color: transparent;
+    /* Remove track border color */
     --sl-spacing-medium: 0;
     /* Forced Shoelace zero-padding */
     flex: 1;
@@ -1278,8 +1279,10 @@ sl-tab-group {
 
 sl-tab-group::part(nav) {
     background: transparent;
-    border-bottom: 0;
+    border-bottom: 0 !important;
     /* Removed horizontal line as per user request */
+    box-shadow: none !important;
+    /* Ensure no shadow creates a line */
     z-index: 20;
     margin-bottom: 0 !important;
 }
@@ -1296,6 +1299,36 @@ sl-tab-group::part(body) {
 
 sl-tab::part(base) {
     color: var(--text-muted);
+}
+
+
+sl-tab:focus,
+sl-tab:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+sl-tab:focus::part(base),
+sl-tab:focus-visible::part(base) {
+    outline: none !important;
+    box-shadow: none !important;
+    /* Slightly clearer background */
+    color: var(--accent) !important;
+    border-radius: 6px;
+    /* Softer corners */
+    transition: all 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scaleX(0.5);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
 }
 
 sl-tab[active]::part(base) {
@@ -1436,6 +1469,11 @@ sl-tab-panel {
 
 /* Tighter spacing */
 
+
+.function-cat-select::part(listbox) {
+    max-height: 500px;
+    /* Increase height to avoid scrollbar as requested */
+}
 
 .doc-name {
     color: var(--accent);
@@ -2078,33 +2116,59 @@ sl-input:has(.btn-stepper)::part(suffix) {
     border-top: 2px solid var(--glass-border);
 }
 
-.footer-badge {
-    display: inline-block;
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
-    cursor: pointer;
-    vertical-align: middle;
+/* --- About Footer (Brand Buttons) --- */
+.about-footer sl-button::part(base) {
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-color: var(--glass-border);
+    color: var(--text-muted);
 }
 
-.footer-badge:hover {
-    opacity: 1;
-    filter: drop-shadow(0 0 4px var(--accent));
+.about-footer sl-button::part(base):hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.footer-badge img {
-    display: block;
-    height: 20px;
-    /* Shields.io standard height */
-    border-radius: 3px;
+/* Brand Specific Hovers */
+.brand-github:hover::part(base) {
+    border-color: #f0f6fc !important;
+    color: #f0f6fc !important;
+    background: rgba(240, 246, 252, 0.1) !important;
 }
 
-sl-menu-label::part(base) {
-    display: flex;
-    align-items: center;
+.brand-nuget:hover::part(base) {
+    border-color: #004880 !important;
+    color: #3399ff !important;
+    /* Lighter blue for dark mode */
+    background: rgba(0, 72, 128, 0.2) !important;
 }
 
+.brand-license:hover::part(base) {
+    border-color: #f59e0b !important;
+    color: #f59e0b !important;
+    background: rgba(245, 158, 11, 0.1) !important;
+}
 
-/* Unified Badge Styling - Handled above by consolidated selectors for .shy-badge */
+.brand-vibe:hover::part(base) {
+    border-color: #ec4899 !important;
+    color: #ec4899 !important;
+    /* Pink/Cyan vibe */
+    background: rgba(236, 72, 153, 0.1) !important;
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.3) !important;
+}
 
+.brand-x:hover::part(base) {
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.brand-email:hover::part(base) {
+    border-color: #ea4335 !important;
+    color: #ea4335 !important;
+    background: rgba(234, 67, 53, 0.1) !important;
+}
+
+/* Remove old status animation if not used elsewhere */
 .pwa-status,
 .engine-status {
     color: var(--success);
@@ -2839,6 +2903,42 @@ sl-tooltip::part(body) {
     color: #cbd5e1;
 }
 
+.ops-table sl-badge::part(base),
+.doc-category::part(base) {
+    padding: 0.5em 0.8em !important;
+    /* Force increased vertical padding */
+    height: auto !important;
+    /* Force allow height to grow with padding */
+    line-height: normal !important;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    /* Space between icon and text */
+}
+
+.cat-icon {
+    font-size: 1.1em;
+    vertical-align: middle;
+}
+
 .ops-table tbody tr:hover td {
     background: rgba(255, 255, 255, 0.02);
+}
+
+/* Fix double border on stepper buttons */
+.btn-stepper::part(base),
+.btn-stepper:focus::part(base),
+.btn-stepper:focus-visible::part(base),
+.btn-stepper:active::part(base) {
+    outline: none !important;
+}
+
+.btn-stepper:focus::part(base),
+.btn-stepper:focus-visible::part(base),
+.btn-stepper:active::part(base) {
+    background-color: rgba(56, 189, 248, 0.15);
+}
+
+.btn-stepper:hover::part(base) {
+    background-color: rgba(56, 189, 248, 0.15);
 }
