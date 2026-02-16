@@ -1268,6 +1268,7 @@ sl-dialog::part(footer) {
 
 sl-tab {
     height: 2rem;
+    cursor: pointer;
 }
 
 sl-tab-group {
@@ -2976,12 +2977,12 @@ sl-tooltip::part(body) {
 .validation-result {
     margin-top: 0.75rem;
     padding: 0.75rem;
-    border-radius: var(--radius-md);
+    border-radius: 8px;
     font-size: 0.9rem;
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
-    animation: fadeIn 0.2s ease-out;
+
 }
 
 .validation-result.valid {
