@@ -300,7 +300,7 @@ body.is-booting {
 }
 
 [data-theme="light"] .syntax-editor:focus-within {
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.2) !important;
     border-color: var(--accent);
 }
 
@@ -312,10 +312,73 @@ body.is-booting {
 
 [data-theme="light"] sl-card::part(base),
 [data-theme="light"] sl-dialog::part(panel) {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
-    backdrop-filter: blur(12px);
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    /* Premium 3D Glass Effect */
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.6) 0%,
+            rgba(255, 255, 255, 0.3) 100%) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.1),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Semi-transparent inputs for synergy */
+[data-theme="light"] sl-input::part(base),
+[data-theme="light"] sl-textarea::part(base),
+[data-theme="light"] sl-select::part(combobox),
+[data-theme="light"] .syntax-editor {
+    /* background: rgba(255, 255, 255, 0.1) !important; */
+    /* Very transparent to blend with glass */
+    backdrop-filter: none;
+    /* border-color: rgba(255, 255, 255, 0.5) !important; */
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+
+    border-color: #cbd5e1 !important;
+    background: #ffffff35 !important;
+}
+
+[data-theme="light"] sl-input:focus-within::part(base),
+[data-theme="light"] sl-textarea:focus-within::part(base),
+[data-theme="light"] sl-select:focus-within::part(combobox),
+[data-theme="light"] .syntax-editor:focus-within {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+}
+
+/* Light Theme Settings Presets (Buttons) */
+[data-theme="light"] .settings-presets sl-button::part(base) {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
+    color: #475569 !important;
+}
+
+[data-theme="light"] .settings-presets sl-button:hover::part(base) {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+/* Selected Preset Logic (Primary Variant) */
+/* Selected Preset Logic (Primary Variant) */
+[data-theme="light"] .settings-presets sl-button[variant="primary"]:not([outline])::part(base) {
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);
+}
+
+/* Stepper Buttons in Settings */
+[data-theme="light"] .btn-stepper::part(base) {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
+}
+
+[data-theme="light"] .btn-stepper:hover::part(base) {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border-color: var(--accent) !important;
 }
 
 [data-theme="light"] sl-dialog::part(title) {
@@ -364,7 +427,7 @@ body.is-booting {
 
 /* Light Theme Lists & Controls */
 [data-theme="light"] .doc-card {
-    background: rgba(255, 255, 255, 0.4);
+    background: #ffffff35 !important;
     border: 1px solid #cbd5e1;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
@@ -388,7 +451,7 @@ body.is-booting {
 [data-theme="light"] sl-input::part(base),
 [data-theme="light"] sl-select::part(combobox),
 [data-theme="light"] sl-textarea::part(base) {
-    background: #ffffff;
+    background: #ffffff35 !important;
     border-color: #cbd5e1;
     color: #0f172a;
 }
@@ -397,7 +460,7 @@ body.is-booting {
 [data-theme="light"] sl-select[open]::part(combobox),
 [data-theme="light"] sl-textarea:focus-within::part(base) {
     border-color: var(--accent);
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.2) !important;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -425,11 +488,22 @@ body.is-booting {
 [data-theme="light"] sl-input::part(base),
 [data-theme="light"] sl-select::part(combobox),
 [data-theme="light"] sl-textarea::part(base),
-[data-theme="light"] sl-input:has(.btn-stepper)::part(base) {
-    background: #ffffff !important;
+[data-theme="light"] sl-input:has(.btn-stepper)::part(base),
+[data-theme="light"] .combobox-trigger,
+[data-theme="light"] .result-box,
+[data-theme="light"] .history-item {
+    background: #ffffff35 !important;
     border-color: #cbd5e1 !important;
     color: #0f172a !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    /* box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); */
+    backdrop-filter: none;
+}
+
+/* Hover States for Interactive Elements */
+[data-theme="light"] .combobox-trigger:hover,
+[data-theme="light"] .history-item:hover {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border-color: var(--accent) !important;
 }
 
 /* Ensure Input Text is Dark in Light Theme */
@@ -465,11 +539,13 @@ body.is-booting {
 
 /* Light Theme Dropdown Menus */
 [data-theme="light"] sl-select::part(listbox) {
-    background: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.6) !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    background: linear-gradient(135deg, rgba(222, 225, 229, 0.7) 0%, rgba(230, 232, 234, 0.4) 100%) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.1),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
 }
 
 [data-theme="light"] sl-option::part(base) {
@@ -497,7 +573,8 @@ body.is-booting {
 
 [data-theme="light"] sl-option::part(base):hover,
 [data-theme="light"] sl-option[current]::part(base) {
-    background-color: #f1f5f9;
+    /* background-color: #f1f5f9; */
+    background-color: rgb(0 0 0 / 3%);
     /* Slate 100 */
     color: #0f172a;
 }
@@ -540,7 +617,7 @@ body.is-booting {
     border-color: #cbd5e1 !important;
     color: #475569 !important;
     /* Slate 600 */
-    background: white !important;
+    background: rgba(255, 255, 255, 0.2) !important;
 }
 
 [data-theme="light"] .settings-presets sl-button[variant="primary"][outline]:hover::part(base),
@@ -604,7 +681,7 @@ body.is-booting {
 [data-theme="light"] .about-footer sl-button::part(base) {
     color: #475569;
     border-color: #cbd5e1;
-    background: white;
+    background: #ffffff35;
 }
 
 [data-theme="light"] .about-footer sl-button:hover::part(base) {
@@ -649,7 +726,7 @@ body.is-booting {
 /* Light Theme Action Buttons (Docs, History, Library) */
 [data-theme="light"] .btn-secondary::part(base),
 [data-theme="light"] .doc-action-btn::part(base) {
-    background-color: #ffffff !important;
+    background-color: #ffffff35 !important;
     border-color: #cbd5e1 !important;
     color: #475569 !important;
     /* Slate 600 */
@@ -658,7 +735,7 @@ body.is-booting {
 
 [data-theme="light"] .btn-secondary:hover::part(base),
 [data-theme="light"] .doc-action-btn:hover::part(base) {
-    background-color: #f1f5f9 !important;
+    background-color: #f1f5f935 !important;
     /* Slate 100 */
     border-color: #94a3b8 !important;
     color: #0f172a !important;
@@ -712,25 +789,25 @@ body.is-booting {
     color: #0f172a !important;
 }
 
-/* Settings Cancel & Test need to be solid white/slate like Docs button */
-/* Settings Cancel, Test, and Dialog Cancel need to be solid white/slate like Docs button */
+/* Settings Cancel, Test, and Dialog Cancel - Premium Glass */
 [data-theme="light"] .btn-cancel::part(base),
 [data-theme="light"] .btn-cancel-settings::part(base),
 [data-theme="light"] .btn-test::part(base) {
-    background-color: transparent !important;
-    border: 1px solid #c1d3ec !important;
-    color: #334155 !important;
-    /* Slate 700 */
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(148, 163, 184, 0.4) !important;
+    color: #475569 !important;
     font-weight: 500;
+    transition: all 0.2s ease !important;
 }
 
 [data-theme="light"] .btn-cancel:not([disabled])::part(base):hover,
 [data-theme="light"] .btn-cancel-settings:not([disabled])::part(base):hover,
 [data-theme="light"] .btn-test:not([disabled])::part(base):hover {
-    background-color: #f1f5f9 !important;
-    border: 1px solid #94a3b8 !important;
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    border-color: rgba(148, 163, 184, 0.8) !important;
     color: #0f172a !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transform: none !important;
 }
 
 [data-theme="light"] .btn-cancel::part(label),
@@ -745,7 +822,7 @@ body.is-booting {
     /* Slate 600 - Darker than 500 */
     border-color: #cbd5e1 !important;
     /* Slate 300 - Visible border */
-    background: #f8fafc !important;
+    background: #f8fafc30 !important;
     /* Very light slate bg */
     opacity: 1 !important;
     /* Ensure no opacity reduction */
@@ -1238,14 +1315,14 @@ sl-card::part(body) {
 }
 
 [data-theme="light"] .combobox-trigger {
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: #ffffff35;
     /* Semi-transparent White */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid #ffffff35;
     color: #334155;
     /* Slate 700 */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    /* box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); */
     transition: all 0.2s ease;
 }
 
@@ -1344,12 +1421,14 @@ sl-card::part(body) {
 
 /* Light Theme Combobox Refinement (White/Transparent Glass) */
 [data-theme="light"] .expression-combobox-dropdown::part(panel) {
-    background-color: rgba(255, 255, 255, 0.85) !important;
+    background: linear-gradient(135deg, rgba(222, 225, 229, 0.7) 0%, rgba(230, 232, 234, 0.4) 100%) !important;
     /* More White, Transparent */
-    border: 1px solid rgba(255, 255, 255, 0.6) !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow:
+        0 8px 32px 0 rgba(31, 38, 135, 0.1),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
 }
 
 [data-theme="light"] .combobox-search {
@@ -1398,9 +1477,9 @@ sl-card::part(body) {
 }
 
 [data-theme="light"] .snippet-preview {
-    background-color: rgba(248, 250, 252, 0.6) !important;
+    background: transparent !important;
     /* Slate 50 */
-    border: 1px solid rgba(226, 232, 240, 0.6) !important;
+    border: 1px solid transparent !important;
     /* Slate 200 */
     color: #64748b !important;
     /* Slate 500 */
@@ -2001,6 +2080,7 @@ sl-tab-group {
     flex-direction: column;
     overflow: hidden;
     gap: 0 !important;
+    outline: none !important;
 }
 
 sl-tab-group::part(nav) {
@@ -2021,6 +2101,7 @@ sl-tab-group::part(body) {
     overflow: hidden;
     padding: 0 !important;
     margin: 0 !important;
+    outline: none !important;
 }
 
 sl-tab::part(base) {
@@ -2480,7 +2561,7 @@ sl-tab-panel[name="about"]::part(base) {
     flex-shrink: 0;
     padding: 1.25rem 1rem;
     background: transparent;
-    border-top: 2px solid var(--glass-border);
+    /* border-top: 2px solid var(--glass-border); */
     display: flex;
     gap: 1rem;
 }
@@ -2558,7 +2639,7 @@ sl-tab-panel[name="about"]::part(base) {
 
 .settings-presets sl-button[variant="primary"]:not([outline])::part(base) {
     background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
-    background-clip: padding-box;
+    /* background-clip: padding-box; */
     /* Fix color bleed on rounded corners */
     border: 1px solid #2e90f1;
     color: white;
@@ -2839,7 +2920,7 @@ sl-input:has(.btn-stepper)::part(suffix) {
     gap: 0.75rem;
     padding: 1.25rem 1rem;
     background: transparent;
-    border-top: 2px solid var(--glass-border);
+    /* border-top: 2px solid var(--glass-border); */
 
     .about-footer-links {
         flex-shrink: 0;
@@ -2859,8 +2940,18 @@ sl-input:has(.btn-stepper)::part(suffix) {
     color: var(--text-muted);
 }
 
+/* Light Theme: Soften Brand Icons (Less Contrast) */
+[data-theme="light"] .about-footer sl-button sl-icon {
+    filter: grayscale(1) opacity(0.6);
+    transition: all 0.2s ease;
+}
+
+[data-theme="light"] .about-footer sl-button:hover sl-icon {
+    filter: grayscale(0) opacity(1);
+}
+
 .about-footer sl-button::part(base):hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); */
 }
 
 /* Brand Specific Hovers */
@@ -2874,21 +2965,21 @@ sl-input:has(.btn-stepper)::part(suffix) {
     border-color: #004880 !important;
     color: #3399ff !important;
     /* Lighter blue for dark mode */
-    background: rgba(0, 72, 128, 0.2) !important;
+    background: rgba(0, 72, 128, 0.3) !important;
 }
 
 .brand-license:hover::part(base) {
-    border-color: #f59e0b !important;
-    color: #f59e0b !important;
-    background: rgba(245, 158, 11, 0.1) !important;
+    border-color: #f3ba01 !important;
+    color: #f3ba01 !important;
+    background: rgba(245, 158, 11, 0.3) !important;
 }
 
 .brand-vibe:hover::part(base) {
-    border-color: #ec4899 !important;
-    color: #ec4899 !important;
+    border-color: #c4186e !important;
+    color: #c4186e !important;
     /* Pink/Cyan vibe */
     background: rgba(236, 72, 153, 0.1) !important;
-    box-shadow: 0 0 15px rgba(236, 72, 153, 0.3) !important;
+    /* box-shadow: 0 0 15px rgba(236, 72, 153, 0.3) !important; */
 }
 
 .brand-x:hover::part(base) {
@@ -2898,9 +2989,51 @@ sl-input:has(.btn-stepper)::part(suffix) {
 }
 
 .brand-email:hover::part(base) {
-    border-color: #ea4335 !important;
-    color: #ea4335 !important;
-    background: rgba(234, 67, 53, 0.1) !important;
+    border-color: #e72e1d !important;
+    color: #e72e1d !important;
+    background: rgba(234, 67, 53, 0.3) !important;
+}
+
+/* --- Light Theme Brand Hovers (Darker Text/Border) --- */
+[data-theme="light"] .brand-github:hover::part(base) {
+    background: rgba(30, 41, 59, 0.05) !important;
+    /* Slate 800 tint */
+    border-color: #1e293b !important;
+    color: #1e293b !important;
+}
+
+[data-theme="light"] .brand-nuget:hover::part(base) {
+    background: rgba(0, 72, 128, 0.05) !important;
+    border-color: #004880 !important;
+    color: #004880 !important;
+}
+
+[data-theme="light"] .brand-license:hover::part(base) {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-color: #d97706 !important;
+    /* Amber 600 */
+    color: #d97706 !important;
+}
+
+[data-theme="light"] .brand-vibe:hover::part(base) {
+    background: rgba(236, 72, 153, 0.05) !important;
+    border-color: #db2777 !important;
+    /* Pink 600 */
+    color: #db2777 !important;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2) !important;
+}
+
+[data-theme="light"] .brand-x:hover::part(base) {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-color: #000000 !important;
+    color: #000000 !important;
+}
+
+[data-theme="light"] .brand-email:hover::part(base) {
+    background: rgba(234, 67, 53, 0.05) !important;
+    border-color: #dc2626 !important;
+    /* Red 600 */
+    color: #dc2626 !important;
 }
 
 /* Remove old status animation if not used elsewhere */
@@ -3594,7 +3727,7 @@ sl-tab-panel[active]::part(base) {
 
 .doc-action-btn:hover sl-icon {
     /* color: var(--primary); <-- Removed */
-    filter: brightness(1.2);
+    /* filter: brightness(1.2); */
 }
 
 /* Fix Tooltip Z-Index to appear above sticky headers */
@@ -3761,4 +3894,91 @@ sl-tooltip::part(body) {
 .action-btn.pinned::part(base) {
     color: var(--warning, #f59e0b) !important;
     /* Yellow-500 */
+}
+
+/* Light Theme - Docs & Settings Transparency Overrides */
+/* Light Theme - Docs & Settings Transparency Overrides */
+[data-theme="light"] .docs-header {
+    background: linear-gradient(135deg, rgba(215, 215, 215, 0.4) 0%, rgba(163, 163, 163, 0.2) 100%) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid rgba(133, 133, 133, 0.3) !important;
+}
+
+[data-theme="light"] sl-tab-panel {
+    background: transparent !important;
+}
+
+/* Light Theme - Functions List */
+[data-theme="light"] .doc-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+    backdrop-filter: blur(4px);
+}
+
+[data-theme="light"] .doc-card:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 100%) !important;
+    border-color: var(--accent) !important;
+}
+
+[data-theme="light"] .doc-name {
+    color: var(--sl-color-primary-600) !important;
+}
+
+[data-theme="light"] .doc-desc {
+    color: #475569 !important;
+    /* Slate 600 */
+}
+
+/* Light Theme - Operators & Library Table */
+[data-theme="light"] .ops-table th {
+    background: linear-gradient(135deg, rgba(241, 245, 249, 0.6) 0%, rgba(248, 250, 252, 0.3) 100%) !important;
+    /* Slate 100 with lower opacity gradient */
+    backdrop-filter: blur(8px);
+    color: #334155 !important;
+    /* Slate 700 */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .ops-table td {
+    color: #334155 !important;
+    /* Slate 700 */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .ops-table tr:hover td {
+    background: rgba(56, 189, 248, 0.1) !important;
+    /* Sky 400 very light */
+}
+
+[data-theme="light"] .op-symbol {
+    color: var(--sl-color-primary-600);
+}
+
+/* Light Theme - Settings Form */
+[data-theme="light"] .settings-form .form-group label {
+    color: #475569 !important;
+    /* Slate 600 */
+}
+
+[data-theme="light"] .setting-icon {
+    color: #64748b !important;
+    /* Slate 500 */
+    filter: none;
+}
+
+/* Light Theme - Inputs inside Docs/Settings (Search, Forms) */
+[data-theme="light"] .docs-header sl-input::part(base),
+[data-theme="light"] .docs-header sl-select::part(combobox),
+[data-theme="light"] .settings-form sl-input::part(base),
+[data-theme="light"] .settings-form sl-select::part(combobox) {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .docs-header sl-input:focus-within::part(base),
+[data-theme="light"] .settings-form sl-input:focus-within::part(base) {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border-color: var(--accent) !important;
 }
