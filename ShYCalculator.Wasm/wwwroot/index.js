@@ -422,7 +422,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
         })}
                             </div>
                         </sl-radio-group>
-                        ${errors.icon ? html`<div class="error-text u-mt-05">${errors.icon}</div>` : ''}
+                        ${errors.icon ? html`<div class="error-text u-mt-05">${errors.icon}</div>` : html`<div class="subtle-help u-mt-05">Select an icon to categorize your expression.</div>`}
                     </div>
                 </div>
             </form>

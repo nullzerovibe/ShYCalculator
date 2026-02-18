@@ -427,7 +427,9 @@ body.is-booting {
 }
 
 [data-theme="light"] .docs-header {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-bottom-color: #cbd5e1;
 }
 
@@ -2256,7 +2258,10 @@ sl-tab-panel {
 }
 
 [data-theme="dark"] .docs-header {
-    background: #1e293b;
+    /* background: #1c253580; */
+    background: linear-gradient(145deg, #1c253580 0%, rgb(15 23 42 / 50%) 100%);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-bottom: 1px solid var(--glass-border);
 }
 
@@ -2429,7 +2434,7 @@ sl-tab-panel {
 }
 
 .doc-name:hover {
-    color: #38bdf8;
+    color: #2563eb;
     text-decoration: underline dotted;
 }
 
@@ -2589,7 +2594,12 @@ sl-tab-panel {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid var(--glass-border);
-    background: #1e293b;
+    /* background: rgba(30, 41, 59, 0.9); */
+    /* background: #161f2fab; */
+    /* Higher opacity for readability */
+    backdrop-filter: blur(24px);
+    /* Strong blur to hide scrolling text */
+    -webkit-backdrop-filter: blur(24px);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -2656,7 +2666,7 @@ sl-tab-panel {
 }
 
 .op-symbol:hover {
-    color: #38bdf8;
+    color: #2563eb;
     filter: brightness(1.25);
 }
 
@@ -2749,6 +2759,7 @@ sl-tab-panel[name="about"]::part(base) {
     gap: 0.5rem;
     cursor: default;
 }
+
 
 .settings-presets {
     display: grid;
@@ -2979,10 +2990,13 @@ sl-input:has(.btn-stepper)::part(suffix) {
 }
 
 .scroll-top-btn::part(base) {
-    background: var(--accent);
-    border: none;
-    color: rgba(0, 0, 0, 0.85);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--accent);
+    background: rgba(59, 130, 246, 0.3);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: var(--accent);
+    transition: all 0.2s ease;
+    max-width: 40px;
+    max-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2997,7 +3011,7 @@ sl-input:has(.btn-stepper)::part(suffix) {
 }
 
 .scroll-top-btn::part(base):hover {
-    background: #0ea5e9;
+    background: #0ea5e99c;
     box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
 }
 
@@ -3596,7 +3610,7 @@ sl-tab-panel[active]::part(base) {
 
 .save-dialog .syntax-editor textarea,
 .save-dialog .syntax-editor .highlight-overlay {
-    height: 80px;
+    height: 145px;
     padding: 0.75rem 1rem;
 }
 
@@ -3981,7 +3995,7 @@ sl-tooltip::part(body) {
 .ops-table thead th {
     position: sticky;
     top: 0;
-    background: #1e293b;
+    background: #161f2fab;
     z-index: 20;
     /* Ensure it stays on top of content */
     padding: 0.75rem 1rem;
