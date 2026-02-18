@@ -105,10 +105,12 @@ export const SyntaxEditor = ({ value, onInput, onKeyDown, state, name, forceKnow
 export const Header = ({ state, actions }) => html`
     <header class="app-header">
         <div class="logo-area">
-            <h1 class="app-title">ShYCalculator</h1>
+            <h1 class="app-title">
+                ShYCalculator 
+                <sl-badge class="version-tag shy-badge" size="small">v${state.version?.value || '...'}</sl-badge>
+            </h1>
             <p class="app-subtitle">
                 High-performance .NET WASM Expression Evaluator 
-                <sl-badge class="version-tag shy-badge" size="small">v${state.version?.value || '...'}</sl-badge>
             </p>
         </div>
     </header>
@@ -624,6 +626,7 @@ export const MainCard = ({ state, actions }) => {
 
     return html`
         <sl-card class="main-card">
+            <${Header} state=${state} actions=${actions} />
             <div class="form-section">
                 <label class="section-label">
                     <sl-icon src="https://api.iconify.design/lucide/list-plus.svg" class="section-icon"></sl-icon>
@@ -765,7 +768,7 @@ export const MainCard = ({ state, actions }) => {
                             <sl-button size="small" variant="neutral" outline class="btn-clear-all btn-secondary u-mr-05" onclick=${actions.clearHistory}>
                                 <sl-icon slot="prefix" name="trash"></sl-icon> Clear
                             </sl-button>
-                            <sl-dropdown hoist>
+                            <sl-dropdown placement="bottom-end" hoist>
                                 <sl-button slot="trigger" size="small" variant="neutral" outline class="btn-secondary u-mr-05" caret>
                                     <sl-icon slot="prefix" name="download"></sl-icon> Export
                                 </sl-button>
@@ -1523,7 +1526,7 @@ export const App = ({ state, actions }) => {
 </sl-tooltip>
         </div>
         <div class="app-container single-column">
-            <${Header} state=${state} actions=${actions} />
+
             <${MainCard} state=${state} actions=${actions} />
         </div>
         <${Documentation} state=${state} actions=${actions} />
