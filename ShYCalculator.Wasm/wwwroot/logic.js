@@ -516,9 +516,14 @@ const util = {
         alert.closable = true;
         alert.duration = 3000;
         alert.innerHTML = `
-            <sl-icon name="${icon}" slot="icon"></sl-icon>
             ${message}
         `;
+
+        // Prevent layout shift/flicker by removing from flow immediately
+        alert.style.position = 'fixed';
+        alert.style.top = '0';
+        alert.style.opacity = '0';
+        alert.style.pointerEvents = 'none';
 
         document.body.append(alert);
 
