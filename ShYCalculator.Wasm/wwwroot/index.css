@@ -624,7 +624,8 @@ body.is-booting {
 }
 
 /* Light Theme Expression Combobox */
-[data-theme="light"] .combobox-panel {
+[data-theme="light"] .combobox-panel,
+[data-theme="light"] .modern-select::part(panel) {
     background: rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
@@ -3502,7 +3503,7 @@ sl-tab-panel[active]::part(base) {
     width: 65%;
     height: 75%;
     max-width: 800px;
-    max-height: 850px;
+    max-height: 970px;
 }
 
 .save-dialog::part(header) {
@@ -3661,31 +3662,34 @@ sl-tab-panel[active]::part(base) {
     width: 100%;
     padding: 0;
     transition: all 0.2s ease;
-    color: #cbd5e1;
     display: flex;
     align-items: center;
     justify-content: center;
+
+    transform: translateY(0);
+    border-color: var(--glass-border);
+    color: var(--text-muted);
+    background: transparent;
 }
 
 .icon-tile:hover::part(button) {
-    background: rgba(56, 189, 248, 0.15) !important;
-    border-color: #38bdf8 !important;
-    color: #f8fafc !important;
-    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2) !important;
-    transform: translateY(0) !important;
+    transform: translateY(0);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
+.icon-tile[checked]::part(label),
+.icon-tile:active::part(label) {
+    color: var(--accent) !important;
+}
+
+.icon-tile[checked]::part(button),
 .icon-tile:active::part(button) {
-    transform: translateY(0) !important;
-    background: rgba(56, 189, 248, 0.2) !important;
-}
-
-.icon-tile[checked]::part(button) {
-    background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%) !important;
-    background-clip: padding-box !important;
-    border: 1px solid #2e90f1 !important;
-    color: var(--text) !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(59, 130, 246, 0.3) !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: var(--accent) !important;
+    transition: all 0.2s ease;
 }
 
 .tile-content {
@@ -3703,7 +3707,7 @@ sl-tab-panel[active]::part(base) {
 }
 
 .icon-tile[checked] sl-icon {
-    color: var(--text) !important;
+    color: var(--accent) !important;
 }
 
 .snippet-form label {
@@ -4379,4 +4383,23 @@ sl-tooltip::part(body) {
         overflow-wrap: break-word;
         white-space: normal;
     }
+}
+
+/* Modern Select Glassmorphism (Dark/Default) */
+.modern-select::part(panel) {
+    background: var(--glass-surface) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    width: var(--modern-select-width, auto);
+    min-width: var(--modern-select-width, auto);
+}
+
+.modern-select sl-menu {
+    background: linear-gradient(145deg,
+            rgba(30, 41, 59, 0.6) 0%,
+            rgba(15, 23, 42, 0.7) 100%);
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+    border: none !important;
 }

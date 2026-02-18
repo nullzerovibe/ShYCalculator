@@ -227,15 +227,17 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                 { name: 'Plus', value: 'plus' },
                 { name: 'Minus', value: 'minus' },
                 { name: 'Equal', value: 'equal' },
-                { name: 'Parentheses', value: 'parentheses' }
+                { name: 'Parentheses', value: 'parentheses' },
+                { name: 'Exponent', value: 'superscript' }
             ]
         },
         {
             name: 'Numeric',
             icons: [
-                { name: 'Numeric', value: 'numeric' },
                 { name: 'Hash', value: 'hash' },
                 { name: 'List', value: 'list-ordered' },
+                { name: 'Sort', value: 'sort-asc' },
+                { name: 'Tally', value: 'tally' },
                 { name: 'Percent', value: 'percent' },
                 { name: 'Dice', value: 'dice-5' }
             ]
@@ -257,6 +259,8 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                 { name: 'String', value: 'type' },
                 { name: 'Select Text', value: 'text-select' },
                 { name: 'Message', value: 'message-square' },
+                { name: 'Quote', value: 'quote' },
+                { name: 'Regex', value: 'regex' },
                 { name: 'Tags', value: 'tags' }
             ]
         },
@@ -267,6 +271,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
                 { name: 'Binary', value: 'binary' },
                 { name: 'CPU', value: 'cpu' },
                 { name: 'Logic Tree', value: 'list-tree' },
+                { name: 'Power', value: 'power-button' },
                 { name: 'Network', value: 'network' }
             ]
         },
@@ -275,6 +280,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
             icons: [
                 { name: 'Date', value: 'calendar' },
                 { name: 'Clock', value: 'clock' },
+                { name: 'Timer', value: 'timer' },
                 { name: 'History', value: 'history' },
                 { name: 'Sun', value: 'sun' },
                 { name: 'Moon', value: 'moon' }
@@ -285,6 +291,7 @@ export const SaveSnippetDialog = ({ state, actions }) => {
             icons: [
                 { name: 'Bookmark', value: 'bookmark' },
                 { name: 'Heart', value: 'heart' },
+                { name: 'Trophy', value: 'trophy' },
                 { name: 'Star', value: 'star' },
                 { name: 'Flash', value: 'zap' },
                 { name: 'Rocket', value: 'rocket' },
@@ -428,12 +435,11 @@ export const SaveSnippetDialog = ({ state, actions }) => {
             </form>
 
             <div slot="footer" class="snippet-dialog-footer">
-                <sl-button variant="neutral" outline class="btn-test u-mr-auto" onclick=${onTest} loading=${isValidating} disabled=${!editing.value}>
-                    <sl-icon slot="prefix" name="cpu"></sl-icon> Test
-                </sl-button>
-
                 <sl-button variant="text" class="btn-cancel" onclick=${onHide}>
                     Cancel
+                </sl-button>
+                <sl-button variant="neutral" outline class="btn-test u-mr-auto" onclick=${onTest} loading=${isValidating} disabled=${!editing.value}>
+                    <sl-icon slot="prefix" name="cpu"></sl-icon> Test
                 </sl-button>
                 <sl-button variant="primary" type="submit" form="save-snippet-form" class="premium-save-btn">
                     ${isEdit ? 'Update' : 'Create'}
@@ -809,6 +815,73 @@ export const MainCard = ({ state, actions }) => {
     `;
 };
 
+const ModernSelect = ({ value, options, onChange, placeholder, icon, hoist = false, className = '' }) => {
+    const dropdownRef = useRef(null);
+
+    const handleSelect = (val) => {
+        onChange(val);
+        if (dropdownRef.current) dropdownRef.current.hide();
+    };
+
+    const updateWidth = () => {
+        if (dropdownRef.current) {
+            const trigger = dropdownRef.current.querySelector('[slot="trigger"]');
+            if (trigger) {
+                const width = trigger.getBoundingClientRect().width;
+                dropdownRef.current.style.setProperty('--modern-select-width', `${width}px`);
+                // Skidding to align left if needed, but placement="bottom-start" usually handles it
+            }
+        }
+    };
+
+    useEffect(() => {
+        const handleShow = () => {
+            updateWidth();
+            // Force redraw if needed
+            requestAnimationFrame(updateWidth);
+        };
+
+        dropdownRef.current?.addEventListener('sl-show', handleShow);
+        globalThis.addEventListener('resize', updateWidth);
+
+        // Initial width
+        updateWidth();
+
+        return () => {
+            dropdownRef.current?.removeEventListener('sl-show', handleShow);
+            globalThis.removeEventListener('resize', updateWidth);
+        };
+    }, []);
+
+    const selected = options.find(o => o.value === value);
+    const label = selected ? selected.label : placeholder;
+    const displayIcon = selected && selected.icon ? selected.icon : icon;
+    const iconSrc = displayIcon ? (displayIcon.includes('/') ? displayIcon : getCategoryIconUrl(displayIcon)) : null;
+
+    return html`
+        <sl-dropdown ref=${dropdownRef} distance="8" placement="bottom-start" hoist=${hoist} class="modern-select ${className}">
+            <div slot="trigger" class="combobox-trigger" tabindex="0">
+                <sl-icon src="${iconSrc}" class="trigger-icon"></sl-icon>
+                <div class="trigger-label">
+                    ${label}
+                </div>
+                <sl-icon name="chevron-down" class="ml-auto opacity-50"></sl-icon>
+            </div>
+            <sl-menu>
+                ${options.map(o => {
+        const itemIconSrc = o.icon ? (o.icon.includes('/') ? o.icon : getCategoryIconUrl(o.icon)) : null;
+        return html`
+                    <sl-menu-item value=${o.value} class="${o.value === value ? 'is-selected' : ''}" onclick=${() => handleSelect(o.value)}>
+                        ${itemIconSrc ? html`<sl-icon src="${itemIconSrc}" slot="prefix"></sl-icon>` : null}
+                        ${o.label}
+                        ${o.value === value ? html`<sl-icon name="check" slot="suffix"></sl-icon>` : null}
+                    </sl-menu-item>
+                `})}
+            </sl-menu>
+        </sl-dropdown>
+    `;
+};
+
 export const Documentation = ({ state, actions }) => {
     const ALL_CATS = 'All_Categories';
     const docs = state.docs.value || { functions: [], operators: [] };
@@ -840,16 +913,35 @@ export const Documentation = ({ state, actions }) => {
         return matchesQuery && matchesCategory;
     }), [functions, query, category]);
 
+
+    const categoryOptions = useMemo(() => categories.map(cat => ({
+        value: cat,
+        label: cat === ALL_CATS ? 'All Categories' : cat.replaceAll('_', ' '),
+        icon: cat // getCategoryIconUrl handles this
+    })), [categories]);
+
+    const themeOptions = [
+        { value: 'auto', label: 'System Default (Auto)', icon: 'https://api.iconify.design/lucide/monitor.svg' },
+        { value: 'light', label: 'Industrial White (Light)', icon: 'https://api.iconify.design/lucide/sun.svg' },
+        { value: 'dark', label: 'Industrial Black (Dark)', icon: 'https://api.iconify.design/lucide/moon.svg' }
+    ];
+
     const onSearch = (e) => {
         const val = e.target.value;
         state.docSearch.value = val;
         sessionStorage.setItem('docSearch', val);
     };
-    const onCategory = (e) => {
-        e.stopPropagation();
-        const val = e.target.value || ALL_CATS;
-        state.docCategory.value = val;
-        sessionStorage.setItem('docCategory', val);
+
+    // Updated handler for ModernSelect
+    const onCategoryChange = (val) => {
+        const newVal = val || ALL_CATS;
+        state.docCategory.value = newVal;
+        sessionStorage.setItem('docCategory', newVal);
+    };
+
+    // Updated handler for Theme ModernSelect
+    const onThemeChange = (val) => {
+        state.settings.value = { ...state.settings.value, theme: val };
     };
 
     const onSort = (field) => {
@@ -1037,17 +1129,15 @@ export const Documentation = ({ state, actions }) => {
                             value=${state.docSearch.value} class="u-flex-2">
                             <sl-icon name="search" slot="prefix"></sl-icon>
                         </sl-input>
-                        <sl-select value=${category} onsl-change=${onCategory} clearable=${category !== ALL_CATS} hoist class="u-flex-1 function-cat-select">
-                            <sl-icon src="${getCategoryIconUrl(category)}" slot="prefix" class="cat-icon-sm u-ml-05"></sl-icon>
-                            ${categories.map(cat => html`
-                                <sl-option value=${cat}>
-                                    <div class="cat-icon-wrapper">
-                                        <sl-icon src="${getCategoryIconUrl(cat)}" class="cat-icon-sm"></sl-icon>
-                                    </div>
-                                    ${cat.replaceAll('_', ' ')}
-                                </sl-option>
-                            `)}
-                        </sl-select>
+                        <${ModernSelect} 
+                            value=${category} 
+                            options=${categoryOptions} 
+                            onChange=${onCategoryChange}
+                            placeholder="All Categories"
+                            icon=${category}
+                            hoist=${true}
+                            className="u-flex-1"
+                        />
                     </div>
                     ${state.docActiveTab.value === 'funcs' && contentReady ? html`
                         <div class="docs-list">
@@ -1145,11 +1235,15 @@ export const Documentation = ({ state, actions }) => {
                                         <sl-icon src="https://api.iconify.design/lucide/palette.svg?color=%23cbd5e1" class="setting-icon"></sl-icon>
                                         Appearance Theme
                                     </label>
-                                    <sl-select name="theme" value=${state.settings.value.theme} onsl-change=${onInputChange} hoist>
-                                        <sl-option value="auto">System Default (Auto)</sl-option>
-                                        <sl-option value="light">Industrial White (Light)</sl-option>
-                                        <sl-option value="dark">Industrial Black (Dark)</sl-option>
-                                    </sl-select>
+                                    <${ModernSelect}
+                                        value=${state.settings.value.theme}
+                                        options=${themeOptions}
+                                        onChange=${onThemeChange}
+                                        placeholder="Select Theme"
+                                        icon="palette"
+                                        hoist=${true}
+                                        className="w-100"
+                                    />
                                 </div>
 
                                 <div class="form-group">

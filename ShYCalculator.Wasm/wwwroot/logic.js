@@ -113,22 +113,28 @@ export const getCategoryIconUrl = (cat) => {
     switch (c) {
         case 'arithmetic':
         case 'arithmetical':
-        case 'plus':
-        case 'minus':
+        case 'exponent':
+        case 'power':
+        case 'superscript': icon = 'superscript'; break;
         case 'divide':
         case 'multiply':
         case 'calculator': icon = 'calculator'; break;
+        case 'plus':
         case 'unary': icon = 'plus'; break;
+        case 'minus': icon = 'minus'; break;
         case 'comparison':
         case 'equal': icon = 'equal'; break;
         case 'grouping':
         case 'parentheses': icon = 'parentheses'; break;
         case 'logical':
-        case 'logic':
+        case 'logic': icon = 'circuit-board'; break;
         case 'cpu': icon = 'cpu'; break;
         case 'bitwise':
         case 'bitwise operations':
         case 'binary': icon = 'binary'; break;
+        case 'on/off':
+        case 'switch':
+        case 'power-button': icon = 'power'; break;
         case 'scientific':
         case 'sigma': icon = 'sigma'; break;
         case 'chemistry':
@@ -138,6 +144,10 @@ export const getCategoryIconUrl = (cat) => {
         case 'infinity': icon = 'infinity'; break;
         case 'brain': icon = 'brain'; break;
         case 'activity': icon = 'activity'; break;
+        case 'sort':
+        case 'sort-asc': icon = 'arrow-up-0-1'; break;
+        case 'tally':
+        case 'count': icon = 'tally-5'; break;
         case 'list-tree':
         case 'logic tree': icon = 'list-tree'; break;
         case 'network': icon = 'network'; break;
@@ -156,12 +166,18 @@ export const getCategoryIconUrl = (cat) => {
         case 'message':
         case 'message-square': icon = 'message-square'; break;
         case 'tags': icon = 'tags'; break;
+        case 'quote':
+        case 'string quote': icon = 'quote'; break;
+        case 'regex':
+        case 'regular expression': icon = 'regex'; break;
         case 'date':
         case 'date & time':
         case 'calendar': icon = 'calendar'; break;
         case 'time':
-        case 'clock': icon = 'clock'; break;
         case 'history': icon = 'history'; break;
+        case 'timer':
+        case 'stopwatch': icon = 'timer'; break;
+        case 'hourglass': icon = 'hourglass'; break;
         case 'sun': icon = 'sun'; break;
         case 'moon': icon = 'moon'; break;
         case 'array':
@@ -175,6 +191,10 @@ export const getCategoryIconUrl = (cat) => {
         case 'rocket': icon = 'rocket'; break;
         case 'heart': icon = 'heart'; break;
         case 'star': icon = 'star'; break;
+        case 'trophy':
+        case 'winner': icon = 'trophy'; break;
+        case 'crown':
+        case 'king': icon = 'crown'; break;
         case 'zap':
         case 'lightning':
         case 'flash': icon = 'zap'; break;
