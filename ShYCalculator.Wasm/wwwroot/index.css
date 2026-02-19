@@ -530,7 +530,13 @@ body.is-booting {
 }
 
 /* Force override for inputs and stepper buttons */
-[data-theme="light"] sl-input::part(base),
+[data-theme="light"] sl-input::part(base) {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    backdrop-filter: none;
+}
+
 [data-theme="light"] sl-select::part(combobox),
 [data-theme="light"] sl-textarea::part(base),
 [data-theme="light"] sl-input:has(.btn-stepper)::part(base) {
@@ -1438,6 +1444,10 @@ sl-card::part(body) {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     padding: 0;
+}
+
+.btn-secondary.btn-docs::part(base) {
+    height: 42px !important;
 }
 
 .combobox-panel {
@@ -3945,7 +3955,7 @@ sl-tab-panel[active]::part(base) {
 }
 
 [data-theme="light"] .main-card {
-    backdrop-filter: blur(0.5px);
+    backdrop-filter: opacity(0.3) blur(1px) !important;
     background: linear-gradient(135deg, rgb(181 181 181 / 30%) 0%, rgb(255 255 255 / 0%) 100%) !important;
     -webkit-backdrop-filter: blur(14px);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1),
@@ -4476,12 +4486,11 @@ sl-tooltip::part(body) {
 
 /* Light Theme - Dropdown Panel */
 [data-theme="light"] .modern-select sl-menu {
-    background: linear-gradient(145deg,
-            rgba(255, 255, 255, 0.95) 0%,
-            rgba(241, 245, 249, 0.95) 100%) !important;
-    /* White to Slate 100 */
-    border: 1px solid #cbd5e1 !important;
-    /* Slate 300 */
+    background: linear-gradient(135deg, rgb(255 255 255 / 80%) 0%, rgb(255 255 255 / 47%) 100%) !important;
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: brightness(0.7) !important;
 }
 
 /* Ensure menu items contrast */

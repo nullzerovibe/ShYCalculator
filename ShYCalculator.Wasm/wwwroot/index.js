@@ -640,7 +640,7 @@ export const MainCard = ({ state, actions }) => {
                 </label>
                 <div class="controls-top">
                     <${ExpressionCombobox} state=${state} actions=${actions} />
-                    <sl-button outline class="btn-secondary" onclick=${actions.openDocs}>
+                    <sl-button outline class="btn-secondary btn-docs" onclick=${actions.openDocs}>
                         <sl-icon slot="prefix" name="book"></sl-icon> Docs & Settings
                     </sl-button>
                 </div>
