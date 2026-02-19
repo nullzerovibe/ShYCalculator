@@ -408,9 +408,11 @@ body.is-booting {
 /* Selected Preset Logic (Primary Variant) */
 /* Selected Preset Logic (Primary Variant) */
 [data-theme="light"] .settings-presets sl-button[variant="primary"]:not([outline])::part(base) {
-    color: var(--text) !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    color: var(--accent) !important;
+    transition: all 0.2s ease !important;
     font-weight: 600;
-    /* box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3); */
 }
 
 /* Stepper Buttons in Settings */
@@ -696,8 +698,12 @@ body.is-booting {
 }
 
 [data-theme="light"] .action-btn.pinned::part(base) {
-    color: #b45309 !important;
+    color: var(--warning, #f59e0b) !important;
     /* Amber 700 for better contrast on white */
+
+    &:hover {
+        color: var(--warning, #f59e0b) !important;
+    }
 }
 
 /* Light Theme About Tab */
@@ -804,8 +810,12 @@ body.is-booting {
     /* Slate 500 */
 }
 
+[data-theme="light"] sl-icon-button.pin-btn:hover::part(base) {
+    color: #f59e0b !important;
+}
+
 [data-theme="light"] sl-icon-button:hover::part(base) {
-    color: #0f172a !important;
+    color: var(--accent) !important;
     /* Slate 900 */
     /* background-color: #f1f5f9 !important; */
     background: transparent !important;
@@ -821,7 +831,7 @@ body.is-booting {
 
 /* Light Theme Tooltips */
 [data-theme="light"] sl-tooltip {
-    --sl-tooltip-background-color: #ffffff !important;
+    --sl-tooltip-background-color: #ffffff60 !important;
     --sl-tooltip-color: #0f172a !important;
     /* Slate 900 */
     --sl-tooltip-arrow-size: 6px;
@@ -830,7 +840,7 @@ body.is-booting {
 }
 
 [data-theme="light"] sl-tooltip::part(body) {
-    background-color: #ffffff !important;
+    background-color: #ffffff60 !important;
     color: #0f172a !important;
     border: 1px solid #cbd5e1 !important;
     /* Slate 300 */
@@ -885,16 +895,16 @@ body.is-booting {
 }
 
 [data-theme="light"] .icon-tile:hover::part(button) {
+    background: #e2e8f0 !important;
     color: #0f172a !important;
-    border-color: #38bdf8 !important;
-    background: rgba(56, 189, 248, 0.1) !important;
+    border-color: #94a3b8 !important;
 }
 
 [data-theme="light"] .icon-tile[checked]::part(button) {
-    color: var(--text) !important;
-    background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%) !important;
-    border-color: #2e90f1 !important;
-    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3) !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+    color: var(--accent) !important;
+    box-shadow: none !important;
 }
 
 [data-theme="light"] sl-menu-label {
@@ -940,18 +950,22 @@ body.is-booting {
 [data-theme="light"] .btn-calculate::part(base):hover,
 [data-theme="light"] .btn-save-settings::part(base):hover,
 [data-theme="light"] .premium-save-btn::part(base):hover {
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%) !important;
-    /* Blue 500 -> Cyan 500 */
-    box-shadow: 0 10px 30px -4px rgba(59, 130, 246, 0.5), 0 4px 12px -2px rgba(59, 130, 246, 0.3) !important;
-    /* Soft Blue Glow */
-    /* transform: translateY(-2px); */
-    /* Distinct Lift */
+    background-color: #5A6268;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="light"] .btn-calculate::part(base),
 [data-theme="light"] .btn-save-settings::part(base),
 [data-theme="light"] .premium-save-btn::part(base) {
-    color: var(--bg) !important;
+    /* Base styles */
+    background-color: #6C757D;
+    /* A neutral gray */
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    /* For smooth transitions */
+    height: 40px !important;
 }
 
 /* Light Theme Validation Messages (Inverted - Dark Bg / Light Text) */
@@ -3852,9 +3866,14 @@ sl-tab-panel[active]::part(base) {
 }
 
 .pin-btn.active::part(base) {
-    color: #f59e0b;
+    color: #f59e0b !important;
     /* Amber 500 for pinned state */
     opacity: 1;
+
+    &:hover::part(base) {
+        color: #f59e0b !important;
+        opacity: 1;
+    }
 }
 
 .pinned-row {
@@ -4239,11 +4258,8 @@ sl-tooltip::part(body) {
 
 /* Light Theme - Operators & Library Table */
 [data-theme="light"] .ops-table th {
-    background: linear-gradient(135deg, rgba(241, 245, 249, 0.6) 0%, rgba(248, 250, 252, 0.3) 100%) !important;
-    /* Slate 100 with lower opacity gradient */
-    backdrop-filter: blur(8px);
+    background: #a7a7a729;
     color: #334155 !important;
-    /* Slate 700 */
     border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 
@@ -4508,6 +4524,21 @@ sl-tooltip::part(body) {
 }
 
 /* Light Theme - Pinned Icon */
+[data-theme="light"] .pin-btn {
+    color: #94a3b8 !important;
+    /* Slate 400 */
+    transition: color 0.2s ease;
+}
+
+[data-theme="light"] .pin-btn:hover {
+    color: #475569 !important;
+    /* Slate 600 */
+}
+
+[data-theme="light"] .pin-btn.active {
+    color: var(--accent) !important;
+}
+
 /* Light Theme - Scrollbar */
 [data-theme="light"] {
     scrollbar-color: #94a3b8 transparent;
@@ -4557,4 +4588,17 @@ sl-tooltip::part(body) {
 .status-indicator sl-icon {
     font-size: 1.25rem;
     filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.1));
+}
+
+/* Light Theme Function Example Buttons */
+[data-theme="light"] .btn-example::part(base) {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(203, 213, 225, 0.6) !important;
+    color: #475569 !important;
+}
+
+[data-theme="light"] .btn-example:hover::part(base) {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
 }
