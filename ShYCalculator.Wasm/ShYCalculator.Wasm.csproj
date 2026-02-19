@@ -9,6 +9,7 @@
     <RunAOTCompilation>true</RunAOTCompilation>
     <PublishTrimmed>true</PublishTrimmed>
     <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+    <InvariantGlobalization>true</InvariantGlobalization>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -20,6 +21,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ShYCalculator\ShYCalculator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ServiceWorker Include="wwwroot\sw.js" PublishedContent="wwwroot\sw.js" />
   </ItemGroup>
 
   <!-- Auto-generate 404.html for SPA routing on GitHub Pages -->

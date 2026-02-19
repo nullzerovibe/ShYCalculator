@@ -113,6 +113,14 @@ export const Header = ({ state, actions }) => html`
                 High-performance .NET WASM Expression Evaluator 
             </p>
         </div>
+        ${state.pwaInstallPrompt?.value ? html`
+            <div style="margin-left: auto; display: flex; align-items: center;">
+                <sl-button size="small" variant="primary" onclick=${actions.installPwa} pill>
+                    <sl-icon slot="prefix" name="cloud-download"></sl-icon>
+                    Install App
+                </sl-button>
+            </div>
+        ` : null}
     </header>
 `;
 
@@ -1589,11 +1597,22 @@ export const App = ({ state, actions }) => {
         const onSwReady = () => {
             state.isOfflineReady.value = true;
         };
+        const onSwUpdate = () => {
+            state.pwaUpdateAvailable.value = true;
+        };
+        const onInstallReady = (e) => {
+            state.pwaInstallPrompt.value = e.detail;
+        };
+
         globalThis.addEventListener('sw-ready', onSwReady);
+        globalThis.addEventListener('sw-update', onSwUpdate);
+        globalThis.addEventListener('pwa-install-ready', onInstallReady);
 
         return () => {
             globalThis.removeEventListener('keydown', handleKeyDown);
             globalThis.removeEventListener('sw-ready', onSwReady);
+            globalThis.removeEventListener('sw-update', onSwUpdate);
+            globalThis.removeEventListener('pwa-install-ready', onInstallReady);
         };
     }, []);
 
@@ -1620,6 +1639,17 @@ export const App = ({ state, actions }) => {
 </sl-tooltip>
         </div>
         <div class="app-container single-column">
+            ${state.pwaUpdateAvailable?.value ? html`
+                <div style="background: var(--primary); color: white; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <sl-icon name="arrow-clockwise"></sl-icon>
+                        <strong>Update Available!</strong> A new version is ready.
+                    </div>
+                    <sl-button variant="default" size="small" onclick=${actions.refreshPwa} pill>
+                        Refresh to Update
+                    </sl-button>
+                </div>
+            ` : null}
 
             <${MainCard} state=${state} actions=${actions} />
         </div>
