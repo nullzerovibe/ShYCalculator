@@ -2,8 +2,8 @@
   "name": "ShYCalculator WASM",
   "short_name": "ShYCalculator",
   "description": "High-performance .NET WASM Expression Evaluator with a premium industrial theme.",
-  "id": "./",
-  "start_url": "./",
+  "id": "shycalculator",
+  "start_url": "/",
   "scope": "/",
   "icons": [
     {
