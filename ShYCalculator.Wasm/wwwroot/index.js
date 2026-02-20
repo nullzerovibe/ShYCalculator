@@ -104,23 +104,35 @@ export const SyntaxEditor = ({ value, onInput, onKeyDown, state, name, forceKnow
 
 export const Header = ({ state, actions }) => html`
     <header class="app-header">
+        ${state.pwaUpdateAvailable?.value ? html`
+            <sl-tooltip content="A new version of ShYCalculator is ready! Click to instantly reload and apply the update.">
+                <sl-button size="small" variant="neutral" outline class="btn-secondary" onclick=${actions.refreshPwa} style="position: absolute; left: 0px; top: 0px;">
+                    <sl-icon slot="prefix" name="arrow-clockwise"></sl-icon>
+                    Update
+                </sl-button>
+            </sl-tooltip>
+        ` : state.pwaInstallPrompt?.value ? html`
+            <sl-tooltip content="Install ShYCalculator as a standalone app on your device for fast, offline access.">
+                <sl-button size="small" variant="neutral" outline class="btn-secondary" onclick=${actions.installPwa} style="position: absolute; left: 0px; top: 0px;">
+                    <sl-icon slot="prefix" name="cloud-download"></sl-icon>
+                    Install
+                </sl-button>
+            </sl-tooltip>
+        ` : null}
+        ${state.version?.value ? html`
+            <sl-badge class="version-tag shy-badge" size="small">
+                <sl-icon name="tag" style="margin-right: 0.25rem;"></sl-icon>
+                ${state.version.value}
+            </sl-badge>
+        ` : null}
         <div class="logo-area">
             <h1 class="app-title">
                 ShYCalculator 
-                <sl-badge class="version-tag shy-badge" size="small">v${state.version?.value || '...'}</sl-badge>
             </h1>
             <p class="app-subtitle">
                 High-performance .NET WASM Expression Evaluator 
             </p>
         </div>
-        ${state.pwaInstallPrompt?.value ? html`
-            <div style="margin-left: auto; display: flex; align-items: center;">
-                <sl-button size="small" variant="primary" onclick=${actions.installPwa} pill>
-                    <sl-icon slot="prefix" name="cloud-download"></sl-icon>
-                    Install App
-                </sl-button>
-            </div>
-        ` : null}
     </header>
 `;
 
@@ -1326,6 +1338,20 @@ export const Documentation = ({ state, actions }) => {
                                     `}
                                 </div>
                             </form>
+                            ${(state.isOfflineReady?.value || window.matchMedia('(display-mode: standalone)').matches) ? html`
+                                <div class="settings-danger-alert">
+                                    <sl-icon src="https://api.iconify.design/lucide/alert-triangle.svg?color=%23ef4444" class="settings-danger-icon"></sl-icon>
+                                    <div class="settings-danger-content">
+                                        <div>
+                                            <strong>App Installation Data</strong>
+                                            <span>Clear cached app data and unregister the Service Worker. You will still need to manually remove the app from your device.</span>
+                                        </div>
+                                        <sl-button variant="danger" outline onclick=${actions.uninstallApp} size="small" style="align-self: flex-start;">
+                                            <sl-icon slot="prefix" name="trash"></sl-icon> Clear App Data & Unregister
+                                        </sl-button>
+                                    </div>
+                                </div>
+                            ` : null}
                         </div>
                         <div class="settings-button-footer">
                             <sl-button variant="text" class="btn-cancel-settings btn-cancel" onclick=${actions.cancelSettings} disabled=${!isSettingsDirty()}>
@@ -1604,6 +1630,14 @@ export const App = ({ state, actions }) => {
             state.pwaInstallPrompt.value = e.detail;
         };
 
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.getRegistration().then(reg => {
+                if (reg && reg.active) {
+                    state.isOfflineReady.value = true;
+                }
+            });
+        }
+
         globalThis.addEventListener('sw-ready', onSwReady);
         globalThis.addEventListener('sw-update', onSwUpdate);
         globalThis.addEventListener('pwa-install-ready', onInstallReady);
@@ -1639,18 +1673,6 @@ export const App = ({ state, actions }) => {
 </sl-tooltip>
         </div>
         <div class="app-container single-column">
-            ${state.pwaUpdateAvailable?.value ? html`
-                <div style="background: var(--primary); color: white; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <sl-icon name="arrow-clockwise"></sl-icon>
-                        <strong>Update Available!</strong> A new version is ready.
-                    </div>
-                    <sl-button variant="default" size="small" onclick=${actions.refreshPwa} pill>
-                        Refresh to Update
-                    </sl-button>
-                </div>
-            ` : null}
-
             <${MainCard} state=${state} actions=${actions} />
         </div>
         <${Documentation} state=${state} actions=${actions} />
