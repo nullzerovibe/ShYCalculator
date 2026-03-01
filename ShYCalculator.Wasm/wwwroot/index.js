@@ -644,25 +644,21 @@ const AdvancedExportDropdown = ({ state, actions }) => {
     };
 
     return html`
-        <sl-dropdown placement="bottom-end" hoist class="export-dropdown">
-            <sl-button slot="trigger" size="small" variant="neutral" outline class="btn-secondary" caret>
-                <sl-icon slot="prefix" name="share"></sl-icon> Export
-            </sl-button>
+        <sl-dropdown placement="bottom-end" hoist>
+            <sl-icon-button slot="trigger" name="copy" label="Copy Option" class="copy-btn"></sl-icon-button>
             <sl-menu>
-                <sl-menu-label>Information</sl-menu-label>
                 <sl-menu-item onclick=${() => actions.copyToClipboard(result)}>
-                    <sl-icon slot="prefix" name="copy"></sl-icon> Copy Raw Value
+                    <sl-icon slot="prefix" name="copy"></sl-icon> Copy Result
                 </sl-menu-item>
                 <sl-menu-item onclick=${copyEquation}>
-                    <sl-icon slot="prefix" name="calculator"></sl-icon> Copy Full Equation
+                    <sl-icon slot="prefix" name="calculator"></sl-icon> Copy Equation
                 </sl-menu-item>
-                <sl-divider></sl-divider>
-                <sl-menu-label>Metadata</sl-menu-label>
                 <sl-menu-item onclick=${copyJSON}>
-                    <sl-icon slot="prefix" name="braces"></sl-icon> Copy JSON Metadata
+                    <sl-icon slot="prefix" name="braces"></sl-icon> Copy as JSON
                 </sl-menu-item>
             </sl-menu>
         </sl-dropdown>
+        <sl-icon-button name="share" label="Share Result" class="copy-btn" onclick=${actions.shareResult}></sl-icon-button>
     `;
 };
 
@@ -848,7 +844,7 @@ export const MainCard = ({ state, actions }) => {
                                 <sl-icon slot="prefix" name="trash"></sl-icon> Clear
                             </sl-button>
                             <sl-dropdown placement="bottom-end" hoist>
-                                <sl-button slot="trigger" size="small" variant="neutral" outline class="btn-secondary u-mr-05" caret>
+                                <sl-button slot="trigger" size="small" variant="neutral" outline class="btn-secondary" caret>
                                     <sl-icon slot="prefix" name="download"></sl-icon> Export
                                 </sl-button>
                                 <sl-menu>
@@ -1186,6 +1182,9 @@ export const Documentation = ({ state, actions }) => {
                 <sl-tab slot="nav" panel="library">
                     <sl-icon src="https://api.iconify.design/lucide/bookmark.svg?color=currentColor" class="tab-icon"></sl-icon> Expression Library
                 </sl-tab>
+                <sl-tab slot="nav" panel="shortcuts">
+                    <sl-icon src="https://api.iconify.design/lucide/keyboard.svg?color=currentColor" class="tab-icon"></sl-icon> Shortcuts
+                </sl-tab>
                 <sl-tab slot="nav" panel="settings">
                     <sl-icon src="https://api.iconify.design/lucide/settings-2.svg?color=currentColor" class="tab-icon"></sl-icon> Settings
                 </sl-tab>
@@ -1212,7 +1211,7 @@ export const Documentation = ({ state, actions }) => {
                             className="u-flex-1"
                         />
                     </div>
-                    ${state.docActiveTab.value === 'funcs' && contentReady ? html`
+                    ${contentReady ? html`
                         <div class="docs-list">
                             ${filteredFunctions.map(fn => {
             const name = fn.Name || fn.name || 'Unknown';
@@ -1253,7 +1252,7 @@ export const Documentation = ({ state, actions }) => {
                 </sl-tab-panel>
 
                 <sl-tab-panel name="ops" onscroll=${onPanelScroll}>
-                    ${state.docActiveTab.value === 'ops' && contentReady ? html`
+                    ${contentReady ? html`
                         <div class="ops-table-container">
                             <table class="ops-table">
                                 <thead>
@@ -1599,6 +1598,56 @@ export const Documentation = ({ state, actions }) => {
                         </div>
                     ` : null}
                 </sl-tab-panel>
+
+                <sl-tab-panel name="shortcuts">
+                    <div class="shortcuts-container">
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">Focus Expression Input</span>
+                            <div class="shortcut-badges">
+                                <kbd class="kbd-badge">/</kbd>
+                                <span class="shortcut-plus">or</span>
+                                <kbd class="kbd-badge">Space</kbd>
+                            </div>
+                        </div>
+
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">Open Documentation</span>
+                            <kbd class="kbd-badge">?</kbd>
+                        </div>
+
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">Clear Input (when focused)</span>
+                            <kbd class="kbd-badge">Esc</kbd>
+                        </div>
+
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">Trigger Calculation</span>
+                            <div class="shortcut-badges">
+                                <kbd class="kbd-badge">Ctrl</kbd> <span class="shortcut-plus">+</span> <kbd class="kbd-badge">Enter</kbd>
+                            </div>
+                        </div>
+
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">Save to Library</span>
+                            <div class="shortcut-badges">
+                                <kbd class="kbd-badge">Ctrl</kbd> <span class="shortcut-plus">+</span> <kbd class="kbd-badge">S</kbd>
+                            </div>
+                        </div>
+
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">Copy Result Value</span>
+                            <kbd class="kbd-badge">C</kbd>
+                        </div>
+
+                        <div class="shortcut-row">
+                            <span class="shortcut-label">Copy Full Equation</span>
+                            <div class="shortcut-badges">
+                                <kbd class="kbd-badge">Ctrl</kbd> <span class="shortcut-plus">+</span> <kbd class="kbd-badge">C</kbd>
+                            </div>
+                        </div>
+                    </div>
+                </sl-tab-panel>
+
             </sl-tab-group>
 
             <sl-button circle class="scroll-top-btn ${state.showScrollTop.value ? 'visible' : ''}" onclick=${scrollToTop}>
@@ -1652,18 +1701,47 @@ export const App = ({ state, actions }) => {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // / to focus input (if not already focused and not in an input/textarea)
-            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            const isInput = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA';
+
+            // / or Space to focus input (if not already focused)
+            if ((e.key === '/' || e.key === ' ') && !isInput) {
                 e.preventDefault();
                 const input = document.querySelector('sl-input[placeholder="Enter expression..."]');
                 if (input) {
                     input.focus();
-                    // Select all text if there is any
                     input.select();
                 }
             }
+
+            // ? to open shortcuts
+            if (e.key === '?' && !isInput) {
+                e.preventDefault();
+                actions.openDocs('shortcuts');
+            }
+
+            // C to copy raw value
+            if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !isInput) {
+                e.preventDefault();
+                actions.copyExtended('number');
+            }
+
+            // Ctrl+C to copy equation
+            if (e.key.toLowerCase() === 'c' && e.ctrlKey && !isInput) {
+                const selection = window.getSelection().toString();
+                if (!selection) {
+                    e.preventDefault();
+                    actions.copyExtended('equation');
+                }
+            }
+
+            // Ctrl+S to save snippet
+            if (e.key.toLowerCase() === 's' && e.ctrlKey) {
+                e.preventDefault();
+                actions.openSaveSnippet();
+            }
+
             // Esc to clear input (if input is focused)
-            if (e.key === 'Escape' && document.activeElement.tagName === 'INPUT') {
+            if (e.key === 'Escape' && isInput) {
                 state.input.value = '';
                 actions.calculate();
             }

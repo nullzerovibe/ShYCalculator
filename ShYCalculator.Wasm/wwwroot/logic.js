@@ -664,11 +664,13 @@ export const actions = {
         }
     },
 
-    openDocs: () => {
+    openDocs: (tab = null) => {
         appState.docCategory.value = 'All_Categories';
         appState.docSearch.value = '';
+        if (tab) appState.docActiveTab.value = tab;
         appState.docsOpen.value = true;
     },
+
 
     calculate: async () => {
         if (!appState.isReady.value || appState.isCalculating.value) {
@@ -799,6 +801,60 @@ export const actions = {
         navigator.clipboard.writeText(text);
         util.notify("Copied to clipboard!", "success", "copy");
     },
+    copyExtended: (format) => {
+        const val = appState.input.value;
+        const res = appState.result.value;
+
+        if (res === '---' || res === 'Error' || res === 'Interop Error') {
+            util.notify("Nothing to copy!", "warning");
+            return;
+        }
+
+        let payload = '';
+
+        switch (format) {
+            case 'number':
+                payload = res;
+                break;
+            case 'equation':
+                payload = `${val} = ${res}`;
+                break;
+            default:
+                payload = res;
+        }
+
+        navigator.clipboard.writeText(payload);
+        util.notify("Copied to clipboard!", "success", "copy");
+    },
+    shareResult: async () => {
+        const val = appState.input.value;
+        const res = appState.result.value;
+
+        if (res === '---' || res === 'Error' || res === 'Interop Error') {
+            util.notify("Nothing to share!", "warning");
+            return;
+        }
+
+        const shareData = {
+            title: 'ShYCalculator Result',
+            text: `${val} = ${res}`,
+            url: globalThis.location.href
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(shareData.text);
+                util.notify("Sharing not supported - result copied to clipboard!", "info");
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Error sharing:', err);
+            }
+        }
+    },
+
     clearHistory: () => {
         appState.history.value = [];
     },

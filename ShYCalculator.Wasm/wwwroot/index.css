@@ -172,7 +172,7 @@ body.is-booting {
 .subtle-help {
     color: var(--text-muted);
     font-size: 0.8rem;
-    opacity: 0.5 !important;
+    /* opacity: 0.5 !important; */
     margin-top: 0.25rem;
     font-weight: 400;
 }
@@ -1955,6 +1955,7 @@ sl-button[variant="danger"]::part(base):focus-visible {
     display: flex;
     align-items: center;
     flex: 1;
+    min-width: 0;
 }
 
 .result-value:hover {
@@ -1965,7 +1966,30 @@ sl-button[variant="danger"]::part(base):focus-visible {
     display: flex;
     align-items: center;
     gap: 1rem;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
 }
+
+.copy-btn {
+    font-size: 1.25rem !important;
+}
+
+.copy-btn::part(base) {
+    color: var(--text-muted);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--sl-transition-fast) color, var(--sl-transition-fast) background-color;
+    border-radius: var(--sl-border-radius-medium);
+    transform: translateY(2px);
+}
+
+.copy-btn::part(base):hover {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
 
 .result-footer {
     display: flex;
@@ -2121,14 +2145,17 @@ sl-button[variant="danger"]::part(base):focus-visible {
     font-family: var(--font-mono);
     font-size: 0.95rem;
     white-space: pre-wrap;
-    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    word-break: break-all;
     flex: 1;
+    min-width: 0;
 }
 
 .hist-res-group {
     display: flex;
     gap: 0.5rem;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .hist-eq {
@@ -2169,6 +2196,63 @@ sl-button[variant="danger"]::part(base):focus-visible {
     border-radius: var(--sl-border-radius-medium);
     margin-bottom: 0.5rem;
 }
+
+.shortcuts-container {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.shortcut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shortcut-row:last-child {
+    border-bottom: none;
+}
+
+.shortcut-label {
+    color: color-mix(in srgb, var(--text), transparent 30%);
+    font-size: 1rem;
+}
+
+.shortcut-badges {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.shortcut-plus {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+
+.kbd-badge {
+    border-radius: 4px !important;
+    padding: 0.2rem 0.6rem !important;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.45) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #cbd5e1 !important;
+    opacity: 0.85;
+    font-family: var(--font-mono);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .kbd-badge {
+    background-color: rgba(241, 245, 249, 0.4) !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    box-shadow: none !important;
+}
+
 
 .doc-item strong {
     color: var(--accent);
@@ -2218,7 +2302,7 @@ sl-dialog::part(title) {
 }
 
 [data-theme="dark"] sl-dialog::part(title) {
-    color: #cbd5e1;
+    color: color-mix(in srgb, var(--text), transparent 20%);
 }
 
 sl-dialog::part(body) {
@@ -2275,7 +2359,7 @@ sl-tab-group::part(body) {
 }
 
 sl-tab::part(base) {
-    color: var(--text-muted);
+    color: color-mix(in srgb, var(--text), transparent 20%);
 }
 
 
@@ -2368,8 +2452,7 @@ sl-tab-panel {
 }
 
 [data-theme="dark"] .about-container {
-    color: #94a3b8;
-    /* Muted description color by default */
+    color: color-mix(in srgb, var(--text), transparent 30%);
 }
 
 .about-header {
@@ -2432,7 +2515,7 @@ sl-tab-panel {
     border: 1px solid rgba(245, 158, 11, 0.2);
     border-radius: var(--sl-border-radius-medium);
     padding: 1rem;
-    color: var(--text-muted);
+    color: color-mix(in srgb, var(--text), transparent 30%);
     font-size: 0.9rem;
     line-height: 1.5;
     text-align: justify;
@@ -2620,7 +2703,6 @@ sl-tab-panel {
 .section-icon {
     font-size: 0.95em;
     margin-right: 0.45rem;
-    opacity: 0.6;
 }
 
 .type-icon {
@@ -2876,7 +2958,7 @@ sl-tab-panel[name="about"]::part(base) {
 .form-group label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #cbd5e1;
+    color: color-mix(in srgb, var(--text), transparent 30%);
     display: flex;
     align-items: center;
     gap: 0.5rem;
