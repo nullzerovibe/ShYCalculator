@@ -747,6 +747,16 @@ body.is-booting {
     /* Slate 900 */
 }
 
+[data-theme="light"] .about-link {
+    color: var(--sl-color-primary-600);
+    text-decoration: none;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+[data-theme="light"] .about-link:hover {
+    filter: brightness(1.2);
+}
+
 [data-theme="light"] .about-icon,
 [data-theme="light"] .alert-icon {
     filter: brightness(0.2) saturate(0) !important;
@@ -1437,7 +1447,6 @@ sl-card::part(body) {
 
 [data-theme="light"] .combobox-trigger {
     background-color: rgba(255, 255, 255, 0.3) !important;
-    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid #ffffff35;
     transition: all 0.2s ease;
@@ -2044,28 +2053,6 @@ sl-button[variant="danger"]::part(base):focus-visible {
     backdrop-filter: blur(4px);
 }
 
-/* Contact Footer Link Stability */
-.contact-link {
-    transition: color 0.23s ease, transform 0.23s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: var(--text-muted);
-}
-
-.contact-link:hover {
-    color: var(--accent) !important;
-    transform: translateY(-1px);
-}
-
-.contact-link sl-icon {
-    transition: transform 0.23s ease;
-}
-
-.contact-link:hover sl-icon {
-    transform: scale(1.1);
-}
 
 /* Variables */
 .var-row {
@@ -2249,6 +2236,22 @@ sl-button[variant="danger"]::part(base):focus-visible {
 .shortcut-plus {
     font-size: 0.8rem;
     color: var(--text-muted);
+}
+
+/* Light Theme Shortcut Visibility */
+[data-theme="light"] .shortcut-row {
+    border-bottom-color: #8f8f8f54;
+    /* Slate 200 */
+}
+
+[data-theme="light"] .shortcut-label {
+    color: #334155;
+    /* Slate 700 */
+}
+
+[data-theme="light"] .shortcut-plus {
+    color: #64748b;
+    /* Slate 500 */
 }
 
 
@@ -2509,7 +2512,6 @@ sl-tab-panel {
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s ease;
-    color: inherit;
 }
 
 [data-theme="dark"] .about-link,

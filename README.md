@@ -42,6 +42,7 @@
 - 🔁 **Compiled Mode**: Parse once, execute many times for maximum performance.
 - 📅 **Date & Time**: Robust support for date parsing, culture-specific formats, and time adjustments.
 - 🌳 **Deep Nesting**: Supports complex nested expressions (ifs, ternaries, functions).
+- 🔗 **Deep Linking**: Reactive URL state synchronization for sharing calculations (WASM).
 
 ## Quick Start
 

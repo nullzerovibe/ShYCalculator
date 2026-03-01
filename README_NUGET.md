@@ -15,6 +15,7 @@
 - 🏗️ **Builder Pattern**: Fluent API for easy configuration.
 - 🛡️ **Safe**: No `eval()` or dynamic compilation risks; strictly parsed.
 - 🔁 **Compiled Mode**: Parse once, execute many times for maximum performance.
+- 📅 **Date & Time**: Robust support for date parsing, culture-specific formats, and time adjustments.
 - 🌳 **Deep Nesting**: Supports complex nested expressions (ifs, ternaries, functions).
 
 ## Quick Start
@@ -73,24 +74,28 @@ public class MyService(ShYCalculator calculator) {
 
 ### Compiled Mode (High Performance)
 
-For scenarios where the formula is constant but variables change (e.g., bulk processing), use `Compile` to avoid reparsing.
+For scenarios where the formula is constant but variables change, use `Compile` to avoid reparsing.
 
 ```csharp
-// 1. Compile the expression once
 var compiled = ShYCalculator.Compile("score * multiplier");
 if (compiled.Success) {
     var runner = compiled.Value;
-
-    // 2. Execute many times with different data
-    foreach (var user in users) {
-        var context = new Dictionary<string, double> {
-            { "score", user.Score },
-            { "multiplier", 1.5 }
-        };
-        var result = runner.Calculate(context);
-        Console.WriteLine($"User {user.Id}: {result.Value.Nvalue}");
-    }
+    var result = runner.Calculate(new Dictionary<string, double> { { "score", 100 }, { "multiplier", 1.5 } });
 }
+```
+
+### AST & Expression Validation
+
+Retrieve the parsed AST for analysis or validate syntax without execution.
+
+```csharp
+// AST
+var result = calculator.Calculate("1 + 2 * 3", includeAst: true);
+var nodeType = result.Ast?.Type; // "binary"
+
+// Validation
+var validation = ShYCalculator.Compile("1 + (2"); 
+if (!validation.Success) Console.WriteLine(validation.Errors[0].Message);
 ```
 
 ## License
