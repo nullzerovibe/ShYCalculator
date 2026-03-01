@@ -1,5 +1,5 @@
 import { h, render } from 'https://esm.sh/preact@10.19.3';
-import { useEffect, useMemo, useRef, useState } from 'https://esm.sh/preact@10.19.3/hooks';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'https://esm.sh/preact@10.19.3/hooks';
 import htm from 'https://esm.sh/htm@3.1.1';
 import { FLAT_MAP, EXAMPLE_GROUPS, getCategoryIconUrl, getTypeIconUrl, appState, actions } from './logic.js';
 
@@ -78,20 +78,85 @@ const toggleTransparency = (active, closingDialogName = null) => {
 // --- COMPONENTS ---
 
 export const SyntaxEditor = ({ value, onInput, onKeyDown, state, name, forceKnown = false }) => {
+    const textareaRef = useRef();
+    const overlayRef = useRef();
+
+    const syncScroll = () => {
+        if (textareaRef.current && overlayRef.current) {
+            overlayRef.current.scrollTop = textareaRef.current.scrollTop;
+            overlayRef.current.scrollLeft = textareaRef.current.scrollLeft;
+        }
+    };
+
+    const autoResize = () => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+            // CRITICAL: If width is 0 (element hidden/dialog opening), skip resize.
+            // Browser calculations of scrollHeight in zero-width containers are unreliable/inflated.
+            if (textarea.offsetWidth === 0) return;
+
+            const currentHeight = parseInt(textarea.style.height) || 0;
+            const scrollPos = textarea.scrollTop; // Save scroll position
+
+            textarea.style.height = 'auto';
+            const newHeight = Math.min(Math.max(textarea.scrollHeight, 100), 400);
+
+            if (newHeight !== currentHeight) {
+                textarea.style.height = newHeight + 'px';
+                if (overlayRef.current) {
+                    overlayRef.current.style.height = newHeight + 'px';
+                }
+            } else {
+                textarea.style.height = currentHeight + 'px';
+            }
+
+            // Restore scroll position to prevent jump
+            textarea.scrollTop = scrollPos;
+        }
+    };
+
+    useLayoutEffect(() => {
+        // Initial height guard to prevent snap-to-max
+        if (textareaRef.current && !textareaRef.current.style.height) {
+            textareaRef.current.style.height = '100px';
+            if (overlayRef.current) overlayRef.current.style.height = '100px';
+        }
+        autoResize();
+        syncScroll();
+    }, [value]);
+
+    // Handle initial visibility in dialogs via ResizeObserver
+    useEffect(() => {
+        if (!textareaRef.current) return;
+
+        const observer = new ResizeObserver(() => {
+            if (textareaRef.current && textareaRef.current.offsetWidth > 0) {
+                autoResize();
+                syncScroll();
+            }
+        });
+
+        observer.observe(textareaRef.current);
+        return () => observer.disconnect();
+    }, []);
+
     const onInternalInput = (e) => {
         onInput(e);
+        autoResize();
     };
 
     const htmlContent = highlightExpression(value, state.knownNames.value, state.variables.value, forceKnown);
 
     return html`
         <div class="syntax-editor">
-            <div class="highlight-overlay" dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
+            <div ref=${overlayRef} class="highlight-overlay" dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
             <textarea 
+                ref=${textareaRef}
                 name=${name}
                 placeholder="Enter expression..." 
                 value=${value}
                 oninput=${onInternalInput}
+                onscroll=${syncScroll}
                 onkeydown=${onKeyDown}
                 spellcheck="false"
                 autocomplete="off"
