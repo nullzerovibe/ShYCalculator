@@ -619,6 +619,53 @@ export const ExpressionCombobox = ({ state, actions }) => {
     `;
 };
 
+const AdvancedExportDropdown = ({ state, actions }) => {
+    const expr = state.input.value;
+    const result = state.result.value;
+    const vars = state.variables.value;
+    const time = state.calcTime.value;
+    const type = state.resultType.value;
+
+    const copyJSON = () => {
+        const data = {
+            expression: expr,
+            variables: vars,
+            result: result,
+            type: type,
+            calculationTimeMs: time,
+            timestamp: new Date().toISOString()
+        };
+        actions.copyToClipboard(JSON.stringify(data, null, 2));
+    };
+
+    const copyEquation = () => {
+        let varStr = vars.length > 0 ? ` [where ${vars.map(v => `${v.name}=${v.value}`).join(', ')}]` : '';
+        actions.copyToClipboard(`${expr}${varStr} = ${result}`);
+    };
+
+    return html`
+        <sl-dropdown placement="bottom-end" hoist class="export-dropdown">
+            <sl-button slot="trigger" size="small" variant="neutral" outline class="btn-secondary" caret>
+                <sl-icon slot="prefix" name="share"></sl-icon> Export
+            </sl-button>
+            <sl-menu>
+                <sl-menu-label>Information</sl-menu-label>
+                <sl-menu-item onclick=${() => actions.copyToClipboard(result)}>
+                    <sl-icon slot="prefix" name="copy"></sl-icon> Copy Raw Value
+                </sl-menu-item>
+                <sl-menu-item onclick=${copyEquation}>
+                    <sl-icon slot="prefix" name="calculator"></sl-icon> Copy Full Equation
+                </sl-menu-item>
+                <sl-divider></sl-divider>
+                <sl-menu-label>Metadata</sl-menu-label>
+                <sl-menu-item onclick=${copyJSON}>
+                    <sl-icon slot="prefix" name="braces"></sl-icon> Copy JSON Metadata
+                </sl-menu-item>
+            </sl-menu>
+        </sl-dropdown>
+    `;
+};
+
 export const MainCard = ({ state, actions }) => {
     const onInput = (e) => {
         state.input.value = e.target.value;
@@ -757,19 +804,25 @@ export const MainCard = ({ state, actions }) => {
 
                 <div class="result-box ${state.result.value === 'Error' || state.result.value.startsWith('Interop') ? 'error' : ''}">
                     <div class="result-body">
-                        <div class="result-value">${state.result.value}</div>
+                        ${state.result.value === 'Error' || state.result.value.startsWith('Interop') || state.result.value === '---' ? html`
+                            <div class="result-value u-cursor-default">${state.result.value}</div>
+                        ` : html`
+                            <div class="result-value" onclick=${() => actions.copyToClipboard(state.result.value)}>${state.result.value}</div>
+                        `}
                         <div class="result-actions ${state.result.value === '---' || state.result.value === 'Error' || state.result.value === 'null' ? 'u-hidden' : ''}">
-                            <sl-icon-button name="copy" label="Copy Result" onclick=${() => actions.copyToClipboard(state.result.value)} class="copy-btn"></sl-icon-button>
+                             <${AdvancedExportDropdown} state=${state} actions=${actions} />
                         </div>
                     </div>
 
                     <div class="result-footer">
-                        <div class="result-badge-area ${state.message.value ? 'u-visible' : 'u-invisible'} ${state.result.value === 'Error' ? 'u-hidden' : ''}">
-                            <sl-badge size="small" class="shy-badge">
-                                <sl-icon src="${getTypeIconUrl(state.resultType.value)}" class="type-icon-sm"></sl-icon>
-                                ${state.resultType.value}
-                            </sl-badge>
-                            <span class="result-msg">${state.message.value}</span>
+                        <div class="result-msg-area">
+                            ${state.result.value !== 'Error' && !state.result.value.startsWith('Interop') && state.result.value !== '---' ? html`
+                                <sl-badge size="small" class="shy-badge result-type-badge-sm">
+                                    <sl-icon src="${getTypeIconUrl(state.resultType.value)}" class="type-icon-sm"></sl-icon>
+                                    ${state.resultType.value}
+                                </sl-badge>
+                            ` : null}
+                            <span class="result-msg ${state.message.value ? 'u-visible' : 'u-invisible'}">${state.message.value}</span>
                         </div>
                         <div class="result-stats ${state.result.value === 'Error' ? 'u-hidden' : ''}">
                             ${state.calcTime.value === null ? null : html`
@@ -1339,16 +1392,18 @@ export const Documentation = ({ state, actions }) => {
                                 </div>
                             </form>
                             ${(state.isOfflineReady?.value || window.matchMedia('(display-mode: standalone)').matches) ? html`
-                                <div class="settings-danger-alert">
-                                    <sl-icon src="https://api.iconify.design/lucide/alert-triangle.svg?color=%23ef4444" class="settings-danger-icon"></sl-icon>
-                                    <div class="settings-danger-content">
-                                        <div>
-                                            <strong>App Installation Data</strong>
-                                            <span>Clear cached app data and unregister the Service Worker. You will still need to manually remove the app from your device.</span>
+                                <div class="settings-alerts">
+                                    <div class="settings-danger-alert">
+                                        <sl-icon src="https://api.iconify.design/lucide/alert-triangle.svg?color=%23ef4444" class="settings-danger-icon"></sl-icon>
+                                        <div class="settings-danger-content">
+                                            <div>
+                                                <strong>App Installation Data</strong>
+                                                <span>Clear cached app data and unregister the Service Worker. You will still need to manually remove the app from your device.</span>
+                                            </div>
+                                            <sl-button variant="danger" outline onclick=${actions.uninstallApp} size="small" style="align-self: flex-start;">
+                                                <sl-icon slot="prefix" name="trash"></sl-icon> Clear App Data & Unregister
+                                            </sl-button>
                                         </div>
-                                        <sl-button variant="danger" outline onclick=${actions.uninstallApp} size="small" style="align-self: flex-start;">
-                                            <sl-icon slot="prefix" name="trash"></sl-icon> Clear App Data & Unregister
-                                        </sl-button>
                                     </div>
                                 </div>
                             ` : null}
@@ -1406,10 +1461,10 @@ export const Documentation = ({ state, actions }) => {
 
                         <section class="about-section">
                             <div class="vibe-card">
-                                <pre class="vibe-text"> _  _         _  _  ____                 _   _  _  _      
-| \\| | _  _  | || ||_  / ___  _ _  ___  | | | |(_)| |__  ___
-| .  || || | | || | / / / -_)| '_|/ _ \\ | |_| || || '_ \\/ -_)
-|_|\\_| \\_,_| |_||_|/___|\\___||_|  \\___/  \\___/ |_||_.__/\\___|
+                                <pre class="vibe-text"> _  _        _  _  ____                 _   _  _  _      
+| \\| | _  _ | || ||_  / ___  _ _  ___  | | | |(_)| |__  ___
+| .  || || || || | / / / -_)| '_|/ _ \\ | |_| || || '_ \\/ -_)
+|_|\\_| \\_,_||_||_|/___|\\___||_|  \\___/  \\___/ |_||_.__/\\___|
  
  
                       ▄▀▀▄░█▀▀█░█▀▀▄░█▀▀ 
@@ -1419,7 +1474,7 @@ export const Documentation = ({ state, actions }) => {
      ░▒▒▓▓ LIFETIME OF SYNTAX // AGENTIC EVOLUTION ▓▓▒▒░ 
  </pre>
                                 <div class="vibe-description">
-                                    VIBE CHECK: This code was orchestrated through intent.<br/>
+                                    This code was orchestrated through intent - an agentic collaboration.<br/>
                                     You are free to use, modify, and distribute it.<br/>
                                     Keep the legacy alive. Keep the vibe open.
                                 </div>

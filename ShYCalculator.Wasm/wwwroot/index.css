@@ -617,14 +617,24 @@ body.is-booting {
     /* Emerald 600 */
 }
 
+[data-theme="light"] .result-box.error .result-value {
+    color: #ef4444 !important;
+    /* Red 500 */
+}
+
 [data-theme="light"] .copy-btn::part(base) {
-    color: #059669 !important;
-    /* Emerald 600 */
+    color: var(--text-muted);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--sl-transition-fast) color, var(--sl-transition-fast) background-color;
+    border-radius: var(--sl-border-radius-medium);
 }
 
 [data-theme="light"] .copy-btn:hover::part(base) {
-    color: #047857 !important;
-    /* Emerald 700 */
+    color: #059669 !important;
+    /* Emerald 600 */
     background-color: #ecfdf5 !important;
     /* Emerald 50 */
 }
@@ -654,10 +664,7 @@ body.is-booting {
 }
 
 /* Light Theme Settings Text Contrast */
-[data-theme="light"] .form-group label {
-    color: #0f172a !important;
-    /* Slate 900 */
-}
+[data-theme="light"] .form-group label {}
 
 [data-theme="light"] .subtle-help {
     color: #64748b !important;
@@ -1398,17 +1405,11 @@ sl-card::part(body) {
     color: #cbd5e1;
 }
 
-.combobox-trigger:hover {
-    /* Generic hover if any layout changes */
-}
 
 [data-theme="dark"] .combobox-trigger:hover {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-.combobox-trigger:active {
-    /* Generic active */
-}
 
 [data-theme="dark"] .combobox-trigger:active {
     background-color: rgba(0, 0, 0, 0.4);
@@ -1416,6 +1417,7 @@ sl-card::part(body) {
 
 [data-theme="light"] .combobox-trigger {
     background-color: rgba(255, 255, 255, 0.3) !important;
+    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid #ffffff35;
     transition: all 0.2s ease;
@@ -1450,6 +1452,7 @@ sl-card::part(body) {
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 1rem;
+    font-weight: 400;
 }
 
 .expression-combobox-dropdown::part(panel) {
@@ -1493,7 +1496,7 @@ sl-card::part(body) {
 }
 
 .snippet-item {
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     margin: 2px 0;
 }
 
@@ -1727,6 +1730,10 @@ sl-menu-item::part(base):hover {
     display: block;
 }
 
+.u-cursor-default {
+    cursor: default !important;
+}
+
 /* Inputs */
 /* Clean consistent background for all inputs */
 sl-input::part(base) {
@@ -1861,9 +1868,6 @@ sl-button[variant="danger"]::part(base):focus-visible {
     color: var(--text-muted);
 }
 
-.btn-secondary::part(base):hover {
-    /* Generic hover layout if any */
-}
 
 [data-theme="dark"] .btn-secondary::part(base):hover {
     background-color: rgba(255, 255, 255, 0.05);
@@ -1896,14 +1900,16 @@ sl-button[variant="danger"]::part(base):focus-visible {
 
 /* Result Box */
 .result-box {
-    border-radius: 12px;
     padding: 1.25rem;
-    position: relative;
-    min-height: 80px;
+    border-radius: var(--sl-border-radius-medium);
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: all 0.3s;
+    gap: 0.75rem;
+    min-height: 80px;
 }
 
 [data-theme="dark"] .result-box {
@@ -1912,12 +1918,19 @@ sl-button[variant="danger"]::part(base):focus-visible {
 }
 
 .result-box.error {
-    /* Generic error state */
-}
-
-[data-theme="dark"] .result-box.error {
     border-color: var(--error);
     background: rgba(239, 68, 68, 0.05);
+}
+
+.result-box.error .result-value {
+    color: var(--error) !important;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .result-body {
@@ -1925,12 +1938,18 @@ sl-button[variant="danger"]::part(base):focus-visible {
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+    flex: 1;
+    min-height: 51px;
 }
 
 .result-value {
-    font-size: 1.8rem;
+    font-family: var(--font-mono);
+    font-size: 2.25rem;
     font-weight: 700;
     color: var(--success);
+    cursor: pointer;
+    transition: filter 0.2s ease;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
     word-break: break-all;
     line-height: normal;
     display: flex;
@@ -1938,52 +1957,70 @@ sl-button[variant="danger"]::part(base):focus-visible {
     flex: 1;
 }
 
+.result-value:hover {
+    filter: brightness(1.1);
+}
+
 .result-actions {
     display: flex;
     align-items: center;
+    gap: 1rem;
 }
 
 .result-footer {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    margin-top: 1rem;
+    min-height: 30px;
+    align-items: anchor-center;
 }
 
-.result-badge-area {
+.result-msg-area {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex: 1;
 }
 
 .result-msg {
+    font-size: 0.85rem;
     color: var(--text-muted);
-    font-size: 0.9rem;
-    font-weight: 500;
 }
 
-.guide-btn sl-icon {
-    font-size: 1.4rem;
-}
-
-.copy-btn {
-    font-size: 1.25rem !important;
-}
-
-.copy-btn::part(base) {
-    color: var(--text-muted);
-    padding: 0;
+.result-stats {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--sl-transition-fast) color, var(--sl-transition-fast) background-color;
-    border-radius: 8px;
-    transform: translateY(2px);
+    gap: 0.5rem;
+    flex-shrink: 0;
 }
 
-.copy-btn::part(base):hover {
-    color: var(--success);
-    background: rgba(16, 185, 129, 0.1);
+.shy-badge::part(base) {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #cbd5e1 !important;
+    font-weight: 500;
+    backdrop-filter: blur(4px);
+}
+
+/* Contact Footer Link Stability */
+.contact-link {
+    transition: color 0.23s ease, transform 0.23s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--text-muted);
+}
+
+.contact-link:hover {
+    color: var(--accent) !important;
+    transform: translateY(-1px);
+}
+
+.contact-link sl-icon {
+    transition: transform 0.23s ease;
+}
+
+.contact-link:hover sl-icon {
+    transform: scale(1.1);
 }
 
 /* Variables */
@@ -2022,10 +2059,6 @@ sl-button[variant="danger"]::part(base):focus-visible {
 }
 
 /* History */
-.history-section {
-    /* border-top: 1px solid var(--glass-border); */
-    /* padding-top: 1rem; */
-}
 
 .history-card {
     margin-top: 2rem;
@@ -2059,7 +2092,7 @@ sl-button[variant="danger"]::part(base):focus-visible {
 }
 
 .history-item {
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     padding: 0.75rem 1rem;
     cursor: pointer;
     transition: all 0.2s;
@@ -2070,9 +2103,6 @@ sl-button[variant="danger"]::part(base):focus-visible {
     border: 1px solid var(--glass-border);
 }
 
-.history-item:hover {
-    /* Generic hover */
-}
 
 [data-theme="dark"] .history-item:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -2136,7 +2166,7 @@ sl-button[variant="danger"]::part(base):focus-visible {
 .doc-item {
     background: rgba(255, 255, 255, 0.05);
     padding: 0.75rem;
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     margin-bottom: 0.5rem;
 }
 
@@ -2400,7 +2430,7 @@ sl-tab-panel {
     align-items: flex-start;
     background: rgba(245, 158, 11, 0.1);
     border: 1px solid rgba(245, 158, 11, 0.2);
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     padding: 1rem;
     color: var(--text-muted);
     font-size: 0.9rem;
@@ -2433,13 +2463,18 @@ sl-tab-panel {
     color: #d97706;
 }
 
+.settings-alerts {
+    padding: 2rem;
+    padding-top: 0rem;
+}
+
 .settings-danger-alert {
     display: flex;
     gap: 1rem;
     align-items: flex-start;
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.2);
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     padding: 1rem;
     color: var(--text-muted);
     font-size: 0.9rem;
@@ -2475,7 +2510,7 @@ sl-tab-panel {
 }
 
 .doc-card {
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     padding: 0.75rem 1rem;
     transition: background 0.2s ease, border-color 0.2s ease;
 }
@@ -2824,6 +2859,7 @@ sl-tab-panel[name="about"]::part(base) {
     padding: 2rem;
     box-sizing: border-box;
     max-width: 100%;
+    padding-bottom: 0rem;
 }
 
 .form-group {
@@ -3162,8 +3198,8 @@ sl-input:has(.btn-stepper)::part(suffix) {
     font-family: var(--font-mono);
     font-size: 0.95rem;
     font-weight: 500;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Explicit transitions */
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Explicit transitions to avoid flickering background-clip */
     opacity: 0.7;
     /* Standardized non-hover opacity */
 }
@@ -3176,11 +3212,13 @@ sl-input:has(.btn-stepper)::part(suffix) {
     align-items: center;
     justify-content: center;
     opacity: 0.8;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .contact-link:hover {
     opacity: 1;
+    filter: none;
+    /* Disable global a:hover brightness filter */
     /* Restore Gradient Text */
     background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
     -webkit-background-clip: text;
@@ -3423,7 +3461,7 @@ sl-tooltip::part(body) {
 [data-theme="dark"] sl-tooltip::part(body) {
     background-color: rgba(15, 23, 42, 0.95);
     border: 1px solid var(--glass-border);
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     color: #f1f5f9;
 }
 
@@ -3500,7 +3538,7 @@ sl-tab-panel[active]::part(base) {
     line-height: 1.5;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--glass-border);
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     overflow: hidden;
     min-height: 100px;
     transition: border-color 0.2s ease;
@@ -4225,7 +4263,7 @@ sl-tooltip::part(body) {
 .validation-result {
     margin-top: 0.75rem;
     padding: 0.75rem;
-    border-radius: 8px;
+    border-radius: var(--sl-border-radius-medium);
     font-size: 0.9rem;
     display: flex;
     align-items: flex-start;

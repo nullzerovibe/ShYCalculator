@@ -435,8 +435,82 @@ export const appState = {
         cancelLabel: signal('Cancel'),
         lastActiveElement: signal(null)
     },
-    snippetErrors: signal({ name: '', value: '', icon: '' })
+    snippetErrors: signal({ name: '', value: '', icon: '' }),
+    isSyncingUrl: signal(false)
 };
+
+// --- URL SYNCHRONIZATION (Deep Linking) ---
+const restoreStateFromUrl = () => {
+    const params = new URLSearchParams(globalThis.location.search);
+    const eParam = params.get('e');
+    const vParam = params.get('v');
+
+    if (eParam || vParam) {
+        appState.isSyncingUrl.value = true;
+        try {
+            if (eParam) {
+                appState.input.value = decodeURIComponent(escape(atob(eParam)));
+            }
+            if (vParam) {
+                const decodedVars = JSON.parse(decodeURIComponent(escape(atob(vParam))));
+                if (Array.isArray(decodedVars)) {
+                    appState.variables.value = decodedVars;
+                }
+            }
+            // Trigger calculation if we have input and app is ready
+            if (appState.input.value.trim() && appState.isReady.value) {
+                actions.calculate();
+            }
+            return true;
+        } catch (err) {
+            console.error("Failed to restore URL state", err);
+        } finally {
+            appState.isSyncingUrl.value = false;
+        }
+    }
+    return false;
+};
+
+const syncUrlState = (forcePush = false) => {
+    if (appState.isSyncingUrl.value) return;
+
+    const expr = appState.input.value;
+    const vars = appState.variables.value;
+
+    const url = new URL(globalThis.location);
+
+    if (expr.trim()) {
+        url.searchParams.set('e', btoa(unescape(encodeURIComponent(expr))));
+    } else {
+        url.searchParams.delete('e');
+    }
+
+    if (vars.length > 0) {
+        url.searchParams.set('v', btoa(unescape(encodeURIComponent(JSON.stringify(vars)))));
+    } else {
+        url.searchParams.delete('v');
+    }
+
+    const newUrl = url.toString();
+    if (globalThis.location.href !== newUrl) {
+        if (forcePush) {
+            globalThis.history.pushState(null, '', newUrl);
+        } else {
+            globalThis.history.replaceState(null, '', newUrl);
+        }
+    }
+};
+
+let syncTimer = null;
+const debouncedSyncUrl = (forcePush = false) => {
+    if (syncTimer) clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => syncUrlState(forcePush), 100);
+};
+
+// Handle browser navigation (back/forward)
+globalThis.addEventListener('popstate', (e) => {
+    restoreStateFromUrl();
+});
 
 // --- AUTO-SAVE EFFECTS ---
 effect(() => {
@@ -445,6 +519,14 @@ effect(() => {
 
 effect(() => {
     localStorage.setItem(STORAGE_KEY_SNIPPETS, JSON.stringify(appState.snippets.value));
+});
+
+effect(() => {
+    // Trigger URL sync whenever input or variables change
+    if (!appState.isReady.value) return; // Guard against premature sync during init
+    appState.input.value;
+    appState.variables.value;
+    debouncedSyncUrl();
 });
 
 effect(() => {
@@ -553,14 +635,27 @@ export const actions = {
             }
 
             appState.status.value = 'Engine Ready';
-            appState.isReady.value = true;
-            appState.isLoading.value = false;
-
             const s = appState.settings.value;
             await interop.invokeMethodAsync('ConfigureDates', s.dateFormat, s.culture);
             appState.settingsOriginal.value = JSON.parse(JSON.stringify(s));
 
             loadDocumentation();
+
+            // Handle Deep Linking (URL State)
+            const restored = restoreStateFromUrl();
+            console.log("ShYCalculator: Boot restoration complete.", { restored, input: appState.input.value });
+
+            appState.isReady.value = true;
+            appState.isLoading.value = false;
+
+            // Explicitly trigger calculation on boot if state was restored
+            if (restored && appState.input.value.trim()) {
+                console.log("ShYCalculator: Triggering initial boot calculation...");
+                // Use a small timeout to ensure signals have propagated and engine is fully ready for calls
+                setTimeout(() => {
+                    actions.calculate();
+                }, 50);
+            }
 
         } catch (e) {
             console.error("Initialization Failed", e);
@@ -576,7 +671,10 @@ export const actions = {
     },
 
     calculate: async () => {
-        if (!appState.isReady.value || appState.isCalculating.value) return;
+        if (!appState.isReady.value || appState.isCalculating.value) {
+            console.warn("ShYCalculator: Calculate skipped -", { isReady: appState.isReady.value, isCalculating: appState.isCalculating.value });
+            return;
+        }
         const expr = appState.input.value;
         if (!expr.trim()) return;
 
@@ -658,6 +756,8 @@ export const actions = {
                     const maxLen = parseInt(appState.settings.value.historyLength) || 15;
                     const newHistory = [historyItem, ...filteredHistory].slice(0, maxLen);
                     appState.history.value = newHistory;
+                    // Push to browser history on successful manual calculation
+                    debouncedSyncUrl(true);
                 }
             } else {
                 appState.result.value = "Error";
