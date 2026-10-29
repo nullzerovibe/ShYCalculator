@@ -34,7 +34,10 @@ jobs:
 
     # Publish Library (DLLs - Cross Platform)
     - name: Publish Library
-      run: dotnet publish ShYCalculator/ShYCalculator.csproj -c Release -o output/library
+      # WHY: publish requires a single target framework for multi-targeted projects (NETSDK1129).
+      run: |
+        dotnet publish ShYCalculator/ShYCalculator.csproj -c Release -f net8.0 -o output/library/net8.0
+        dotnet publish ShYCalculator/ShYCalculator.csproj -c Release -f net10.0 -o output/library/net10.0
 
     - name: Upload Library (Cross-Platform)
       uses: actions/upload-artifact@v7
