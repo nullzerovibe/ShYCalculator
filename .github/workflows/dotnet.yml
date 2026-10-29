@@ -19,15 +19,18 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: 10.0.x
+        # WHY: the library and tests multi-target net8.0; its runtime is needed to execute the net8.0 test run.
+        dotnet-version: |
+          8.0.x
+          10.0.x
     - name: Install WASM Workload
       run: dotnet workload install wasm-tools
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -c Release -p:ContinuousIntegrationBuild=true
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build -c Release --verbosity normal
 
     # Publish Library (DLLs - Cross Platform)
     - name: Publish Library
@@ -58,11 +61,11 @@ jobs:
 
     - name: Pack NuGet
       if: startsWith(github.ref, 'refs/tags/')
-      run: dotnet pack ShYCalculator/ShYCalculator.csproj -c Release -o output/nuget
+      run: dotnet pack ShYCalculator/ShYCalculator.csproj -c Release -o output/nuget -p:ContinuousIntegrationBuild=true
 
     - name: Push to NuGet
       if: startsWith(github.ref, 'refs/tags/')
-      run: dotnet nuget push output/nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push output/nuget/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
     - name: Release
       if: startsWith(github.ref, 'refs/tags/')
@@ -72,4 +75,5 @@ jobs:
           ShYCalculator-Lib.zip
           ShYCalculator-Wasm-App.zip
           output/nuget/*.nupkg
+          output/nuget/*.snupkg
         generate_release_notes: true
