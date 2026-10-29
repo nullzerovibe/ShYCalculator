@@ -4,15 +4,15 @@
 //     Facilitates dependency injection and testing mocking.
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
-using ShYCalculator.Functions;
+using ShY.Classes;
+using ShY.Functions;
 
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// Defines the contract for tokenizing expression strings.
 /// </summary>
-public interface IExpressionTokenizer {
+internal interface IExpressionTokenizer {
     /// <summary>
     /// Converts a string expression into a sequence of tokens.
     /// </summary>
@@ -24,7 +24,7 @@ public interface IExpressionTokenizer {
 /// <summary>
 /// Defines the contract for converting infix tokens to RPN (Reverse Polish Notation) using the Shunting-Yard algorithm.
 /// </summary>
-public interface IShuntingYardGenerator {
+internal interface IShuntingYardGenerator {
     /// <summary>
     /// Generates RPN tokens from infix tokens.
     /// </summary>
@@ -36,7 +36,7 @@ public interface IShuntingYardGenerator {
 /// <summary>
 /// Defines the contract for parsing/evaluating RPN tokens to produce a result.
 /// </summary>
-public interface IShuntingYardParser {
+internal interface IShuntingYardParser {
     /// <summary>
     /// Evaluates the RPN tokens against the global scope and context.
     /// </summary>

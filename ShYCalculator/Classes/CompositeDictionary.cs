@@ -4,14 +4,14 @@
 // </summary>
 // -----------------------------------------------------------------------------
 using System.Collections;
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// A lightweight wrapper to combine two dictionaries: Primary (Context) and Fallback (Environment).
 /// </summary>
-internal readonly struct CompositeDictionary(IDictionary<string, Value> primary, IDictionary<string, Value> fallback) : IDictionary<string, Value> {
+internal readonly struct CompositeDictionary(IDictionary<string, Value> primary, IDictionary<string, Value> fallback) : IDictionary<string, Value>, ISpanLookup<Value> {
     private readonly IDictionary<string, Value> _primary = primary;
     private readonly IDictionary<string, Value> _fallback = fallback;
 
@@ -52,6 +52,9 @@ internal readonly struct CompositeDictionary(IDictionary<string, Value> primary,
     public void CopyTo(KeyValuePair<string, Value>[] array, int arrayIndex) => throw new NotSupportedException("CompositeDictionary is read-only");
     public bool Remove(string key) => throw new NotSupportedException("CompositeDictionary is read-only");
     public bool Remove(KeyValuePair<string, Value> item) => throw new NotSupportedException("CompositeDictionary is read-only");
+
+    public bool TryGetValue(ReadOnlySpan<char> key, out Value value) =>
+        SpanLookup.TryGetValue(_primary, key, out value) || SpanLookup.TryGetValue(_fallback, key, out value);
 
     public bool TryGetValue(string key, out Value value) {
         if (_primary.TryGetValue(key, out value)) return true;

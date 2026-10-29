@@ -1,8 +1,8 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Calculator.Operations;
+using ShY.Classes;
+using ShY.Calculator.Operations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ShYCalculator.Test.Integration.Operators;
+namespace ShY.Test.Integration.Operators;
 
 [TestClass]
 public class UT_Bitwise {
@@ -89,7 +89,7 @@ public class UT_Bitwise {
         CheckDoubleResult("80 >> 3", 10);
         CheckDoubleResult("-2 >> 1", -1); // Arithmetic shift preserves sign bit
 
-        // Precedence Checks: + (6) > << (5) > & (4)
+        // Precedence Checks: + (9) > << (8) > & (5)
         CheckDoubleResult("1 + 2 << 1", 6); // (1+2)<<1 = 3<<1 = 6
         CheckDoubleResult("1 << 1 & 1", 0); // (1<<1)&1 = 2&1 = 0
     }

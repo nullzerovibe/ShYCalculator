@@ -4,30 +4,30 @@
 //     Acts as a symbol table and state container for the calculator.
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
-using ShYCalculator.Functions;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Functions.Dates;
-using ShYCalculator.Functions.Text;
-using ShYCalculator.Functions.Logical;
+using ShY.Classes;
+using ShY.Functions;
+using ShY.Functions.Mathematics;
+using ShY.Functions.Dates;
+using ShY.Functions.Text;
+using ShY.Functions.Logical;
 
-namespace ShYCalculator.Calculator;
+namespace ShY.Calculator;
 
 /// <summary>
 /// Manages the execution context (variables, constants, functions).
 /// Acts as a symbol table and state container for the calculator.
 /// </summary>
-public class Environment : IEnvironment {
+public class CalculatorEnvironment : IEnvironment {
     #region Members
     #endregion Members
 
     #region Constructor
     /// <summary>
-    /// Initializes a new instance of the <see cref="Environment"/> class.
+    /// Initializes a new instance of the <see cref="CalculatorEnvironment"/> class.
     /// </summary>
     /// <param name="operatorProvider">Optional provider for operators. if null, uses default registry.</param>
     /// <param name="options">Optional configuration options.</param>
-    public Environment(IOperatorProvider? operatorProvider = null, ShYCalculatorOptions? options = null) {
+    public CalculatorEnvironment(IOperatorProvider? operatorProvider = null, ShYCalculatorOptions? options = null) {
         // Use OperatorRegistry as the default single source of truth
         Operators = operatorProvider?.GetOperators() ?? OperatorRegistry.Operators;
 
@@ -107,7 +107,7 @@ public class Environment : IEnvironment {
         }
 
         if (extensions.HasFlag(FunctionExtensions.Date)) {
-            RegisterFunctions(new CalcDateFunctions(options?.DateFormat, options?.CultureName));
+            RegisterFunctions(new CalcDateFunctions(options?.DateFormat, options?.CultureName, options?.TimeProvider ?? TimeProvider.System));
         }
 
         if (extensions.HasFlag(FunctionExtensions.Text)) {
@@ -143,34 +143,33 @@ public class Environment : IEnvironment {
     /// <param name="extension">The extension to register.</param>
     /// <param name="overrideExistingFunctions">Whether to override existing functions with same names.</param>
     public void RegisterFunctions(ICalcFunctionsExtension extension, bool overrideExistingFunctions = true) {
+        ArgumentNullException.ThrowIfNull(extension);
+
+        List<CalcFunction> functions;
         try {
-            var functions = extension.GetFunctions() ?? throw new CalcEnvironmentException($"Function issue");
-
-            if (!functions.Any()) {
-                throw new CalcEnvironmentException($"There are no Functions present durring RegisterFunctions on {extension.Name}");
-            }
-
-            foreach (var function in functions) {
-                if (function.Name == null) {
-                    throw new CalcEnvironmentException($"Function without Name present durring RegisterFunctions on {extension.Name}");
-                }
-
-                if (Functions.ContainsKey(function.Name)) {
-                    if (!overrideExistingFunctions) {
-                        throw new CalcEnvironmentException($"RegisterFunctions issue. Function with Name {function.Name} already registered. {extension.Name}");
-                    }
-
-                    // Removing old function so we can add the new one
-                    Functions.Remove(function.Name);
-                }
-
-                Functions.Add(function.Name, extension);
-            }
+            functions = extension.GetFunctions()?.ToList() ?? throw new CalcEnvironmentException($"Extension {extension.Name} returned no function list");
         }
-        catch (Exception ex) {
-            throw new CalcEnvironmentException($"Unexpected Exception Registering Functions from {extension.Name}", ex);
+        catch (Exception ex) when (ex is not BaseCalcException) {
+            throw new CalcEnvironmentException($"Extension {extension.Name} failed to provide its functions: {ex.Message}", ex);
         }
 
+        if (functions.Count == 0) {
+            throw new CalcEnvironmentException($"There are no Functions present during RegisterFunctions on {extension.Name}");
+        }
+
+        // WHY: validate everything before mutating, so a conflict never leaves the environment half-registered.
+        foreach (var function in functions) {
+            if (function.Name == null) {
+                throw new CalcEnvironmentException($"Function without Name present during RegisterFunctions on {extension.Name}");
+            }
+            if (!overrideExistingFunctions && Functions.ContainsKey(function.Name)) {
+                throw new CalcEnvironmentException($"RegisterFunctions issue. Function with Name {function.Name} already registered. {extension.Name}");
+            }
+        }
+
+        foreach (var function in functions) {
+            Functions[function.Name!] = extension;
+        }
     }
     #endregion Main Public Methods
 

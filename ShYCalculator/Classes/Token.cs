@@ -4,12 +4,12 @@
 //     Includes TokenKey (Span wrapper), TokenType, and Operator definitions.
 // </summary>
 // -----------------------------------------------------------------------------
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// A lightweight wrapper around ReadOnlyMemory&lt;char&gt; to represent a token's text content.
 /// </summary>
-public readonly struct TokenKey {
+internal readonly struct TokenKey {
     private readonly ReadOnlyMemory<char> _memory;
     /// <summary>Initializes a new instance of the <see cref="TokenKey"/> struct from memory.</summary>
     public TokenKey(ReadOnlyMemory<char> memory) => _memory = memory;
@@ -44,7 +44,7 @@ public readonly struct TokenKey {
 /// <param name="functionInfo">Additional info if this is a function token.</param>
 /// <param name="ternaryBranches">Branches if this is a ternary operator.</param>
 /// <param name="operatorKind">The specific kind of operator.</param>
-public readonly struct Token(long index, TokenKey key, TokenType type, bool negation = false, FunctionInfo? functionInfo = null, TernaryBranches? ternaryBranches = null, OperatorKind operatorKind = OperatorKind.None) {
+internal readonly struct Token(long index, TokenKey key, TokenType type, bool negation = false, FunctionInfo? functionInfo = null, TernaryBranches? ternaryBranches = null, OperatorKind operatorKind = OperatorKind.None) {
     /// <summary>Gets the index of the token.</summary>
     public long Index { get; init; } = index;
     /// <summary>Gets the length of the token.</summary>
@@ -63,6 +63,11 @@ public readonly struct Token(long index, TokenKey key, TokenType type, bool nega
     /// <summary>Gets ternary branch info if this is a ternary operator.</summary>
     public TernaryBranches? TernaryBranches { get; init; } = ternaryBranches;
 
+    // WHY: numeric literals are parsed once at tokenization so compiled expressions never re-parse text.
+    // WARN: a plain double plus flag (not double?) keeps the struct 8 bytes smaller; tokens are copied through several lists.
+    internal double ParsedNumber { get; init; }
+    internal bool HasParsedNumber { get; init; }
+
     /// <summary>Gets the key as a span.</summary>
     public ReadOnlySpan<char> KeySpan => Key.AsSpan();
     /// <summary>Gets the key as a string.</summary>
@@ -73,7 +78,7 @@ public readonly struct Token(long index, TokenKey key, TokenType type, bool nega
 /// <summary>
 /// Contains state information for parsing function arguments.
 /// </summary>
-public class FunctionInfo {
+internal class FunctionInfo {
     /// <summary>Gets or sets the nesting depth.</summary>
     public int Depth { get; set; }
     /// <summary>Gets or sets the argument count parsed so far.</summary>
@@ -85,7 +90,7 @@ public class FunctionInfo {
 /// <summary>
 /// Contains the true/false expression branches for a ternary operator.
 /// </summary>
-public class TernaryBranches {
+internal class TernaryBranches {
     /// <summary>Tokens for the true branch.</summary>
     public IEnumerable<Token> TrueBranch { get; set; } = [];
     /// <summary>Tokens for the false branch.</summary>
@@ -98,7 +103,7 @@ public class TernaryBranches {
 /// <summary>
 /// Enumerates valid token types.
 /// </summary>
-public enum TokenType {
+internal enum TokenType {
     /// <summary>Whitespace characters.</summary>
     WhiteSpace,
     /// <summary>Numeric literal.</summary>
@@ -130,7 +135,7 @@ public enum TokenType {
 /// <summary>
 /// Enumerates specific operator kinds for optimized switching.
 /// </summary>
-public enum OperatorKind : byte {
+internal enum OperatorKind : byte {
     /// <summary>No specific operator.</summary>
     None = 0,
     // Arithmetic

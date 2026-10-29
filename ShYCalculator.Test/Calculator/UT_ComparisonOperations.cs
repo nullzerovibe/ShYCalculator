@@ -1,24 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ShYCalculator.Calculator.Operations;
-using ShYCalculator.Classes;
+using ShY.Calculator.Operations;
+using ShY.Classes;
 
-namespace ShYCalculator.Test.Calculator;
+namespace ShY.Test.Calculator;
 
 [TestClass]
 public class UT_ComparisonOperations {
-    private static void AssertThrows<T>(Action action) where T : Exception {
-        try {
-            action();
-        }
-        catch (T) {
-            return;
-        }
-        catch (Exception ex) {
-            throw new AssertFailedException($"Expected exception of type {typeof(T).Name} but got {ex.GetType().Name}. Message: {ex.Message}");
-        }
-        throw new AssertFailedException($"Expected exception of type {typeof(T).Name} but no exception was thrown");
-    }
-
     #region PerformComparisonOperationOnStrings Tests
 
     [TestMethod]
@@ -150,7 +137,10 @@ public class UT_ComparisonOperations {
         var left = new Value { DataType = DataType.String, Svalue = "test" };
         var right = new Value { DataType = DataType.String, Svalue = "value" };
         var token = new Token { Key = "<", Type = TokenType.Operator, Index = 4, OperatorKind = OperatorKind.Lt };
-        AssertThrows<Exception>(() => ComparisonOperations.PerformComparisonOperationOnStrings(left, right, token));
+        var result = ComparisonOperations.PerformComparisonOperationOnStrings(left, right, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     #endregion
@@ -394,7 +384,10 @@ public class UT_ComparisonOperations {
         var left = new Value { DataType = DataType.Number, Nvalue = 5 };
         var right = new Value { DataType = DataType.Number, Nvalue = 3 };
         var token = new Token { Key = "+", Type = TokenType.Operator, Index = 2, OperatorKind = OperatorKind.Add };
-        AssertThrows<Exception>(() => ComparisonOperations.PerformComparisonOperationOnNumbers(left, right, token));
+        var result = ComparisonOperations.PerformComparisonOperationOnNumbers(left, right, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     #endregion
@@ -530,7 +523,10 @@ public class UT_ComparisonOperations {
         var left = new Value { DataType = DataType.Boolean, Bvalue = true };
         var right = new Value { DataType = DataType.Boolean, Bvalue = false };
         var token = new Token { Key = "<", Type = TokenType.Operator, Index = 3, OperatorKind = OperatorKind.Lt };
-        AssertThrows<Exception>(() => ComparisonOperations.PerformComparisonOperationOnBooleans(left, right, token));
+        var result = ComparisonOperations.PerformComparisonOperationOnBooleans(left, right, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     #endregion
@@ -778,7 +774,10 @@ public class UT_ComparisonOperations {
         var left = new Value { DataType = DataType.Date, Dvalue = new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.Zero) };
         var right = new Value { DataType = DataType.Date, Dvalue = new DateTimeOffset(2024, 1, 2, 0, 0, 0, TimeSpan.Zero) };
         var token = new Token { Key = "+", Type = TokenType.Operator, Index = 10, OperatorKind = OperatorKind.Add };
-        AssertThrows<Exception>(() => ComparisonOperations.PerformComparisonOperationOnDates(left, right, token));
+        var result = ComparisonOperations.PerformComparisonOperationOnDates(left, right, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     #endregion

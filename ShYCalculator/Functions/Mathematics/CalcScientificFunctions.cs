@@ -3,28 +3,26 @@
 //     Implements scientific functions (sin, cos, tan, log, sqrt, pow, etc.).
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
+using ShY.Classes;
 using Math = System.Math;
 using System.Collections.Frozen;
 
-namespace ShYCalculator.Functions.Mathematics;
+namespace ShY.Functions.Mathematics;
 
 internal class CalcScientificFunctions : ICalcFunctionsExtension {
     #region Members
     private readonly FrozenDictionary<string, CalcFunction> m_funcDef;
-    private readonly FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> m_dispatch;
+    private readonly FrozenDictionary<string, FunctionBody> m_dispatch;
     #endregion Members
 
     #region Constructor
     public CalcScientificFunctions() {
-        var funcList = CalcFunctionsHelper.ReadFunctionsConfiguration(Name, typeof(CalcScientificFunctions));
-        CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
-        m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+        m_funcDef = CalcFunctionsHelper.LoadFunctionDefinitions(Name, typeof(CalcScientificFunctions));
         m_dispatch = CreateDispatch();
     }
 
-    private FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> CreateDispatch() {
-        return new Dictionary<string, Func<ReadOnlySpan<Value>, Value>>(StringComparer.OrdinalIgnoreCase) {
+    private FrozenDictionary<string, FunctionBody> CreateDispatch() {
+        return new Dictionary<string, FunctionBody>(StringComparer.OrdinalIgnoreCase) {
             [ScientificFunctionNames.Sin] = p => new Value { Nvalue = Math.Sin(p[0].Nvalue ?? 0), DataType = DataType.Number },
             [ScientificFunctionNames.Cos] = p => new Value { Nvalue = Math.Cos(p[0].Nvalue ?? 0), DataType = DataType.Number },
             [ScientificFunctionNames.Tan] = p => new Value { Nvalue = Math.Tan(p[0].Nvalue ?? 0), DataType = DataType.Number },

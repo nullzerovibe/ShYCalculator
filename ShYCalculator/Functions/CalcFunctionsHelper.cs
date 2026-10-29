@@ -4,14 +4,25 @@
 // </summary>
 // -----------------------------------------------------------------------------
 using System.Text.Json;
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Reflection;
 
-namespace ShYCalculator.Functions;
+namespace ShY.Functions;
 
 internal static class CalcFunctionsHelper {
-    // Cache JsonSerializerOptions instance for reuse
-    private static readonly JsonSerializerOptions CachedJsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
+
+    // WHY: definitions are immutable embedded resources; parsing them per extension instance made every calculator cost ~0.4 ms.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(Type Type, string Name), System.Collections.Frozen.FrozenDictionary<string, CalcFunction>> DefinitionCache = new();
+
+    /// <summary>
+    /// Loads, validates and caches the function definitions of an extension. The returned definitions are shared and must be treated as read-only.
+    /// </summary>
+    internal static System.Collections.Frozen.FrozenDictionary<string, CalcFunction> LoadFunctionDefinitions(string extensionName, Type extensionType) =>
+        DefinitionCache.GetOrAdd((extensionType, extensionName), static key => {
+            var functions = ReadFunctionsConfiguration(key.Name, key.Type);
+            CheckFunctionsConfiguration(functions);
+            return System.Collections.Frozen.FrozenDictionary.ToFrozenDictionary(functions.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase);
+        });
 
     #region Load Json
     // Load Json configuration from embeded resource
@@ -23,7 +34,7 @@ internal static class CalcFunctionsHelper {
             using Stream stream = assembly.GetManifestResourceStream(resourceName) ?? throw new ConfigException($"Unexpected Exception on GetManifestResourceStream reading resource {resourceName}");
             using StreamReader reader = new(stream);
             string jsonFile = reader.ReadToEnd();
-            return JsonSerializer.Deserialize<List<CalcFunction>>(jsonFile, CachedJsonSerializerOptions)!;
+            return JsonSerializer.Deserialize(jsonFile, FunctionDefinitionJsonContext.Default.ListCalcFunction)!;
         }
         catch (Exception ex) {
             throw new ConfigException("Unexpected ReadConfig Exception", ex);
@@ -257,3 +268,8 @@ internal static class CalcFunctionsHelper {
     }
     #endregion Check Function Arguments
 }
+
+// WHY: source-generated metadata keeps definition loading trim- and AOT-safe (the WASM host is trimmed and AOT-compiled).
+[System.Text.Json.Serialization.JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
+[System.Text.Json.Serialization.JsonSerializable(typeof(List<CalcFunction>))]
+internal sealed partial class FunctionDefinitionJsonContext : System.Text.Json.Serialization.JsonSerializerContext;

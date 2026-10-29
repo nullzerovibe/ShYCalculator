@@ -1,21 +1,21 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Collections.Generic;
 using Moq;
-using ShYCalculator.Functions;
+using ShY.Functions;
 using System.Linq;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_Coverage_Deep {
-    private Mock<global::ShYCalculator.Classes.IEnvironment> m_envMock = null!;
-    private global::ShYCalculator.Calculator.ShuntingYardParser m_parser = null!;
+    private Mock<global::ShY.Classes.IEnvironment> m_envMock = null!;
+    private global::ShY.Calculator.ShuntingYardParser m_parser = null!;
 
     [TestInitialize]
     public void TestInitialize() {
-        m_envMock = new Mock<global::ShYCalculator.Classes.IEnvironment>();
-        m_parser = new global::ShYCalculator.Calculator.ShuntingYardParser(m_envMock.Object);
+        m_envMock = new Mock<global::ShY.Classes.IEnvironment>();
+        m_parser = new global::ShY.Calculator.ShuntingYardParser(m_envMock.Object);
     }
 
     [TestMethod]

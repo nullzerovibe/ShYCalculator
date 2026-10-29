@@ -1,4 +1,4 @@
-namespace ShYCalculator.Test.Calculator;
+namespace ShY.Test.Calculator;
 
 [TestClass]
 public class UT_CompileAst {

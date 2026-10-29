@@ -1,6 +1,6 @@
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Test.SyntaxErrors;
+namespace ShY.Test.SyntaxErrors;
 
 [TestClass]
 public class UT_SyntaxErrors_Values {
@@ -45,6 +45,6 @@ public class UT_SyntaxErrors_Values {
         var result = m_shyCalculator.Calculate("\"unterminated string");
 
         Assert.IsFalse(result.Success);
-        Assert.IsTrue(result.Errors.Any(e => e.Code == ErrorCode.UnknownToken || e.Code == ErrorCode.InvalidSyntax));
+        Assert.IsTrue(result.Errors.Any(e => e.Code == ErrorCode.UnterminatedString));
     }
 }

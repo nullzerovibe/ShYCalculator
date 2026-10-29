@@ -1,14 +1,14 @@
 using System.Diagnostics;
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Performance;
+namespace ShY.Performance;
 
 class Program {
     static void Main(string[] _) {
         Console.WriteLine("Initializing Benchmark...");
 
         // initialize Calculator and Environment
-        var env = new global::ShYCalculator.Calculator.Environment();
+        var env = new global::ShY.Calculator.CalculatorEnvironment();
         env.SetVariables(new Dictionary<string, Value> {
             { "$five", new Value() { Nvalue = 5, DataType = DataType.Number } },
             { "$four", new Value() { Nvalue = 4, DataType = DataType.Number } },
@@ -16,7 +16,7 @@ class Program {
             { "$two", new Value() { Nvalue = 2, DataType = DataType.Number } },
             { "$one", new Value() { Nvalue = 1, DataType = DataType.Number } },
         });
-        var calculator = new global::ShYCalculator.ShYCalculator(env);
+        var calculator = new global::ShY.ShYCalculator(env);
 
         // Test expressions (subset of unit tests covering different complexity)
         var expressions = new[] {
@@ -48,7 +48,7 @@ class Program {
         BenchmarkDeepNesting.Run();
     }
 
-    static void RunBenchmark(global::ShYCalculator.ShYCalculator calculator, string[] expressions, int iterations, int runs, string label, string logFile) {
+    static void RunBenchmark(global::ShY.ShYCalculator calculator, string[] expressions, int iterations, int runs, string label, string logFile) {
         string header = $"\n=== Starting Benchmark: {label} ===";
         Console.WriteLine(header);
         File.AppendAllText(logFile, $"\n## {label}\n| Run | Time (ms) | Ops/Sec | Allocations (KB) |\n|---|---|---|---|\n");

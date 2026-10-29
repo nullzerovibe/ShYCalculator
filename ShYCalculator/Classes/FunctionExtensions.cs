@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------------
 using System;
 
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// Flags enum for enabling/disabling function groups.

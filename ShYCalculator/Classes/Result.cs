@@ -7,7 +7,7 @@
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// Represents the base result of an operation, indicating success or failure.
@@ -113,6 +113,10 @@ public class CalculationResult : Result<Value> {
     /// </summary>
     public double? Nvalue => Value.Nvalue;
     /// <summary>
+    /// Gets the numeric value as an exact decimal if available (see <see cref="NumericMode.Decimal"/>).
+    /// </summary>
+    public decimal? Mvalue => Value.Mvalue;
+    /// <summary>
     /// Gets the boolean value if available.
     /// </summary>
     public bool? Bvalue => Value.Bvalue;
@@ -126,13 +130,14 @@ public class CalculationResult : Result<Value> {
     public DateTimeOffset? Dvalue => Value.Dvalue;
 }
 
+// WHY: one 16-byte slot shared by every primitive; presence, decimal-ness and the date offset live outside it
+// so Value stays 32 bytes even though decimal fills the whole slot.
 [StructLayout(LayoutKind.Explicit)]
 internal struct PrimitiveUnion {
     [FieldOffset(0)] public double DoubleVal;
     [FieldOffset(0)] public long DateTimeTicks;
-    [FieldOffset(8)] public short DateTimeOffset;
     [FieldOffset(0)] public bool BoolVal;
-    [FieldOffset(10)] public bool HasValue;
+    [FieldOffset(0)] public decimal DecimalVal;
 }
 
 /// <summary>
@@ -140,6 +145,12 @@ internal struct PrimitiveUnion {
 /// Uses explicit layout to minimize size and allocations (similar to a union).
 /// </summary>
 public readonly struct Value {
+    private const byte HasValueFlag = 1;
+    private const byte DecimalFlag = 2;
+
+    // WARN: decimal.MaxValue as a double rounds up past the real maximum; anything at or above it cannot convert.
+    private const double DecimalMaxAsDouble = 7.9228162514264337593543950335E+28;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Value"/> struct.
     /// </summary>
@@ -152,23 +163,33 @@ public readonly struct Value {
         DataType = dataType;
         _union = default;
         _stringVal = null;
+        _flags = 0;
+        _offsetMinutes = 0;
 
         if (dataType.HasFlag(DataType.Number) && nValue.HasValue) {
-            _union = new PrimitiveUnion { DoubleVal = nValue.Value, HasValue = true };
+            _union = new PrimitiveUnion { DoubleVal = nValue.Value };
+            _flags = HasValueFlag;
         }
         else if (dataType.HasFlag(DataType.Boolean) && bValue.HasValue) {
-            _union = new PrimitiveUnion { BoolVal = bValue.Value, HasValue = true };
+            _union = new PrimitiveUnion { BoolVal = bValue.Value };
+            _flags = HasValueFlag;
         }
         else if (dataType.HasFlag(DataType.Date) && dValue.HasValue) {
-            _union = new PrimitiveUnion {
-                DateTimeTicks = dValue.Value.Ticks,
-                DateTimeOffset = (short)dValue.Value.Offset.TotalMinutes,
-                HasValue = true
-            };
+            _union = new PrimitiveUnion { DateTimeTicks = dValue.Value.Ticks };
+            _offsetMinutes = (short)dValue.Value.Offset.TotalMinutes;
+            _flags = HasValueFlag;
         }
         else if (dataType.HasFlag(DataType.String)) {
             _stringVal = sValue;
         }
+    }
+
+    private Value(decimal value) {
+        DataType = DataType.Number;
+        _union = new PrimitiveUnion { DecimalVal = value };
+        _stringVal = null;
+        _flags = HasValueFlag | DecimalFlag;
+        _offsetMinutes = 0;
     }
 
     /// <summary>
@@ -178,16 +199,49 @@ public readonly struct Value {
 
     private readonly PrimitiveUnion _union;
     private readonly string? _stringVal;
+    private readonly byte _flags;
+    private readonly short _offsetMinutes;
+
+    private bool HasValue => (_flags & HasValueFlag) != 0;
 
     /// <summary>
-    /// Gets the numeric value. Returns null if not a number.
+    /// Gets a value indicating whether this number is stored as an exact <see cref="decimal"/>.
+    /// </summary>
+    public bool IsDecimal => (_flags & DecimalFlag) != 0;
+
+    /// <summary>
+    /// Gets the numeric value as a double. Returns null if not a number. Decimal numbers are converted.
     /// </summary>
     public double? Nvalue {
-        get => (DataType.HasFlag(DataType.Number) && _union.HasValue) ? _union.DoubleVal : null;
+        get {
+            if (!DataType.HasFlag(DataType.Number) || !HasValue) return null;
+            return IsDecimal ? (double)_union.DecimalVal : _union.DoubleVal;
+        }
         init {
             if (value.HasValue) {
                 ThrowIfConflict(DataType.Number);
-                _union = new PrimitiveUnion { DoubleVal = value.Value, HasValue = true };
+                _union = new PrimitiveUnion { DoubleVal = value.Value };
+                _flags = HasValueFlag;
+                if (DataType == 0) DataType = DataType.Number;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the numeric value as an exact decimal (the C# <c>m</c> suffix). Returns null if not a number,
+    /// or if a double value is not finite or outside the decimal range. Double numbers are converted.
+    /// </summary>
+    public decimal? Mvalue {
+        get {
+            if (!DataType.HasFlag(DataType.Number) || !HasValue) return null;
+            if (IsDecimal) return _union.DecimalVal;
+            return TryToDecimal(_union.DoubleVal, out var converted) ? converted : null;
+        }
+        init {
+            if (value.HasValue) {
+                ThrowIfConflict(DataType.Number);
+                _union = new PrimitiveUnion { DecimalVal = value.Value };
+                _flags = HasValueFlag | DecimalFlag;
                 if (DataType == 0) DataType = DataType.Number;
             }
         }
@@ -197,11 +251,12 @@ public readonly struct Value {
     /// Gets the boolean value. Returns null if not a boolean.
     /// </summary>
     public bool? Bvalue {
-        get => (DataType.HasFlag(DataType.Boolean) && _union.HasValue) ? _union.BoolVal : null;
+        get => (DataType.HasFlag(DataType.Boolean) && HasValue) ? _union.BoolVal : null;
         init {
             if (value.HasValue) {
                 ThrowIfConflict(DataType.Boolean);
-                _union = new PrimitiveUnion { BoolVal = value.Value, HasValue = true };
+                _union = new PrimitiveUnion { BoolVal = value.Value };
+                _flags = HasValueFlag;
                 if (DataType == 0) DataType = DataType.Boolean;
             }
         }
@@ -224,19 +279,17 @@ public readonly struct Value {
     /// </summary>
     public DateTimeOffset? Dvalue {
         get {
-            if (DataType.HasFlag(DataType.Date) && _union.HasValue) {
-                return new DateTimeOffset(_union.DateTimeTicks, TimeSpan.FromMinutes(_union.DateTimeOffset));
+            if (DataType.HasFlag(DataType.Date) && HasValue) {
+                return new DateTimeOffset(_union.DateTimeTicks, TimeSpan.FromMinutes(_offsetMinutes));
             }
             return null;
         }
         init {
             if (value.HasValue) {
                 ThrowIfConflict(DataType.Date);
-                _union = new PrimitiveUnion {
-                    DateTimeTicks = value.Value.Ticks,
-                    DateTimeOffset = (short)value.Value.Offset.TotalMinutes,
-                    HasValue = true
-                };
+                _union = new PrimitiveUnion { DateTimeTicks = value.Value.Ticks };
+                _offsetMinutes = (short)value.Value.Offset.TotalMinutes;
+                _flags = HasValueFlag;
                 if (DataType == 0) DataType = DataType.Date;
             }
         }
@@ -246,14 +299,34 @@ public readonly struct Value {
         if (DataType != 0 && !DataType.HasFlag(targetType)) {
             throw new InvalidOperationException($"DataType conflict: Value is already defined as {DataType}, cannot set to {targetType}.");
         }
-        if (_union.HasValue && !DataType.HasFlag(targetType)) {
+        if (HasValue && !DataType.HasFlag(targetType)) {
             throw new InvalidOperationException($"Memory overwrite conflict: Value already has primitive data, cannot set to {targetType}.");
         }
+    }
+
+    internal static bool TryToDecimal(double number, out decimal result) {
+        if (double.IsFinite(number) && Math.Abs(number) < DecimalMaxAsDouble) {
+            try {
+                result = (decimal)number;
+                return true;
+            }
+            catch (OverflowException) {
+            }
+        }
+        result = 0;
+        return false;
     }
 
     // Static helpers for cleaner creation
     /// <summary>Creates a numeric value.</summary>
     public static Value Number(double val) => new(DataType.Number, nValue: val);
+    /// <summary>Creates an exact decimal numeric value.</summary>
+    public static Value Number(decimal val) => new(val);
+    // WHY: int/long convert implicitly to both double and decimal; these overloads keep Number(5) unambiguous and double-backed.
+    /// <summary>Creates a numeric value from an integer.</summary>
+    public static Value Number(int val) => new(DataType.Number, nValue: val);
+    /// <summary>Creates a numeric value from a 64-bit integer.</summary>
+    public static Value Number(long val) => new(DataType.Number, nValue: val);
     /// <summary>Creates a boolean value.</summary>
     public static Value Boolean(bool val) => new(DataType.Boolean, bValue: val);
     /// <summary>Creates a string value.</summary>
@@ -284,7 +357,7 @@ public enum DataType {
 /// Optimized struct result for internal high-performance paths.
 /// </summary>
 /// <typeparam name="T">The type of the value.</typeparam>
-public readonly struct OpResult<T>(bool success, T value, string message, IEnumerable<CalcError>? errors = null) {
+internal readonly struct OpResult<T>(bool success, T value, string message, IEnumerable<CalcError>? errors = null) {
     /// <summary>Gets a value indicating success.</summary>
     public bool Success { get; } = success;
     /// <summary>Gets the error message.</summary>

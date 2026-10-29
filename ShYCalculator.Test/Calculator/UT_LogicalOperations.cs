@@ -1,24 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ShYCalculator.Calculator.Operations;
-using ShYCalculator.Classes;
+using ShY.Calculator.Operations;
+using ShY.Classes;
 
-namespace ShYCalculator.Test.Calculator;
+namespace ShY.Test.Calculator;
 
 [TestClass]
 public class UT_LogicalOperations {
-    private static void AssertThrows<T>(Action action) where T : Exception {
-        try {
-            action();
-        }
-        catch (T) {
-            return;
-        }
-        catch (Exception ex) {
-            throw new AssertFailedException($"Expected exception of type {typeof(T).Name} but got {ex.GetType().Name}. Message: {ex.Message}");
-        }
-        throw new AssertFailedException($"Expected exception of type {typeof(T).Name} but no exception was thrown");
-    }
-
     #region PerformLogicalOperationOnBooleans Tests
 
     [TestMethod]
@@ -199,9 +186,10 @@ public class UT_LogicalOperations {
         var right = new Value { DataType = DataType.Boolean, Bvalue = false };
         var token = new Token { Key = "==", Type = TokenType.Operator, Index = 3, OperatorKind = OperatorKind.Eq };
 
-        AssertThrows<Exception>(() => {
-            LogicalOperations.PerformLogicalOperationOnBooleans(left, right, token);
-        });
+        var result = LogicalOperations.PerformLogicalOperationOnBooleans(left, right, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     #endregion

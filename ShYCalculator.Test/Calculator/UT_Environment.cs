@@ -1,11 +1,11 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions;
-using ShYCalculator.Functions.Dates;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Functions.Text;
-using Environment = ShYCalculator.Calculator.Environment;
+using ShY.Classes;
+using ShY.Functions;
+using ShY.Functions.Dates;
+using ShY.Functions.Mathematics;
+using ShY.Functions.Text;
+using Environment = ShY.Calculator.CalculatorEnvironment;
 
-namespace ShYCalculator.Test.Calculator;
+namespace ShY.Test.Calculator;
 
 [TestClass]
 public class UT_Environment {

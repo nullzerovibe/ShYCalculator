@@ -5,11 +5,11 @@
 // -----------------------------------------------------------------------------
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Calculator;
+namespace ShY.Calculator;
 
-internal readonly struct DoubleDictionaryWrapper(IEnumerable<KeyValuePair<string, double>>? source) : IDictionary<string, Value> {
+internal readonly struct DoubleDictionaryWrapper(IEnumerable<KeyValuePair<string, double>>? source) : IDictionary<string, Value>, ISpanLookup<Value> {
     private readonly IEnumerable<KeyValuePair<string, double>> _source = source ?? Enumerable.Empty<KeyValuePair<string, double>>();
 
     // Read-only implementation
@@ -32,6 +32,17 @@ internal readonly struct DoubleDictionaryWrapper(IEnumerable<KeyValuePair<string
         if (_source is IDictionary<string, double> dict) return dict.ContainsKey(key);
         if (_source is IReadOnlyDictionary<string, double> roDict) return roDict.ContainsKey(key);
         return _source.Any(x => x.Key == key);
+    }
+
+    public bool TryGetValue(ReadOnlySpan<char> key, out Value value) {
+#if NET9_0_OR_GREATER
+        if (_source is Dictionary<string, double> dict && dict.TryGetAlternateLookup<ReadOnlySpan<char>>(out var lookup)) {
+            var found = lookup.TryGetValue(key, out var number);
+            value = found ? Value.Number(number) : default;
+            return found;
+        }
+#endif
+        return TryGetValue(key.ToString(), out value);
     }
 
     public bool TryGetValue(string key, out Value value) {

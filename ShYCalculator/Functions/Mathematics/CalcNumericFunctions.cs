@@ -3,12 +3,12 @@
 //     Implements numeric analysis functions (is_number, is_integer, is_even, is_odd).
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Reflection;
-using ShYCalculator.Functions;
+using ShY.Functions;
 using System.Collections.Frozen;
 
-namespace ShYCalculator.Functions.Mathematics;
+namespace ShY.Functions.Mathematics;
 
 /// <summary>
 /// Implements numeric analysis functions (is_number, is_integer, is_even, is_odd, etc.).
@@ -16,7 +16,7 @@ namespace ShYCalculator.Functions.Mathematics;
 public class CalcNumericFunctions : ICalcFunctionsExtension {
     #region Members
     private readonly FrozenDictionary<string, CalcFunction> m_funcDef;
-    private readonly FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> m_dispatch;
+    private readonly FrozenDictionary<string, FunctionBody> m_dispatch;
     #endregion Members
 
     #region Constructor
@@ -24,14 +24,14 @@ public class CalcNumericFunctions : ICalcFunctionsExtension {
     /// Initializes a new instance of the <see cref="CalcNumericFunctions"/> class.
     /// </summary>
     public CalcNumericFunctions() {
-        var funcList = CalcFunctionsHelper.ReadFunctionsConfiguration(Name, typeof(CalcNumericFunctions));
-        CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
-        m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        m_dispatch = CreateDispatch();
+        m_funcDef = CalcFunctionsHelper.LoadFunctionDefinitions(Name, typeof(CalcNumericFunctions));
+        m_dispatch = SharedDispatch;
     }
 
-    private static FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> CreateDispatch() {
-        return new Dictionary<string, Func<ReadOnlySpan<Value>, Value>>(StringComparer.OrdinalIgnoreCase) {
+    private static readonly FrozenDictionary<string, FunctionBody> SharedDispatch = CreateDispatch();
+
+    private static FrozenDictionary<string, FunctionBody> CreateDispatch() {
+        return new Dictionary<string, FunctionBody>(StringComparer.OrdinalIgnoreCase) {
             [OtherFunctionNames.IsAscending] = p => CompareNumbersOrder(p, NumberCompareMode.Ascending, true, OtherFunctionNames.IsAscending),
             [OtherFunctionNames.IsDesc] = p => CompareNumbersOrder(p, NumberCompareMode.Descending, true, OtherFunctionNames.IsDesc),
             [OtherFunctionNames.IsAscLoose] = p => CompareNumbersOrder(p, NumberCompareMode.Ascending, false, OtherFunctionNames.IsAscLoose),
@@ -185,7 +185,28 @@ public class CalcNumericFunctions : ICalcFunctionsExtension {
         return (int)Math.Log10(1.0 - num3) < -decimals;
     }
 
+    private static bool AnyDecimal(ReadOnlySpan<Value> numbers) {
+        foreach (var number in numbers) {
+            if (number.IsDecimal) return true;
+        }
+        return false;
+    }
+
+    private static decimal[] ExactValues(ReadOnlySpan<Value> numbers) {
+        var values = new decimal[numbers.Length];
+        for (var i = 0; i < numbers.Length; i++) values[i] = numbers[i].Mvalue ?? 0;
+        return values;
+    }
+
     internal static Value Median(ReadOnlySpan<Value> numbers, string _ = "median") {
+        if (AnyDecimal(numbers)) {
+            var exact = ExactValues(numbers);
+            Array.Sort(exact);
+            if (exact.Length == 0) return Value.Number(0m);
+            var middle = exact.Length / 2;
+            return Value.Number(exact.Length % 2 == 1 ? exact[middle] : (exact[middle - 1] + exact[middle]) / 2);
+        }
+
         var values = numbers.ToArray().Select(v => v.Nvalue ?? 0).OrderBy(x => x).ToList();
         if (values.Count == 0) return new Value(DataType.Number, nValue: 0);
 
@@ -199,6 +220,12 @@ public class CalcNumericFunctions : ICalcFunctionsExtension {
     }
 
     internal static Value Mode(ReadOnlySpan<Value> numbers, string _ = "mode") {
+        if (AnyDecimal(numbers)) {
+            var exact = ExactValues(numbers);
+            if (exact.Length == 0) return Value.Number(0m);
+            return Value.Number(exact.GroupBy(x => x).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).First().Key);
+        }
+
         var values = numbers.ToArray().Select(v => v.Nvalue ?? 0).ToList();
         if (values.Count == 0) return new Value(DataType.Number, nValue: 0);
 

@@ -1,9 +1,9 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Text;
-using ShYCalculator.Calculator;
-using Environment = ShYCalculator.Calculator.Environment;
+using ShY.Classes;
+using ShY.Functions.Text;
+using ShY.Calculator;
+using Environment = ShY.Calculator.CalculatorEnvironment;
 
-namespace ShYCalculator.Test.Functions.Calculate;
+namespace ShY.Test.Functions.Calculate;
 
 [TestClass]
 public class UT_CalcStringFunctions_Calculate {

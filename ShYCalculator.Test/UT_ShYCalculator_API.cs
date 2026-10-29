@@ -1,6 +1,6 @@
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_ShYCalculator_API {

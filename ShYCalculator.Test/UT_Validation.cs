@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Test
+namespace ShY.Test
 {
     [TestClass]
     public class UT_Validation

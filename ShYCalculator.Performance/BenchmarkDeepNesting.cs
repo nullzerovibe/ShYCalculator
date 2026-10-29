@@ -1,14 +1,14 @@
 using System.Diagnostics;
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Performance;
+namespace ShY.Performance;
 
 public class BenchmarkDeepNesting {
     public static void Run() {
         Console.WriteLine("\n=== Deep Nesting Benchmark ===");
 
         var options = new ShYCalculatorOptions(); // Default
-        var env = new Calculator.Environment(null, options);
+        var env = new Calculator.CalculatorEnvironment(null, options);
         // Register all needed functions
         env.RegisterFunctions(new Functions.Mathematics.CalcNumericFunctions());
         env.RegisterFunctions(new Functions.Logical.CalcLogicalFunctions());

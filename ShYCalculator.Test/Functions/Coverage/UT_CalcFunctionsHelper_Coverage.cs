@@ -1,9 +1,9 @@
-using ShYCalculator.Functions;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Classes;
+using ShY.Functions;
+using ShY.Functions.Mathematics;
+using ShY.Classes;
 using System.Reflection;
 
-namespace ShYCalculator.Test.Functions.Coverage;
+namespace ShY.Test.Functions.Coverage;
 
 [TestClass]
 public class UT_CalcFunctionsHelper_Coverage {
@@ -25,7 +25,7 @@ public class UT_CalcFunctionsHelper_Coverage {
 
     [TestMethod]
     public void Test_ReadConfig_InvalidResource() {
-        // This should fail because ShYCalculator.Functions.Mathematics.Invalid.json doesn't exist
+        // This should fail because ShY.Functions.Mathematics.Invalid.json doesn't exist
         AssertThrows<ConfigException>(() => CalcFunctionsHelper.ReadFunctionsConfiguration("Invalid", typeof(CalcScientificFunctions)));
     }
 

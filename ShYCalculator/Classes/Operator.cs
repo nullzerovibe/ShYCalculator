@@ -4,7 +4,7 @@
 //     Used by the Shunting-Yard algorithm to determine operation order.
 // </summary>
 // -----------------------------------------------------------------------------
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// Defines the properties of a mathematical operator (Precedence, Associativity).

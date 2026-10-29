@@ -1,10 +1,10 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Text;
+using ShY.Classes;
+using ShY.Functions.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
 
-namespace ShYCalculator.Test.Functions.Internal;
+namespace ShY.Test.Functions.Internal;
 
 [TestClass]
 public class UT_CalcStringFunctions_Internal {

@@ -1,7 +1,7 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Dates;
+using ShY.Classes;
+using ShY.Functions.Dates;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_DateConfiguration {

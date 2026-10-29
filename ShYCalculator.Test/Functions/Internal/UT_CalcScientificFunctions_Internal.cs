@@ -1,10 +1,10 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Mathematics;
+using ShY.Classes;
+using ShY.Functions.Mathematics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 
-namespace ShYCalculator.Test.Functions.Internal;
+namespace ShY.Test.Functions.Internal;
 
 [TestClass]
 public class UT_CalcScientificFunctions_Internal {

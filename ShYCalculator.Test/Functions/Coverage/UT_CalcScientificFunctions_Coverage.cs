@@ -1,14 +1,14 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Functions;
+using ShY.Classes;
+using ShY.Functions.Mathematics;
+using ShY.Functions;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Collections.Frozen;
 
-namespace ShYCalculator.Test.Functions.Coverage;
+namespace ShY.Test.Functions.Coverage;
 
 [TestClass]
 public class UT_CalcScientificFunctions_Coverage {

@@ -1,6 +1,6 @@
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 /// <summary>
 /// Executable Documentation for the "Stateless" (Modern) Mode.

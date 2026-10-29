@@ -4,7 +4,7 @@
 //     Used for specific failure scenarios like missing functions or invalid configuration.
 // </summary>
 // -----------------------------------------------------------------------------
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 internal class CalcEnvironmentException : BaseCalcException {
     public CalcEnvironmentException(string message) : base(message) { }

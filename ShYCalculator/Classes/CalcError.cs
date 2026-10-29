@@ -6,7 +6,7 @@
 // -----------------------------------------------------------------------------
 using System.Text.Json.Serialization;
 
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// Specific error codes identifying the type of failure.
@@ -51,6 +51,12 @@ public enum ErrorCode {
     OperationNotSupported = 305,
     /// <summary>Error in ternary branch execution.</summary>
     TernaryBranchError = 306,
+    /// <summary>Operand has the expected type but no value.</summary>
+    NullValue = 307,
+    /// <summary>Operand is outside the domain of the operation (e.g. negative factorial, non-integer bitwise).</summary>
+    ValueOutOfRange = 308,
+    /// <summary>Expression exceeds a configured limit (length or nesting depth) or the available execution stack.</summary>
+    LimitExceeded = 309,
 }
 
 /// <summary>
@@ -101,6 +107,11 @@ public class CalcError {
         Length = length;
         Severity = severity;
     }
+
+    // WHY: single mapping point so every public boundary reports stack exhaustion as a limit, not an unexpected failure.
+    internal static CalcError FromException(Exception ex) => ex is InsufficientExecutionStackException
+        ? Calculator.ShuntingYardGenerator.StackLimitError()
+        : new CalcError(ErrorCode.UnexpectedException, ex.Message);
 
     /// <summary>Returns a string representation of the error.</summary>
     public override string ToString() {

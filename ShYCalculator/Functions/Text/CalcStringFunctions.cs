@@ -3,11 +3,11 @@
 //     Implements string manipulation functions (len, upper, lower, left, right, mid, etc.).
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Reflection;
 using System.Collections.Frozen;
 
-namespace ShYCalculator.Functions.Text;
+namespace ShY.Functions.Text;
 
 /// <summary>
 /// Implements string manipulation functions (len, upper, lower, left, right, mid, etc.).
@@ -15,7 +15,7 @@ namespace ShYCalculator.Functions.Text;
 public class CalcStringFunctions : ICalcFunctionsExtension {
     #region Members
     private readonly FrozenDictionary<string, CalcFunction> m_funcDef;
-    private readonly FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> m_dispatch;
+    private readonly FrozenDictionary<string, FunctionBody> m_dispatch;
     #endregion Members
 
     #region Constructor
@@ -23,14 +23,14 @@ public class CalcStringFunctions : ICalcFunctionsExtension {
     /// Initializes a new instance of the <see cref="CalcStringFunctions"/> class.
     /// </summary>
     public CalcStringFunctions() {
-        var funcList = CalcFunctionsHelper.ReadFunctionsConfiguration(Name, typeof(CalcStringFunctions));
-        CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
-        m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        m_dispatch = CreateDispatch();
+        m_funcDef = CalcFunctionsHelper.LoadFunctionDefinitions(Name, typeof(CalcStringFunctions));
+        m_dispatch = SharedDispatch;
     }
 
-    private static FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> CreateDispatch() {
-        return new Dictionary<string, Func<ReadOnlySpan<Value>, Value>>(StringComparer.OrdinalIgnoreCase) {
+    private static readonly FrozenDictionary<string, FunctionBody> SharedDispatch = CreateDispatch();
+
+    private static FrozenDictionary<string, FunctionBody> CreateDispatch() {
+        return new Dictionary<string, FunctionBody>(StringComparer.OrdinalIgnoreCase) {
             [FunctionNames.StrContains] = p => Contains(p, StringContainsMode.Contains, FunctionNames.StrContains),
             [FunctionNames.StrStarts] = p => Contains(p, StringContainsMode.StartsWith, FunctionNames.StrStarts),
             [FunctionNames.StrEnds] = p => Contains(p, StringContainsMode.EndsWith, FunctionNames.StrEnds),

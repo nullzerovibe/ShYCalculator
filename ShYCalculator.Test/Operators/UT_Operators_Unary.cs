@@ -1,7 +1,7 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Calculator.Operations;
+using ShY.Classes;
+using ShY.Calculator.Operations;
 
-namespace ShYCalculator.Test.Operators;
+namespace ShY.Test.Operators;
 
 [TestClass]
 public class UT_Operators_Unary {
@@ -174,19 +174,14 @@ public class UT_Operators_Unary {
     }
 
     [TestMethod]
-    public void UnknownUnaryOperator_Throws() {
-        // Test with an unknown unary operator - should throw ShuntingYardParserException
+    public void UnknownUnaryOperator_IsNotSupported() {
         var token = new Token(0, "@", TokenType.UnaryPrefixOperator);
         var operand = new Value { DataType = DataType.Number, Nvalue = 5 };
 
-        bool threw = false;
-        try {
-            UnaryOperations.PerformUnaryOperation(operand, token);
-        }
-        catch (ShuntingYardParserException) {
-            threw = true;
-        }
-        Assert.IsTrue(threw, "Expected ShuntingYardParserException was not thrown");
+        var result = UnaryOperations.PerformUnaryOperation(operand, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     #endregion

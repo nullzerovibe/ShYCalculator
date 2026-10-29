@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace ShYCalculator.Test.Operators;
+namespace ShY.Test.Operators;
 
 [TestClass]
 public class UT_Operators_Logical {

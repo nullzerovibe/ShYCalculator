@@ -1,24 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ShYCalculator.Calculator.Operations;
-using ShYCalculator.Classes;
+using ShY.Calculator.Operations;
+using ShY.Classes;
 
-namespace ShYCalculator.Test.Calculator;
+namespace ShY.Test.Calculator;
 
 [TestClass]
 public class UT_BitwiseOperations {
-    private static void AssertThrows<T>(Action action) where T : Exception {
-        try {
-            action();
-        }
-        catch (T) {
-            return;
-        }
-        catch (Exception ex) {
-            throw new AssertFailedException($"Expected exception of type {typeof(T).Name} but got {ex.GetType().Name}. Message: {ex.Message}");
-        }
-        throw new AssertFailedException($"Expected exception of type {typeof(T).Name} but no exception was thrown");
-    }
-
     #region PerformBitwiseOperationOnNumbers Tests
 
     [TestMethod]
@@ -202,9 +189,10 @@ public class UT_BitwiseOperations {
         var right = new Value { DataType = DataType.Number, Nvalue = 3 };
         var token = new Token { Key = "+", Type = TokenType.Operator, Index = 2, OperatorKind = OperatorKind.Add };
 
-        AssertThrows<Exception>(() => {
-            BitwiseOperations.PerformBitwiseOperationOnNumbers(left, right, token);
-        });
+        var result = BitwiseOperations.PerformBitwiseOperationOnNumbers(left, right, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     #endregion

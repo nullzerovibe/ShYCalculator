@@ -1,0 +1,358 @@
+#nullable enable
+const ShY.Classes.AstNodeType.Binary = "binary" -> string!
+const ShY.Classes.AstNodeType.Constant = "constant" -> string!
+const ShY.Classes.AstNodeType.Error = "error" -> string!
+const ShY.Classes.AstNodeType.Function = "function" -> string!
+const ShY.Classes.AstNodeType.Number = "number" -> string!
+const ShY.Classes.AstNodeType.String = "string" -> string!
+const ShY.Classes.AstNodeType.Ternary = "ternary" -> string!
+const ShY.Classes.AstNodeType.Unary = "unary" -> string!
+const ShY.Classes.AstNodeType.Variable = "variable" -> string!
+override ShY.Classes.CalcError.ToString() -> string!
+override ShY.Functions.CalcFunction.ToString() -> string!
+override ShY.Functions.CalcFunctionArgument.ToString() -> string!
+ShY.Calculator.CalculatorEnvironment
+ShY.Calculator.CalculatorEnvironment.AddConstant(string! key, bool value) -> void
+ShY.Calculator.CalculatorEnvironment.AddConstant(string! key, double value) -> void
+ShY.Calculator.CalculatorEnvironment.AddConstant(string! key, string! value) -> void
+ShY.Calculator.CalculatorEnvironment.AddConstant(string! key, System.DateTimeOffset value) -> void
+ShY.Calculator.CalculatorEnvironment.AddConstants(System.Collections.Generic.Dictionary<string!, bool>! constants) -> void
+ShY.Calculator.CalculatorEnvironment.AddConstants(System.Collections.Generic.Dictionary<string!, double>! constants) -> void
+ShY.Calculator.CalculatorEnvironment.AddConstants(System.Collections.Generic.Dictionary<string!, ShY.Classes.Value>! constants) -> void
+ShY.Calculator.CalculatorEnvironment.AddConstants(System.Collections.Generic.Dictionary<string!, string!>! constants) -> void
+ShY.Calculator.CalculatorEnvironment.AddConstants(System.Collections.Generic.Dictionary<string!, System.DateTimeOffset>! constants) -> void
+ShY.Calculator.CalculatorEnvironment.AddVariable(string! key, bool value) -> void
+ShY.Calculator.CalculatorEnvironment.AddVariable(string! key, double value) -> void
+ShY.Calculator.CalculatorEnvironment.AddVariable(string! key, string! value) -> void
+ShY.Calculator.CalculatorEnvironment.AddVariable(string! key, System.DateTimeOffset value) -> void
+ShY.Calculator.CalculatorEnvironment.AddVariables(System.Collections.Generic.Dictionary<string!, bool>! variables) -> void
+ShY.Calculator.CalculatorEnvironment.AddVariables(System.Collections.Generic.Dictionary<string!, double>! variables) -> void
+ShY.Calculator.CalculatorEnvironment.AddVariables(System.Collections.Generic.Dictionary<string!, string!>! variables) -> void
+ShY.Calculator.CalculatorEnvironment.AddVariables(System.Collections.Generic.Dictionary<string!, System.DateTimeOffset>! variables) -> void
+ShY.Calculator.CalculatorEnvironment.CalculatorEnvironment(ShY.Classes.IOperatorProvider? operatorProvider = null, ShY.Classes.ShYCalculatorOptions? options = null) -> void
+ShY.Calculator.CalculatorEnvironment.Constants.get -> System.Collections.Generic.IDictionary<string!, ShY.Classes.Value>!
+ShY.Calculator.CalculatorEnvironment.Functions.get -> System.Collections.Generic.IDictionary<string!, ShY.Functions.ICalcFunctionsExtension!>!
+ShY.Calculator.CalculatorEnvironment.Operators.get -> System.Collections.Generic.IDictionary<string!, ShY.Classes.Operator>!
+ShY.Calculator.CalculatorEnvironment.RegisterFunctions(ShY.Functions.ICalcFunctionsExtension! extension, bool overrideExistingFunctions = true) -> void
+ShY.Calculator.CalculatorEnvironment.ResetConstants() -> void
+ShY.Calculator.CalculatorEnvironment.ResetEnvironment() -> void
+ShY.Calculator.CalculatorEnvironment.ResetEnvironment(ShY.Classes.ShYCalculatorOptions? options) -> void
+ShY.Calculator.CalculatorEnvironment.ResetFunctions(ShY.Classes.ShYCalculatorOptions? options = null) -> void
+ShY.Calculator.CalculatorEnvironment.ResetVariables() -> void
+ShY.Calculator.CalculatorEnvironment.SetConstants(System.Collections.Generic.Dictionary<string!, ShY.Classes.Value>! constants) -> void
+ShY.Calculator.CalculatorEnvironment.SetVariables(System.Collections.Generic.Dictionary<string!, ShY.Classes.Value>! variables) -> void
+ShY.Calculator.CalculatorEnvironment.Variables.get -> System.Collections.Generic.IDictionary<string!, ShY.Classes.Value>!
+ShY.Classes.Associativity
+ShY.Classes.Associativity.Left = 0 -> ShY.Classes.Associativity
+ShY.Classes.Associativity.Right = 1 -> ShY.Classes.Associativity
+ShY.Classes.AstNode
+ShY.Classes.AstNode.Arguments.get -> System.Collections.Generic.List<ShY.Classes.AstNode!>?
+ShY.Classes.AstNode.Arguments.set -> void
+ShY.Classes.AstNode.AstNode() -> void
+ShY.Classes.AstNode.Condition.get -> ShY.Classes.AstNode?
+ShY.Classes.AstNode.Condition.set -> void
+ShY.Classes.AstNode.EvaluatedValue.get -> object?
+ShY.Classes.AstNode.EvaluatedValue.set -> void
+ShY.Classes.AstNode.FalseBranch.get -> ShY.Classes.AstNode?
+ShY.Classes.AstNode.FalseBranch.set -> void
+ShY.Classes.AstNode.Left.get -> ShY.Classes.AstNode?
+ShY.Classes.AstNode.Left.set -> void
+ShY.Classes.AstNode.Name.get -> string?
+ShY.Classes.AstNode.Name.set -> void
+ShY.Classes.AstNode.Operator.get -> string?
+ShY.Classes.AstNode.Operator.set -> void
+ShY.Classes.AstNode.Range.get -> ShY.Classes.RangeInfo
+ShY.Classes.AstNode.Range.set -> void
+ShY.Classes.AstNode.Right.get -> ShY.Classes.AstNode?
+ShY.Classes.AstNode.Right.set -> void
+ShY.Classes.AstNode.TrueBranch.get -> ShY.Classes.AstNode?
+ShY.Classes.AstNode.TrueBranch.set -> void
+ShY.Classes.AstNode.Type.get -> string!
+ShY.Classes.AstNode.Type.set -> void
+ShY.Classes.AstNode.Value.get -> object?
+ShY.Classes.AstNode.Value.set -> void
+ShY.Classes.AstNodeType
+ShY.Classes.BaseCalcException
+ShY.Classes.BaseCalcException.BaseCalcException(string! message) -> void
+ShY.Classes.BaseCalcException.BaseCalcException(string! message, System.Exception! innerException) -> void
+ShY.Classes.CalcError
+ShY.Classes.CalcError.CalcError() -> void
+ShY.Classes.CalcError.CalcError(ShY.Classes.ErrorCode code, string! message, int startIndex = -1, int length = 0, ShY.Classes.ErrorSeverity severity = ShY.Classes.ErrorSeverity.Error) -> void
+ShY.Classes.CalcError.Code.get -> ShY.Classes.ErrorCode
+ShY.Classes.CalcError.Code.set -> void
+ShY.Classes.CalcError.Length.get -> int
+ShY.Classes.CalcError.Length.set -> void
+ShY.Classes.CalcError.Message.get -> string!
+ShY.Classes.CalcError.Message.set -> void
+ShY.Classes.CalcError.Severity.get -> ShY.Classes.ErrorSeverity
+ShY.Classes.CalcError.Severity.set -> void
+ShY.Classes.CalcError.StartIndex.get -> int
+ShY.Classes.CalcError.StartIndex.set -> void
+ShY.Classes.CalculationResult
+ShY.Classes.CalculationResult.Ast.get -> ShY.Classes.AstNode?
+ShY.Classes.CalculationResult.Ast.set -> void
+ShY.Classes.CalculationResult.Bvalue.get -> bool?
+ShY.Classes.CalculationResult.CalculationResult() -> void
+ShY.Classes.CalculationResult.DataType.get -> ShY.Classes.DataType
+ShY.Classes.CalculationResult.Dvalue.get -> System.DateTimeOffset?
+ShY.Classes.CalculationResult.Expression.get -> string!
+ShY.Classes.CalculationResult.Expression.set -> void
+ShY.Classes.CalculationResult.ExpressionTokens.get -> System.Collections.Generic.IEnumerable<string!>!
+ShY.Classes.CalculationResult.ExpressionTokens.set -> void
+ShY.Classes.CalculationResult.Mvalue.get -> decimal?
+ShY.Classes.CalculationResult.Nvalue.get -> double?
+ShY.Classes.CalculationResult.RPNTokens.get -> System.Collections.Generic.IEnumerable<string!>!
+ShY.Classes.CalculationResult.RPNTokens.set -> void
+ShY.Classes.CalculationResult.Svalue.get -> string?
+ShY.Classes.Category
+ShY.Classes.Category.Arithmetic = 0 -> ShY.Classes.Category
+ShY.Classes.Category.Bitwise = 3 -> ShY.Classes.Category
+ShY.Classes.Category.Comparison = 1 -> ShY.Classes.Category
+ShY.Classes.Category.Grouping = 4 -> ShY.Classes.Category
+ShY.Classes.Category.Logical = 2 -> ShY.Classes.Category
+ShY.Classes.Category.Unary = 5 -> ShY.Classes.Category
+ShY.Classes.ConfigException
+ShY.Classes.ConfigException.ConfigException(string! message) -> void
+ShY.Classes.ConfigException.ConfigException(string! message, System.Exception! innerException) -> void
+ShY.Classes.DataType
+ShY.Classes.DataType.Boolean = 2 -> ShY.Classes.DataType
+ShY.Classes.DataType.Date = 4 -> ShY.Classes.DataType
+ShY.Classes.DataType.Number = 1 -> ShY.Classes.DataType
+ShY.Classes.DataType.String = 8 -> ShY.Classes.DataType
+ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.DivisionByZero = 300 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.FunctionNotFound = 303 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.InvalidExpression = 100 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.InvalidFunctionArgument = 301 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.InvalidNumberFormat = 103 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.InvalidSyntax = 201 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.LimitExceeded = 309 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.MismatchedParentheses = 200 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.MissingOperand = 202 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.NullValue = 307 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.OperationNotSupported = 305 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.TernaryBranchError = 306 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.TypeMismatch = 304 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.UnexpectedException = 1 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.Unknown = 0 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.UnknownToken = 101 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.UnterminatedString = 102 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.ValueOutOfRange = 308 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorCode.VariableNotFound = 302 -> ShY.Classes.ErrorCode
+ShY.Classes.ErrorSeverity
+ShY.Classes.ErrorSeverity.Error = 0 -> ShY.Classes.ErrorSeverity
+ShY.Classes.ErrorSeverity.Info = 2 -> ShY.Classes.ErrorSeverity
+ShY.Classes.ErrorSeverity.Warning = 1 -> ShY.Classes.ErrorSeverity
+ShY.Classes.FunctionException
+ShY.Classes.FunctionException.FunctionException(string! message) -> void
+ShY.Classes.FunctionException.FunctionException(string! message, System.Exception! innerException) -> void
+ShY.Classes.FunctionExtensions
+ShY.Classes.FunctionExtensions.All = ShY.Classes.FunctionExtensions.Mathematics | ShY.Classes.FunctionExtensions.Date | ShY.Classes.FunctionExtensions.Text | ShY.Classes.FunctionExtensions.Logical -> ShY.Classes.FunctionExtensions
+ShY.Classes.FunctionExtensions.Date = 2 -> ShY.Classes.FunctionExtensions
+ShY.Classes.FunctionExtensions.Logical = 8 -> ShY.Classes.FunctionExtensions
+ShY.Classes.FunctionExtensions.Mathematics = 1 -> ShY.Classes.FunctionExtensions
+ShY.Classes.FunctionExtensions.None = 0 -> ShY.Classes.FunctionExtensions
+ShY.Classes.FunctionExtensions.Text = 4 -> ShY.Classes.FunctionExtensions
+ShY.Classes.ICompiledCalculator
+ShY.Classes.ICompiledCalculator.Ast.get -> ShY.Classes.AstNode?
+ShY.Classes.ICompiledCalculator.Calculate() -> ShY.Classes.CalculationResult!
+ShY.Classes.ICompiledCalculator.Calculate(System.Collections.Generic.Dictionary<string!, double>! variables) -> ShY.Classes.CalculationResult!
+ShY.Classes.ICompiledCalculator.Calculate(System.Collections.Generic.IDictionary<string!, ShY.Classes.Value>? contextVariables) -> ShY.Classes.CalculationResult!
+ShY.Classes.ICompiledCalculator.Calculate(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, double>>! variables) -> ShY.Classes.CalculationResult!
+ShY.Classes.ICompiledCalculator.Environment.get -> ShY.Classes.IGlobalScope!
+ShY.Classes.IContext
+ShY.Classes.IContext.AddVariable(string! key, bool value) -> void
+ShY.Classes.IContext.AddVariable(string! key, double value) -> void
+ShY.Classes.IContext.AddVariable(string! key, string! value) -> void
+ShY.Classes.IContext.AddVariable(string! key, System.DateTimeOffset value) -> void
+ShY.Classes.IContext.AddVariables(System.Collections.Generic.Dictionary<string!, bool>! variables) -> void
+ShY.Classes.IContext.AddVariables(System.Collections.Generic.Dictionary<string!, double>! variables) -> void
+ShY.Classes.IContext.AddVariables(System.Collections.Generic.Dictionary<string!, string!>! variables) -> void
+ShY.Classes.IContext.AddVariables(System.Collections.Generic.Dictionary<string!, System.DateTimeOffset>! variables) -> void
+ShY.Classes.IContext.ResetVariables() -> void
+ShY.Classes.IContext.SetVariables(System.Collections.Generic.Dictionary<string!, ShY.Classes.Value>! variables) -> void
+ShY.Classes.IContext.Variables.get -> System.Collections.Generic.IDictionary<string!, ShY.Classes.Value>!
+ShY.Classes.IEnvironment
+ShY.Classes.IEnvironment.ResetConstants() -> void
+ShY.Classes.IEnvironment.ResetEnvironment() -> void
+ShY.Classes.IEnvironment.ResetFunctions(ShY.Classes.ShYCalculatorOptions? options = null) -> void
+ShY.Classes.IGlobalScope
+ShY.Classes.IGlobalScope.AddConstant(string! key, bool value) -> void
+ShY.Classes.IGlobalScope.AddConstant(string! key, double value) -> void
+ShY.Classes.IGlobalScope.AddConstant(string! key, string! value) -> void
+ShY.Classes.IGlobalScope.AddConstant(string! key, System.DateTimeOffset value) -> void
+ShY.Classes.IGlobalScope.AddConstants(System.Collections.Generic.Dictionary<string!, bool>! constants) -> void
+ShY.Classes.IGlobalScope.AddConstants(System.Collections.Generic.Dictionary<string!, double>! constants) -> void
+ShY.Classes.IGlobalScope.AddConstants(System.Collections.Generic.Dictionary<string!, ShY.Classes.Value>! constants) -> void
+ShY.Classes.IGlobalScope.AddConstants(System.Collections.Generic.Dictionary<string!, string!>! constants) -> void
+ShY.Classes.IGlobalScope.AddConstants(System.Collections.Generic.Dictionary<string!, System.DateTimeOffset>! constants) -> void
+ShY.Classes.IGlobalScope.Constants.get -> System.Collections.Generic.IDictionary<string!, ShY.Classes.Value>!
+ShY.Classes.IGlobalScope.Functions.get -> System.Collections.Generic.IDictionary<string!, ShY.Functions.ICalcFunctionsExtension!>!
+ShY.Classes.IGlobalScope.Operators.get -> System.Collections.Generic.IDictionary<string!, ShY.Classes.Operator>!
+ShY.Classes.IGlobalScope.RegisterFunctions(ShY.Functions.ICalcFunctionsExtension! extension, bool overrideExistingFunctions = true) -> void
+ShY.Classes.IOperatorProvider
+ShY.Classes.IOperatorProvider.GetOperators() -> System.Collections.Generic.IDictionary<string!, ShY.Classes.Operator>!
+ShY.Classes.NumericMode
+ShY.Classes.NumericMode.Decimal = 1 -> ShY.Classes.NumericMode
+ShY.Classes.NumericMode.Double = 0 -> ShY.Classes.NumericMode
+ShY.Classes.Operator
+ShY.Classes.Operator.Associativity.get -> ShY.Classes.Associativity
+ShY.Classes.Operator.Associativity.init -> void
+ShY.Classes.Operator.Category.get -> ShY.Classes.Category
+ShY.Classes.Operator.Category.init -> void
+ShY.Classes.Operator.Name.get -> string!
+ShY.Classes.Operator.Name.init -> void
+ShY.Classes.Operator.Operator() -> void
+ShY.Classes.Operator.Precedence.get -> int
+ShY.Classes.Operator.Precedence.init -> void
+ShY.Classes.Operator.ValidDataTypes.get -> ShY.Classes.DataType
+ShY.Classes.Operator.ValidDataTypes.init -> void
+ShY.Classes.RangeInfo
+ShY.Classes.RangeInfo.End.get -> int
+ShY.Classes.RangeInfo.End.set -> void
+ShY.Classes.RangeInfo.RangeInfo() -> void
+ShY.Classes.RangeInfo.Start.get -> int
+ShY.Classes.RangeInfo.Start.set -> void
+ShY.Classes.Result
+ShY.Classes.Result.Errors.get -> System.Collections.Generic.IReadOnlyList<ShY.Classes.CalcError!>!
+ShY.Classes.Result.Errors.set -> void
+ShY.Classes.Result.Message.get -> string!
+ShY.Classes.Result.Message.set -> void
+ShY.Classes.Result.Result() -> void
+ShY.Classes.Result.Success.get -> bool
+ShY.Classes.Result.Success.set -> void
+ShY.Classes.Result<T>
+ShY.Classes.Result<T>.Result() -> void
+ShY.Classes.Result<T>.Value.get -> T?
+ShY.Classes.Result<T>.Value.set -> void
+ShY.Classes.ShYCalculatorOptions
+ShY.Classes.ShYCalculatorOptions.AnyEnabled.get -> bool
+ShY.Classes.ShYCalculatorOptions.CultureName.get -> string?
+ShY.Classes.ShYCalculatorOptions.CultureName.set -> void
+ShY.Classes.ShYCalculatorOptions.DateFormat.get -> string?
+ShY.Classes.ShYCalculatorOptions.DateFormat.set -> void
+ShY.Classes.ShYCalculatorOptions.EnabledExtensions.get -> ShY.Classes.FunctionExtensions
+ShY.Classes.ShYCalculatorOptions.EnabledExtensions.set -> void
+ShY.Classes.ShYCalculatorOptions.MaxExpressionLength.get -> int
+ShY.Classes.ShYCalculatorOptions.MaxExpressionLength.set -> void
+ShY.Classes.ShYCalculatorOptions.MaxNestingDepth.get -> int
+ShY.Classes.ShYCalculatorOptions.MaxNestingDepth.set -> void
+ShY.Classes.ShYCalculatorOptions.NumericMode.get -> ShY.Classes.NumericMode
+ShY.Classes.ShYCalculatorOptions.NumericMode.set -> void
+ShY.Classes.ShYCalculatorOptions.ShYCalculatorOptions() -> void
+ShY.Classes.ShYCalculatorOptions.TimeProvider.get -> System.TimeProvider!
+ShY.Classes.ShYCalculatorOptions.TimeProvider.set -> void
+ShY.Classes.Value
+ShY.Classes.Value.Bvalue.get -> bool?
+ShY.Classes.Value.Bvalue.init -> void
+ShY.Classes.Value.DataType.get -> ShY.Classes.DataType
+ShY.Classes.Value.DataType.init -> void
+ShY.Classes.Value.Dvalue.get -> System.DateTimeOffset?
+ShY.Classes.Value.Dvalue.init -> void
+ShY.Classes.Value.IsDecimal.get -> bool
+ShY.Classes.Value.Mvalue.get -> decimal?
+ShY.Classes.Value.Mvalue.init -> void
+ShY.Classes.Value.Nvalue.get -> double?
+ShY.Classes.Value.Nvalue.init -> void
+ShY.Classes.Value.Svalue.get -> string?
+ShY.Classes.Value.Svalue.init -> void
+ShY.Classes.Value.Value() -> void
+ShY.Classes.Value.Value(ShY.Classes.DataType dataType, double? nValue = null, bool? bValue = null, string? sValue = null, System.DateTimeOffset? dValue = null) -> void
+ShY.DependencyInjection.ServiceCollectionExtensions
+ShY.Functions.CalcFunction
+ShY.Functions.CalcFunction.Arguments.get -> System.Collections.Generic.List<ShY.Functions.CalcFunctionArgument!>?
+ShY.Functions.CalcFunction.Arguments.set -> void
+ShY.Functions.CalcFunction.CalcFunction() -> void
+ShY.Functions.CalcFunction.Description.get -> string?
+ShY.Functions.CalcFunction.Description.set -> void
+ShY.Functions.CalcFunction.Examples.get -> System.Collections.Generic.List<string!>?
+ShY.Functions.CalcFunction.Examples.set -> void
+ShY.Functions.CalcFunction.Name.get -> string?
+ShY.Functions.CalcFunction.Name.set -> void
+ShY.Functions.CalcFunctionArgument
+ShY.Functions.CalcFunctionArgument.Arguments.get -> System.Collections.Generic.List<ShY.Functions.CalcFunctionArgument!>?
+ShY.Functions.CalcFunctionArgument.Arguments.set -> void
+ShY.Functions.CalcFunctionArgument.CalcFunctionArgument() -> void
+ShY.Functions.CalcFunctionArgument.Description.get -> string?
+ShY.Functions.CalcFunctionArgument.Description.set -> void
+ShY.Functions.CalcFunctionArgument.Max.get -> int?
+ShY.Functions.CalcFunctionArgument.Max.set -> void
+ShY.Functions.CalcFunctionArgument.Min.get -> int?
+ShY.Functions.CalcFunctionArgument.Min.set -> void
+ShY.Functions.CalcFunctionArgument.Optional.get -> bool
+ShY.Functions.CalcFunctionArgument.Optional.set -> void
+ShY.Functions.CalcFunctionArgument.Type.get -> string?
+ShY.Functions.CalcFunctionArgument.Type.set -> void
+ShY.Functions.Dates.CalcDateFunctions
+ShY.Functions.Dates.CalcDateFunctions.CalcDateFunctions() -> void
+ShY.Functions.Dates.CalcDateFunctions.CalcDateFunctions(string? stringDateFormat, string? cultureName) -> void
+ShY.Functions.Dates.CalcDateFunctions.CalcDateFunctions(string? stringDateFormat, string? cultureName, System.TimeProvider! timeProvider) -> void
+ShY.Functions.Dates.CalcDateFunctions.ExecuteFunction(string! functionName, System.ReadOnlySpan<ShY.Classes.Value> parameters) -> ShY.Classes.Value
+ShY.Functions.Dates.CalcDateFunctions.GetFunctions() -> System.Collections.Generic.IEnumerable<ShY.Functions.CalcFunction!>!
+ShY.Functions.Dates.CalcDateFunctions.Name.get -> string!
+ShY.Functions.ICalcFunctionsExtension
+ShY.Functions.ICalcFunctionsExtension.ExecuteFunction(string! functionName, System.ReadOnlySpan<ShY.Classes.Value> parameters) -> ShY.Classes.Value
+ShY.Functions.ICalcFunctionsExtension.GetFunctions() -> System.Collections.Generic.IEnumerable<ShY.Functions.CalcFunction!>!
+ShY.Functions.ICalcFunctionsExtension.Name.get -> string!
+ShY.Functions.Logical.CalcLogicalFunctions
+ShY.Functions.Logical.CalcLogicalFunctions.CalcLogicalFunctions() -> void
+ShY.Functions.Logical.CalcLogicalFunctions.ExecuteFunction(string! functionName, System.ReadOnlySpan<ShY.Classes.Value> parameters) -> ShY.Classes.Value
+ShY.Functions.Logical.CalcLogicalFunctions.GetFunctions() -> System.Collections.Generic.IEnumerable<ShY.Functions.CalcFunction!>!
+ShY.Functions.Logical.CalcLogicalFunctions.Name.get -> string!
+ShY.Functions.Mathematics.CalcArithmeticalFunctions
+ShY.Functions.Mathematics.CalcArithmeticalFunctions.CalcArithmeticalFunctions() -> void
+ShY.Functions.Mathematics.CalcArithmeticalFunctions.ExecuteFunction(string! functionName, System.ReadOnlySpan<ShY.Classes.Value> parameters) -> ShY.Classes.Value
+ShY.Functions.Mathematics.CalcArithmeticalFunctions.GetFunctions() -> System.Collections.Generic.IEnumerable<ShY.Functions.CalcFunction!>!
+ShY.Functions.Mathematics.CalcArithmeticalFunctions.Name.get -> string!
+ShY.Functions.Mathematics.CalcNumericFunctions
+ShY.Functions.Mathematics.CalcNumericFunctions.CalcNumericFunctions() -> void
+ShY.Functions.Mathematics.CalcNumericFunctions.ExecuteFunction(string! functionName, System.ReadOnlySpan<ShY.Classes.Value> parameters) -> ShY.Classes.Value
+ShY.Functions.Mathematics.CalcNumericFunctions.GetFunctions() -> System.Collections.Generic.IEnumerable<ShY.Functions.CalcFunction!>!
+ShY.Functions.Mathematics.CalcNumericFunctions.Name.get -> string!
+ShY.Functions.Text.CalcStringFunctions
+ShY.Functions.Text.CalcStringFunctions.CalcStringFunctions() -> void
+ShY.Functions.Text.CalcStringFunctions.ExecuteFunction(string! functionName, System.ReadOnlySpan<ShY.Classes.Value> parameters) -> ShY.Classes.Value
+ShY.Functions.Text.CalcStringFunctions.GetFunctions() -> System.Collections.Generic.IEnumerable<ShY.Functions.CalcFunction!>!
+ShY.Functions.Text.CalcStringFunctions.Name.get -> string!
+ShY.ShYCalculator
+ShY.ShYCalculator.Calculate(string! expression) -> ShY.Classes.CalculationResult!
+ShY.ShYCalculator.Calculate(string! expression, bool includeAst) -> ShY.Classes.CalculationResult!
+ShY.ShYCalculator.Calculate(string! expression, System.Collections.Generic.Dictionary<string!, double>! variables) -> ShY.Classes.CalculationResult!
+ShY.ShYCalculator.Calculate(string! expression, System.Collections.Generic.Dictionary<string!, double>! variables, bool includeAst) -> ShY.Classes.CalculationResult!
+ShY.ShYCalculator.Calculate(string! expression, System.Collections.Generic.IDictionary<string!, ShY.Classes.Value>? contextVariables) -> ShY.Classes.CalculationResult!
+ShY.ShYCalculator.Calculate(string! expression, System.Collections.Generic.IDictionary<string!, ShY.Classes.Value>? contextVariables, bool includeAst) -> ShY.Classes.CalculationResult!
+ShY.ShYCalculator.Calculate(string! expression, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, double>>! variables) -> ShY.Classes.CalculationResult!
+ShY.ShYCalculator.Calculate(string! expression, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, double>>! variables, bool includeAst) -> ShY.Classes.CalculationResult!
+ShY.ShYCalculator.Environment.get -> ShY.Classes.IEnvironment!
+ShY.ShYCalculator.GetAst(string! expression, System.Collections.Generic.IDictionary<string!, ShY.Classes.Value>? contextVariables = null) -> ShY.Classes.Result<ShY.Classes.AstNode!>!
+ShY.ShYCalculator.Options.get -> ShY.Classes.ShYCalculatorOptions!
+ShY.ShYCalculator.ShYCalculator(ShY.Classes.IEnvironment? environment = null, ShY.Classes.ShYCalculatorOptions? options = null) -> void
+ShY.ShYCalculatorBuilder
+ShY.ShYCalculatorBuilder.Build() -> ShY.ShYCalculator!
+ShY.ShYCalculatorBuilder.ShYCalculatorBuilder() -> void
+ShY.ShYCalculatorBuilder.WithAllExtensions() -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithConstant(string! name, bool value) -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithConstant(string! name, double value) -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithConstant(string! name, string! value) -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithConstant(string! name, System.DateTimeOffset value) -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithDate() -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithFunction(ShY.Functions.ICalcFunctionsExtension! extension) -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithLogic() -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithMathematics() -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithOptions(System.Action<ShY.Classes.ShYCalculatorOptions!>! configure) -> ShY.ShYCalculatorBuilder!
+ShY.ShYCalculatorBuilder.WithText() -> ShY.ShYCalculatorBuilder!
+static ShY.Classes.Result.Fail(string! message, System.Collections.Generic.IEnumerable<ShY.Classes.CalcError!>? errors = null) -> ShY.Classes.Result!
+static ShY.Classes.Result.Ok() -> ShY.Classes.Result!
+static ShY.Classes.Result<T>.Fail(string! message, System.Collections.Generic.IEnumerable<ShY.Classes.CalcError!>? errors = null) -> ShY.Classes.Result<T>!
+static ShY.Classes.Result<T>.Ok(T value) -> ShY.Classes.Result<T>!
+static ShY.Classes.Value.Boolean(bool val) -> ShY.Classes.Value
+static ShY.Classes.Value.Date(System.DateTimeOffset val) -> ShY.Classes.Value
+static ShY.Classes.Value.Null(ShY.Classes.DataType type) -> ShY.Classes.Value
+static ShY.Classes.Value.Number(decimal val) -> ShY.Classes.Value
+static ShY.Classes.Value.Number(double val) -> ShY.Classes.Value
+static ShY.Classes.Value.Number(int val) -> ShY.Classes.Value
+static ShY.Classes.Value.Number(long val) -> ShY.Classes.Value
+static ShY.Classes.Value.String(string! val) -> ShY.Classes.Value
+static ShY.DependencyInjection.ServiceCollectionExtensions.AddShYCalculator(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<ShY.ShYCalculatorBuilder!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static ShY.ShYCalculator.Compile(string! expression, ShY.Classes.IGlobalScope? globalScope = null, ShY.Classes.ShYCalculatorOptions? options = null, bool includeAst = false) -> ShY.Classes.Result<ShY.Classes.ICompiledCalculator!>!
+ShY.Functions.Dates.CalcDateFunctions.CalcDateFunctions(string? stringDateFormat) -> void

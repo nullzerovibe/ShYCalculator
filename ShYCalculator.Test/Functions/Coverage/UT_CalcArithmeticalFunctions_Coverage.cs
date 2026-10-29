@@ -1,11 +1,11 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Functions;
+using ShY.Classes;
+using ShY.Functions.Mathematics;
+using ShY.Functions;
 using System.Reflection;
 using System.Collections.Frozen;
-using Environment = ShYCalculator.Calculator.Environment;
+using Environment = ShY.Calculator.CalculatorEnvironment;
 
-namespace ShYCalculator.Test.Functions.Coverage;
+namespace ShY.Test.Functions.Coverage;
 
 [TestClass]
 public class UT_CalcArithmeticalFunctions_Coverage {

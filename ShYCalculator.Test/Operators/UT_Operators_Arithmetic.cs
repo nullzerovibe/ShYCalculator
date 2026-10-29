@@ -1,8 +1,8 @@
-﻿using ShYCalculator.Classes;
+﻿using ShY.Classes;
 
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
 
-namespace ShYCalculator.Test.Operators;
+namespace ShY.Test.Operators;
 
 [TestClass]
 public class UT_Operators_Arithmetic {

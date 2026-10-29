@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
-using ShYCalculator.Classes;
-using ShYCalculator.DependencyInjection;
+using ShY.Classes;
+using ShY.DependencyInjection;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_07_DependencyInjection {
@@ -28,10 +28,8 @@ public class UT_07_DependencyInjection {
         // Verify Math functions are registered
         Assert.IsTrue(globalScope.Functions.ContainsKey("sin"));
 
-        // Verify Tokenizer resolution (via internal factory)
-        // IExpressionTokenizer is public, so we can resolve it
-        var tokenizer = provider.GetService<IExpressionTokenizer>();
-        Assert.IsNotNull(tokenizer);
+        Assert.IsNotNull(provider.GetService<ShYCalculatorOptions>());
+        Assert.AreEqual(1, calculator.Calculate("sin(pi / 2)").Nvalue);
     }
 
     [TestMethod]

@@ -3,9 +3,12 @@
 //     Interface for defining groupings of custom calculator functions (e.g., Math, Date, Text).
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Functions;
+namespace ShY.Functions;
+
+// WHY: Func<ReadOnlySpan<Value>, Value> needs 'allows ref struct' (.NET 9+); a named delegate keeps net8.0 support.
+internal delegate Value FunctionBody(ReadOnlySpan<Value> parameters);
 
 /// <summary>
 /// Interface for defining groupings of custom calculator functions (e.g., Math, Date, Text).

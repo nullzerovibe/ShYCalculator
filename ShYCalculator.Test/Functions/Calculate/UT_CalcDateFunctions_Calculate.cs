@@ -1,8 +1,8 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Dates;
-using Environment = ShYCalculator.Calculator.Environment;
+using ShY.Classes;
+using ShY.Functions.Dates;
+using Environment = ShY.Calculator.CalculatorEnvironment;
 
-namespace ShYCalculator.Test.Functions.Calculate;
+namespace ShY.Test.Functions.Calculate;
 
 [TestClass]
 public class UT_CalcDateFunctions_Calculate {

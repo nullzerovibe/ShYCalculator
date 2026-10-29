@@ -1,6 +1,6 @@
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Test.Operators;
+namespace ShY.Test.Operators;
 
 [TestClass]
 public class UT_Operators_Ternary {

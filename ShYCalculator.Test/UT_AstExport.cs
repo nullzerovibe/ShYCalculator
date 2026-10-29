@@ -1,8 +1,8 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Text.Json;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_AstExport {

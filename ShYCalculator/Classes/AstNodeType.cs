@@ -1,4 +1,4 @@
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// Defines standard constants for AST node types to ensure consistency and avoid direct string usage.

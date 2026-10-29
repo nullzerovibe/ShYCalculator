@@ -1,4 +1,4 @@
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_Scenarios {

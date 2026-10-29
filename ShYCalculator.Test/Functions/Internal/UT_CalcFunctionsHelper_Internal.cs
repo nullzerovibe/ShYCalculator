@@ -1,11 +1,11 @@
-using ShYCalculator.Functions;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Text;
-using ShYCalculator.Functions.Dates;
+using ShY.Functions;
+using ShY.Functions.Mathematics;
+using ShY.Classes;
+using ShY.Functions.Text;
+using ShY.Functions.Dates;
 
 
-namespace ShYCalculator.Test.Functions.Internal;
+namespace ShY.Test.Functions.Internal;
 
 [TestClass]
 public class UT_CalcFunctionsHelper_Internal {

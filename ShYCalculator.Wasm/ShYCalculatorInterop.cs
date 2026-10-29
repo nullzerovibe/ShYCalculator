@@ -1,7 +1,7 @@
 using Microsoft.JSInterop;
-using ShYCalculator.Classes;
+using ShY.Classes;
 
-namespace ShYCalculator.Wasm;
+namespace ShY.Wasm;
 
 /// <summary>
 /// Exposes ShYCalculator functionality to WebAssembly via JS Interop.
@@ -14,7 +14,7 @@ public class ShYCalculatorInterop {
     /// </summary>
     /// <returns>A pong message from the instance.</returns>
     [JSInvokable]
-    public string Ping() => "Pong from ShYCalculator.Wasm Instance";
+    public string Ping() => "Pong from ShY.Wasm Instance";
 
     /// <summary>
     /// Configures the date format and culture for the calculator.

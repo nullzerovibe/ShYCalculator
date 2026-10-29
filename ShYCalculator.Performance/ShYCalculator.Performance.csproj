@@ -5,6 +5,7 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <RootNamespace>ShY.Performance</RootNamespace>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);1591</NoWarn>

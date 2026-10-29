@@ -4,10 +4,10 @@
 //     Optimizes performance by avoiding reparsing of the same formula.
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Calculator;
-using ShYCalculator.Classes;
+using ShY.Calculator;
+using ShY.Classes;
 
-namespace ShYCalculator;
+namespace ShY;
 
 internal class ShYCompiledCalculator : ICompiledCalculator {
     #region Members
@@ -20,6 +20,8 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
 
     private string m_expression;
     private bool m_compiled;
+    private readonly ShYCalculatorOptions? m_options;
+    private CalcError? m_compileError;
 
     private IEnumerable<Token> m_cachedExpressionTokens = [];
     private IEnumerable<Token> m_cachedRPNTokens = [];
@@ -27,12 +29,13 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
 
     #region Constructor
     internal ShYCompiledCalculator(IGlobalScope? globalScope = null, ShYCalculatorOptions? options = null) {
+        m_options = options;
         // If globalScope is null, create new Environment (which is IGlobalScope)
-        Environment = globalScope ?? new Calculator.Environment(null, options);
+        Environment = globalScope ?? new Calculator.CalculatorEnvironment(null, options);
 
-        m_expTokenizer = new ExpressionTokenizer(Environment);
-        m_shyGenerator = new ShuntingYardGenerator(Environment);
-        m_shyParser = new ShuntingYardParser(Environment);
+        m_expTokenizer = new ExpressionTokenizer(Environment, options);
+        m_shyGenerator = new ShuntingYardGenerator(Environment, options);
+        m_shyParser = new ShuntingYardParser(Environment, options);
         m_tokenizerResult = default;
         m_generatorResult = default;
         m_expression = "";
@@ -45,8 +48,9 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
 
     public string Message {
         get {
-            if (!m_tokenizerResult.Success) return m_tokenizerResult.Message;
-            if (!m_generatorResult.Success) return m_generatorResult.Message;
+            if (m_compileError != null) return m_compileError.Message;
+            if (!m_tokenizerResult.Success) return m_tokenizerResult.Message ?? "";
+            if (!m_generatorResult.Success) return m_generatorResult.Message ?? "";
             return "";
         }
     }
@@ -56,8 +60,9 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
 
     public IEnumerable<CalcError> Errors {
         get {
-            if (!m_tokenizerResult.Success) return m_tokenizerResult.Errors;
-            if (!m_generatorResult.Success) return m_generatorResult.Errors;
+            if (m_compileError != null) return [m_compileError];
+            if (!m_tokenizerResult.Success) return m_tokenizerResult.Errors ?? [];
+            if (!m_generatorResult.Success) return m_generatorResult.Errors ?? [];
             return [];
         }
     }
@@ -67,6 +72,7 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
     public bool Compile(string expression, bool includeAst = false) {
         m_expression = expression;
         m_compiled = false;
+        m_compileError = null;
         m_tokenizerResult = default;
         m_generatorResult = default;
 
@@ -84,28 +90,14 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
             m_cachedExpressionTokens = m_tokenizerResult.Value!;
             m_cachedRPNTokens = m_generatorResult.Value!;
 
-            if (includeAst) {
-                var builder = new AstBuilder(Environment);
-                // We don't have runtime variables at compile time, so we pass null for context
-                // This means the AST won't have fully evaluated values for variables, which is expected
-                Ast = builder.Build(m_generatorResult.Value!, null);
-                
-                if (Ast.Type == "error") {
-                     // Should we fail compilation if AST fails? 
-                     // The generator succeeded, but AST builder found an issue (e.g. stack mismatch not caught by generator?)
-                     // For now, let's treat it as a success but AST indicates error
-                }
-            } else {
-                Ast = null;
-            }
+            // WHY: no runtime variables exist at compile time, so variable nodes are annotated with null.
+            Ast = includeAst ? new AstBuilder(Environment, m_options).Build(m_generatorResult.Value!, null) : null;
 
             m_compiled = true;
             return true;
         }
-        catch (BaseCalcException) {
-            return false;
-        }
-        catch (Exception) {
+        catch (Exception ex) {
+            m_compileError = CalcError.FromException(ex);
             return false;
         }
     }
@@ -115,6 +107,7 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
         m_generatorResult = default;
         m_expression = "";
         m_compiled = false;
+        m_compileError = null;
         Ast = null;
     }
 
@@ -137,6 +130,7 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
                 return new CalculationResult() {
                     Success = false,
                     Message = "Expression not compiled or compilation failed.",
+                    Errors = [new CalcError(ErrorCode.InvalidExpression, "Expression not compiled or compilation failed.")],
                     Expression = m_expression,
                 };
             }
@@ -165,17 +159,12 @@ internal class ShYCompiledCalculator : ICompiledCalculator {
                 Value = evaluationResult.Value
             };
         }
-        catch (BaseCalcException ex) {
-            return new CalculationResult() {
-                Success = false,
-                Message = ex.Message,
-                Expression = m_expression,
-            };
-        }
         catch (Exception ex) {
+            var error = CalcError.FromException(ex);
             return new CalculationResult() {
                 Success = false,
-                Message = ex.Message,
+                Message = error.Message,
+                Errors = [error],
                 Expression = m_expression,
             };
         }

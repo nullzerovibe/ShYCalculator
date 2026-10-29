@@ -14,29 +14,34 @@
 //     - Nested functions/ternary operators
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Collections.Frozen;
+using System.Runtime.CompilerServices;
 
-namespace ShYCalculator.Calculator;
+namespace ShY.Calculator;
 
-internal static class GeneratorExtensions {
-    public static int ToInt(this long value) => (int)value;
-}
-
-internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGenerator {
+internal class ShuntingYardGenerator(IGlobalScope globalScope, ShYCalculatorOptions? options = null) : IShuntingYardGenerator {
     #region Members
     private readonly IGlobalScope m_globalScope = globalScope;
+    private readonly int m_maxDepth = options?.MaxNestingDepth ?? ShYCalculatorOptions.DefaultMaxNestingDepth;
 
     #endregion Members
-    #region Constructor
-    #endregion Constructor
 
     #region Methods
     public OpResult<IEnumerable<Token>> Generate(IEnumerable<Token> expressionTokens) {
         try {
             var expressionTokenPosition = 0;
-            var result = GenerateRecursive(expressionTokens, ref expressionTokenPosition);
-            
+            var tokensList = expressionTokens as IList<Token> ?? [.. expressionTokens];
+            var result = GenerateRecursive(tokensList, ref expressionTokenPosition);
+
+            // WHY: the recursive pass stops at an unmatched ')' or top-level ','; anything left over would otherwise be silently ignored.
+            if (result.Success && expressionTokenPosition < tokensList.Count) {
+                var leftover = tokensList[expressionTokenPosition];
+                return leftover.Type == TokenType.ClosingParenthesis
+                    ? OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.MismatchedParentheses, "Unexpected ')' without matching '('", (int)leftover.Index, leftover.Length))
+                    : OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, $"Unexpected '{leftover.KeyString}'", (int)leftover.Index, leftover.Length));
+            }
+
             if (result.Success) {
                 // ToList() is needed if GenerateRecursive returns IEnumerable that isn't a list, 
                 // but implementation uses List<Token> for rpnOutput so checking cast is better.
@@ -46,24 +51,36 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                 if (error != null) {
                     return OpResult<IEnumerable<Token>>.Fail(error);
                 }
+
+                var lowered = LowerShortCircuit(rpnList);
+                if (m_maxDepth > 0 && FindTooDeep(lowered, 0, m_maxDepth) is { } tooDeep) {
+                    return OpResult<IEnumerable<Token>>.Fail(NestingLimitError(tooDeep));
+                }
+
+                return OpResult<IEnumerable<Token>>.Ok(lowered);
             }
 
             return result;
+        }
+        catch (InsufficientExecutionStackException) {
+            return OpResult<IEnumerable<Token>>.Fail(StackLimitError());
         }
         catch (ShuntingYardGeneratorException ex) {
             return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.UnexpectedException, "Unexpected exception while generating RPN. " + ex.Message));
         }
     }
 
-    private OpResult<IEnumerable<Token>> GenerateRecursive(IEnumerable<Token> expressionTokens, ref int expressionTokenPosition, string[]? breakTokens = null, int ternaryDepth = 0) {
+    private OpResult<IEnumerable<Token>> GenerateRecursive(IEnumerable<Token> expressionTokens, ref int expressionTokenPosition, string[]? breakTokens = null, int depth = 0) {
+        RuntimeHelpers.EnsureSufficientExecutionStack();
         var currentFuncDepth = 0;
-        var funcStack = new Dictionary<int, Token>();
-
-        var rpnOutput = new List<Token>(expressionTokens is ICollection<Token> coll ? coll.Count : 32);
-        var operatorStack = new Stack<Token>();
-        var stop = false;
+        Dictionary<int, Token>? funcStack = null;
 
         var tokensList = expressionTokens as IList<Token> ?? [.. expressionTokens];
+        // WHY: branch recursions only consume a slice; sizing them to the whole expression over-allocates per branch.
+        var rpnOutput = new List<Token>(breakTokens == null ? tokensList.Count : 8);
+        var operatorStack = new Stack<Token>();
+        var openParentheses = 0;
+        var stop = false;
 
         while (expressionTokenPosition < tokensList.Count && !stop) {
             var expressionToken = tokensList[expressionTokenPosition];
@@ -71,10 +88,7 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
 
             // Stop conditions for recursive calls (Ternary Operator)
             if (breakTokens != null && expressionToken.Type != TokenType.Operator) {
-                // Ensure we don't break if we are inside parentheses
-                bool insideParentheses = operatorStack.Any(t => t.Type == TokenType.OpeningParenthesis);
-
-                if (!insideParentheses) {
+                if (openParentheses == 0) {
                     foreach (var bt in breakTokens) {
                         if (keySpan.SequenceEqual(bt.AsSpan())) {
                             stop = true;
@@ -87,23 +101,24 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
 
             if (expressionToken.Type == TokenType.Ternary) {
                 if (expressionToken.OperatorKind == OperatorKind.TernaryCondition) {
+                    if (m_maxDepth > 0 && depth >= m_maxDepth) return OpResult<IEnumerable<Token>>.Fail(NestingLimitError(expressionToken));
                     while (operatorStack.Count != 0 && operatorStack.Peek().Type != TokenType.OpeningParenthesis) {
                         rpnOutput.Add(operatorStack.Pop());
                     }
 
                     expressionTokenPosition++;
-                    var trueBranchResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [":"], ternaryDepth + 1);
+                    var trueBranchResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [":"], depth + 1);
                     if (!trueBranchResult.Success) return trueBranchResult;
 
                     if (expressionTokenPosition >= tokensList.Count || tokensList[expressionTokenPosition].OperatorKind != OperatorKind.TernaryBranch) {
-                        return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Ternary operator missing ':'", expressionToken.Index.ToInt(), expressionToken.Length));
+                        return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Ternary operator missing ':'", (int)expressionToken.Index, expressionToken.Length));
                     }
 
                     expressionTokenPosition++;
-                    var falseBranchResult = GenerateRecursive(tokensList, ref expressionTokenPosition, breakTokens, ternaryDepth + 1);
+                    var falseBranchResult = GenerateRecursive(tokensList, ref expressionTokenPosition, breakTokens, depth + 1);
                     if (!falseBranchResult.Success) return falseBranchResult;
 
-                    expressionToken.FunctionInfo?.Depth = currentFuncDepth;
+                    if (expressionToken.FunctionInfo != null) expressionToken.FunctionInfo.Depth = currentFuncDepth;
                     expressionToken.TernaryBranches!.TrueBranch = trueBranchResult.Value!;
                     expressionToken.TernaryBranches!.FalseBranch = falseBranchResult.Value!;
 
@@ -113,7 +128,7 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
             }
             else if (expressionToken.Type == TokenType.Number || expressionToken.Type == TokenType.String || expressionToken.Type == TokenType.Constant || expressionToken.Type == TokenType.Variable) {
                 // Check if it's a variable token followed by an OpeningParenthesis
-                if (expressionToken.Type == TokenType.Variable && expressionTokenPosition + 1 < tokensList.Count && tokensList[expressionTokenPosition + 1].Type == TokenType.OpeningParenthesis) {
+                if (expressionToken.Type == TokenType.Variable && IsOpeningParenthesisAt(tokensList, NextNonWhiteSpace(tokensList, expressionTokenPosition + 1))) {
                     // Treat as Function
                     // Create new token as properties are init-only
                     var funcToken = new Token {
@@ -132,60 +147,43 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                     currentFuncDepth++;
                     
                     operatorStack.Push(funcToken);
-                    funcStack.TryAdd(currentFuncDepth, funcToken);
+                    (funcStack ??= []).TryAdd(currentFuncDepth, funcToken);
                 }
                 else {
                     AddFunctionArgsCount(funcStack, currentFuncDepth);
-                    expressionToken.FunctionInfo?.Depth = currentFuncDepth;
+                    if (expressionToken.FunctionInfo != null) expressionToken.FunctionInfo.Depth = currentFuncDepth;
                     rpnOutput.Add(expressionToken);
                 }
             }
             else if (expressionToken.Type == TokenType.Function) {
-                // Special handling for 'if' function to support short-circuiting (lazy evaluation)
                 if (expressionToken.KeySpan.Equals("if", StringComparison.OrdinalIgnoreCase)) {
-                    // Check if next token is opening parenthesis
-                    if (expressionTokenPosition + 1 >= tokensList.Count || tokensList[expressionTokenPosition + 1].Type != TokenType.OpeningParenthesis) {
-                        // Let it fail naturally as a variable/function if syntax is wrong
-                    }
-                    else {
-                        // Parse: if ( condition , trueBranch , falseBranch )
-                        // Mapping to Ternary: condition ? trueBranch : falseBranch
+                    var openIndex = NextNonWhiteSpace(tokensList, expressionTokenPosition + 1);
+                    if (IsOpeningParenthesisAt(tokensList, openIndex)) {
+                        if (m_maxDepth > 0 && depth >= m_maxDepth) return OpResult<IEnumerable<Token>>.Fail(NestingLimitError(expressionToken));
+                        // WHY: if(c, t, f) is lowered to the lazy ternary c ? t : f so untaken branches are never evaluated.
+                        expressionTokenPosition = openIndex + 1;
 
-                        // 1. Consume 'if' and '('
-                        expressionTokenPosition += 2;
-
-                        // 2. Parse Condition
-                        // We use a break token of ',' to stop when we hit the first comma
-                        // Note: We use null for breakTokens because standard Comma/Parenthesis logic handles top-level stops correctly
-                        // and we fixed the breakTokens check anyway. But passing explicit [","] is cleaner documentation of intent
-                        // provided we trust the nesting check above.
-                        var conditionResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [","]);
+                        var conditionResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [","], depth + 1);
                         if (!conditionResult.Success) return conditionResult;
 
-                        // 3. Verify we stopped at ','
                         if (expressionTokenPosition >= tokensList.Count || tokensList[expressionTokenPosition].Type != TokenType.Comma) {
-                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ',' after condition", expressionToken.Index.ToInt(), expressionToken.Length));
+                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ',' after condition", (int)expressionToken.Index, expressionToken.Length));
                         }
-                        expressionTokenPosition++; // Consume ','
+                        expressionTokenPosition++;
 
-                        // 4. Parse True Branch
-                        var trueResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [","]);
+                        var trueResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [","], depth + 1);
                         if (!trueResult.Success) return trueResult;
 
-                        // 5. Verify we stopped at ','
                         if (expressionTokenPosition >= tokensList.Count || tokensList[expressionTokenPosition].Type != TokenType.Comma) {
-                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ',' after true branch", expressionToken.Index.ToInt(), expressionToken.Length));
+                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ',' after true branch", (int)expressionToken.Index, expressionToken.Length));
                         }
-                        expressionTokenPosition++; // Consume ','
+                        expressionTokenPosition++;
 
-                        // 6. Parse False Branch
-                        // Break at ')'
-                        var falseResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [")"]);
+                        var falseResult = GenerateRecursive(tokensList, ref expressionTokenPosition, [")"], depth + 1);
                         if (!falseResult.Success) return falseResult;
 
-                        // 7. Verify we stopped at ')'
                         if (expressionTokenPosition >= tokensList.Count || tokensList[expressionTokenPosition].Type != TokenType.ClosingParenthesis) {
-                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ')' after false branch", expressionToken.Index.ToInt(), expressionToken.Length));
+                            return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, "Invalid 'if' syntax: expected ')' after false branch", (int)expressionToken.Index, expressionToken.Length));
                         }
 
                         var ternaryToken = new Token {
@@ -200,23 +198,15 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                             Length = expressionToken.Length
                         };
 
-                        // Add Condition tokens first
                         rpnOutput.AddRange(conditionResult.Value!);
-                        // Then the Ternary operator (which contains the branches)
                         rpnOutput.Add(ternaryToken);
 
-                        expressionTokenPosition++; // Consume closing parenthesis ')'
-                        continue; // Continue main loop
+                        expressionTokenPosition++;
+                        continue;
                     }
                 }
 
-                // Find next non-whitespace token
-                var nextTokenIndex = expressionTokenPosition + 1;
-                while (nextTokenIndex < tokensList.Count && tokensList[nextTokenIndex].Type == TokenType.WhiteSpace) {
-                    nextTokenIndex++;
-                }
-
-                if (nextTokenIndex >= tokensList.Count || tokensList[nextTokenIndex].Type != TokenType.OpeningParenthesis) {
+                if (!IsOpeningParenthesisAt(tokensList, NextNonWhiteSpace(tokensList, expressionTokenPosition + 1))) {
                      return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, $"Function '{expressionToken.KeyString}' must be followed by '('", (int)expressionToken.Index, expressionToken.Length));
                 }
 
@@ -228,10 +218,11 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                     expressionToken.FunctionInfo.AwaitNextArgument = true;
                 }
                 operatorStack.Push(expressionToken);
-                funcStack.TryAdd(currentFuncDepth, expressionToken);
+                (funcStack ??= []).TryAdd(currentFuncDepth, expressionToken);
             }
             else if (expressionToken.Type == TokenType.Operator) {
                 if (!expressionToken.Negation) {
+                    var currentPrecedence = GetOperatorPrecedence(keySpan);
                     while (operatorStack.Count != 0) {
                         var topToken = operatorStack.Peek();
 
@@ -243,7 +234,6 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
 
                         if (topToken.Type != TokenType.Operator) break;
 
-                        var currentPrecedence = GetOperatorPrecedence(keySpan);
                         var nextPrecedence = GetOperatorPrecedence(topToken.KeySpan);
                         var nextAssociativity = GetOperatorAssociativity(topToken.KeySpan);
 
@@ -255,22 +245,23 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                     }
                 }
 
-                expressionToken.FunctionInfo?.Depth = currentFuncDepth;
+                if (expressionToken.FunctionInfo != null) expressionToken.FunctionInfo.Depth = currentFuncDepth;
                 operatorStack.Push(expressionToken);
             }
             else if (expressionToken.Type == TokenType.UnaryPostfixOperator) {
                 // Postfix unary (e.g., factorial): output immediately after value
-                expressionToken.FunctionInfo?.Depth = currentFuncDepth;
+                if (expressionToken.FunctionInfo != null) expressionToken.FunctionInfo.Depth = currentFuncDepth;
                 rpnOutput.Add(expressionToken);
             }
             else if (expressionToken.Type == TokenType.UnaryPrefixOperator) {
                 // Prefix unary (e.g., NOT): push to operator stack with high precedence
-                expressionToken.FunctionInfo?.Depth = currentFuncDepth;
+                if (expressionToken.FunctionInfo != null) expressionToken.FunctionInfo.Depth = currentFuncDepth;
                 operatorStack.Push(expressionToken);
             }
             else if (expressionToken.Type == TokenType.OpeningParenthesis) {
-                expressionToken.FunctionInfo?.Depth = currentFuncDepth;
+                if (expressionToken.FunctionInfo != null) expressionToken.FunctionInfo.Depth = currentFuncDepth;
                 operatorStack.Push(expressionToken);
+                openParentheses++;
             }
             else if (expressionToken.Type == TokenType.ClosingParenthesis) {
                 if (operatorStack.Count == 0) {
@@ -287,19 +278,20 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                 }
 
                 operatorStack.Pop();
+                openParentheses--;
 
                 if (operatorStack.Count != 0 && operatorStack.Peek().Type == TokenType.Function) {
                     rpnOutput.Add(operatorStack.Pop());
                 }
 
                 if (operatorStack.Count == 0 || (operatorStack.Peek().FunctionInfo != null && operatorStack.Peek().FunctionInfo!.Depth != currentFuncDepth)) {
-                    if (funcStack.TryGetValue(currentFuncDepth, out var stackFunction)) {
+                    if (funcStack != null && funcStack.TryGetValue(currentFuncDepth, out var stackFunction)) {
                         if (stackFunction.FunctionInfo!.AwaitNextArgument && stackFunction.FunctionInfo.ArgumentsCount > 0) {
                              return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidSyntax, $"Trailing comma or missing argument in function '{stackFunction.KeyString}'", (int)expressionToken.Index, expressionToken.Length));
                         }
                         
                         stackFunction.FunctionInfo!.AwaitNextArgument = false;
-                        funcStack.Remove(currentFuncDepth);
+                        funcStack!.Remove(currentFuncDepth);
                     }
                     currentFuncDepth--;
                 }
@@ -310,8 +302,8 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
                     continue;
                 }
 
-                if (funcStack.TryGetValue(currentFuncDepth, out var stackFunction)) {
-                    stackFunction.FunctionInfo?.AwaitNextArgument = true;
+                if (funcStack != null && funcStack.TryGetValue(currentFuncDepth, out var stackFunction)) {
+                    if (stackFunction.FunctionInfo != null) stackFunction.FunctionInfo.AwaitNextArgument = true;
                 }
 
                 while (operatorStack.Count != 0 && operatorStack.Peek().Type != TokenType.OpeningParenthesis) {
@@ -340,37 +332,110 @@ internal class ShuntingYardGenerator(IGlobalScope globalScope) : IShuntingYardGe
     }
     #endregion Methods
 
+    #region Short-circuit lowering
+    // WHY: RPN evaluates both operands eagerly. Rewriting "L R &&" into "L Lazy&&[R]" lets the parser skip R,
+    // reusing the lazy-branch mechanism of the ternary operator. Requires a validated RPN.
+    private static IList<Token> LowerShortCircuit(IList<Token> rpn) {
+        RuntimeHelpers.EnsureSufficientExecutionStack();
+        if (!NeedsLowering(rpn)) return rpn;
+
+        var output = new List<Token>(rpn.Count);
+        foreach (var token in rpn) {
+            if (token.Type == TokenType.Ternary && token.TernaryBranches != null) {
+                token.TernaryBranches.TrueBranch = LowerShortCircuit(AsList(token.TernaryBranches.TrueBranch));
+                token.TernaryBranches.FalseBranch = LowerShortCircuit(AsList(token.TernaryBranches.FalseBranch));
+            }
+
+            if (token.Type != TokenType.Operator || token.OperatorKind is not (OperatorKind.And or OperatorKind.Or)) {
+                output.Add(token);
+                continue;
+            }
+
+            var rightStart = FindOperandStart(output);
+            var right = output.GetRange(rightStart, output.Count - rightStart);
+            output.RemoveRange(rightStart, right.Count);
+            output.Add(token with {
+                Type = TokenType.Ternary,
+                TernaryBranches = new TernaryBranches { TrueBranch = right }
+            });
+        }
+        return output;
+    }
+
+    private static bool NeedsLowering(IList<Token> rpn) {
+        foreach (var token in rpn) {
+            if (token.Type == TokenType.Ternary || token.OperatorKind is OperatorKind.And or OperatorKind.Or) return true;
+        }
+        return false;
+    }
+
+    // WHY: lazy '&&'/'||' nesting only becomes visible after lowering; bounding it here bounds every later recursion (parser, AST).
+    private static Token? FindTooDeep(IList<Token> rpn, int depth, int maxDepth) {
+        foreach (var token in rpn) {
+            if (token.Type != TokenType.Ternary || token.TernaryBranches == null) continue;
+            if (depth >= maxDepth) return token;
+
+            var hit = FindTooDeep(AsList(token.TernaryBranches.TrueBranch), depth + 1, maxDepth)
+                ?? FindTooDeep(AsList(token.TernaryBranches.FalseBranch), depth + 1, maxDepth);
+            if (hit != null) return hit;
+        }
+        return null;
+    }
+
+    private CalcError NestingLimitError(Token token) =>
+        new(ErrorCode.LimitExceeded, $"Nesting depth exceeds the configured maximum of {m_maxDepth} at position {token.Index}", (int)token.Index, token.Length);
+
+    internal static CalcError StackLimitError() =>
+        new(ErrorCode.LimitExceeded, "Expression is nested too deeply for the available execution stack");
+
+    private static IList<Token> AsList(IEnumerable<Token> tokens) => tokens as IList<Token> ?? [.. tokens];
+
+    private static int FindOperandStart(List<Token> rpn) {
+        var produced = 0;
+        for (var i = rpn.Count - 1; i >= 0; i--) {
+            produced += StackEffect(rpn[i]);
+            if (produced == 1) return i;
+        }
+        throw new ShuntingYardGeneratorException("Logical operator without right operand");
+    }
+
+    private static int StackEffect(Token token) => token.Type switch {
+        TokenType.Number or TokenType.String or TokenType.Constant or TokenType.Variable => 1,
+        TokenType.Operator => -1,
+        TokenType.Function => 1 - (token.FunctionInfo?.ArgumentsCount ?? 0),
+        _ => 0
+    };
+    #endregion
+
     #region Private utils Methods
-    private static void AddFunctionArgsCount(Dictionary<int, Token> functionsStack, int depth) {
-        if (functionsStack.TryGetValue(depth, out var fnRpnItem) && fnRpnItem.FunctionInfo!.AwaitNextArgument) {
+    private static int NextNonWhiteSpace(IList<Token> tokens, int index) {
+        while (index < tokens.Count && tokens[index].Type == TokenType.WhiteSpace) index++;
+        return index;
+    }
+
+    private static bool IsOpeningParenthesisAt(IList<Token> tokens, int index) => index < tokens.Count && tokens[index].Type == TokenType.OpeningParenthesis;
+
+    private static void AddFunctionArgsCount(Dictionary<int, Token>? functionsStack, int depth) {
+        if (functionsStack != null && functionsStack.TryGetValue(depth, out var fnRpnItem) && fnRpnItem.FunctionInfo!.AwaitNextArgument) {
             fnRpnItem.FunctionInfo.ArgumentsCount += 1;
             fnRpnItem.FunctionInfo.AwaitNextArgument = false;
         }
     }
 
     private int GetOperatorPrecedence(ReadOnlySpan<char> ch) {
-        if (m_globalScope.Operators is FrozenDictionary<string, Operator> frozen) {
-            if (frozen.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(ch, out var op)) return op.Precedence;
-        }
-        else if (m_globalScope.Operators.TryGetValue(ch.ToString(), out var op)) {
-            return op.Precedence;
-        }
+        if (SpanLookup.TryGetValue(m_globalScope.Operators, ch, out var op)) return op.Precedence;
 
         throw new ShuntingYardGeneratorException($"GetOperatorPrecedence error for token '{ch}'");
     }
 
     private Associativity GetOperatorAssociativity(ReadOnlySpan<char> ch) {
-        if (m_globalScope.Operators is FrozenDictionary<string, Operator> frozen) {
-            if (frozen.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(ch, out var op)) return op.Associativity;
-        }
-        else if (m_globalScope.Operators.TryGetValue(ch.ToString(), out var op)) {
-            return op.Associativity;
-        }
+        if (SpanLookup.TryGetValue(m_globalScope.Operators, ch, out var op)) return op.Associativity;
 
         throw new ShuntingYardGeneratorException($"GetOperatorAssociativity error for token '{ch}'");
     }
 
     private CalcError? ValidateRPN(IList<Token> rpnTokens) {
+        RuntimeHelpers.EnsureSufficientExecutionStack();
         int stackDepth = 0;
         var count = rpnTokens.Count;
         

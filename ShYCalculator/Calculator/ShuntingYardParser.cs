@@ -8,42 +8,59 @@
 //     This involves traversing the tokens in the RPN list and performing the appropriate operations based on their types.
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Calculator.Operations;
-using ShYCalculator.Classes;
+using ShY.Calculator.Operations;
+using ShY.Classes;
 using System.Globalization;
 using System.Collections.Frozen;
 
-namespace ShYCalculator.Calculator;
+namespace ShY.Calculator;
 
-internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParser {
+internal class ShuntingYardParser(IGlobalScope globalScope, ShYCalculatorOptions? options = null) : IShuntingYardParser {
     #region Members
     private readonly IGlobalScope m_globalScope = globalScope;
+    private readonly bool m_decimal = options?.NumericMode == NumericMode.Decimal;
 
     #endregion Members
-    #region Constructor
-    #endregion Constructor
 
     #region Methods
     public OpResult<Value> Evaluate(IEnumerable<Token> rpnTokens, string expression, IDictionary<string, Value>? contextVariables = null) {
         try {
             return EvaluateInternal(rpnTokens, contextVariables);
         }
-        catch (Exception) {
-            return OpResult<Value>.Fail(new CalcError(ErrorCode.UnexpectedException, $"Unexpected exception calculating the expression: '{expression}'."));
+        catch (InsufficientExecutionStackException) {
+            return OpResult<Value>.Fail(ShuntingYardGenerator.StackLimitError());
+        }
+        catch (Exception ex) {
+            return OpResult<Value>.Fail(new CalcError(ErrorCode.UnexpectedException, $"Unexpected exception calculating the expression: '{expression}'. {ex.Message}"));
         }
     }
     #endregion Methods
 
     #region Private Methods
     internal OpResult<Value> EvaluateInternal(IEnumerable<Token> rpnTokens, IDictionary<string, Value>? contextVariables = null) {
+        System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack();
         const int InitialCapacity = 128;
         Value[] pooledStack = System.Buffers.ArrayPool<Value>.Shared.Rent(InitialCapacity);
         int stackCount = 0;
 
         try {
             foreach (var token in rpnTokens) {
+                // WHY: each RPN token grows the stack by at most one value, so one free slot per step is enough.
+                if (stackCount == pooledStack.Length) {
+                    var grown = System.Buffers.ArrayPool<Value>.Shared.Rent(pooledStack.Length * 2);
+                    pooledStack.AsSpan(0, stackCount).CopyTo(grown);
+                    System.Buffers.ArrayPool<Value>.Shared.Return(pooledStack);
+                    pooledStack = grown;
+                }
+
                 var result = ProcessToken(token, pooledStack, ref stackCount, contextVariables);
                 if (!result.Success) return result;
+
+                // WHY: every token leaves exactly its result on top, so this single point makes decimal mode hold for
+                // constants, variables, function and operator results alike.
+                if (m_decimal && !TryNormalizeToDecimal(ref pooledStack[stackCount - 1], token, out var normalizeError)) {
+                    return OpResult<Value>.Fail(normalizeError!);
+                }
             }
 
             if (stackCount != 1) {
@@ -76,7 +93,34 @@ internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParse
         return OpResult<Value>.Ok(default);
     }
 
-    private static OpResult<Value> ProcessNumber(Token token, Value[] stack, ref int count) {
+    private static bool TryNormalizeToDecimal(ref Value value, Token token, out CalcError? error) {
+        error = null;
+        if (value.DataType != DataType.Number || value.IsDecimal || value.Nvalue is not { } number) return true;
+
+        if (!Value.TryToDecimal(number, out var exact)) {
+            error = OperationHelper.Error(ErrorCode.ValueOutOfRange, $"Value {number} at position {token.Index} cannot be represented as a decimal.", token);
+            return false;
+        }
+
+        value = Value.Number(exact);
+        return true;
+    }
+
+    private OpResult<Value> ProcessNumber(Token token, Value[] stack, ref int count) {
+        if (m_decimal) {
+            // WHY: parse literals straight from text; going through double first would reintroduce binary rounding.
+            if (!decimal.TryParse(token.KeySpan, NumberStyles.Float, NumberFormatInfo.InvariantInfo, out var exact)) {
+                return OpResult<Value>.Fail(OperationHelper.Error(ErrorCode.ValueOutOfRange, $"Literal {token.KeyString} at position {token.Index} is outside the decimal range.", token));
+            }
+            stack[count++] = Value.Number(exact);
+            return OpResult<Value>.Ok(default);
+        }
+
+        if (token.HasParsedNumber) {
+            stack[count++] = Value.Number(token.ParsedNumber);
+            return OpResult<Value>.Ok(default);
+        }
+
         if (!double.TryParse(token.KeySpan, NumberFormatInfo.InvariantInfo, out var number)) {
             return OpResult<Value>.Fail(new CalcError(ErrorCode.InvalidNumberFormat, $"Value mismatch for DataType '{token.Type}' at position {token.Index}. Provided value {token.KeyString} can't be parsed to {token.Type}.", (int)token.Index, token.Length));
         }
@@ -85,13 +129,7 @@ internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParse
     }
 
     private OpResult<Value> ProcessConstant(Token token, Value[] stack, ref int count) {
-        if (m_globalScope.Constants is Dictionary<string, Value> dict) {
-            if (dict.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(token.KeySpan, out Value constant)) {
-                stack[count++] = constant;
-                return OpResult<Value>.Ok(default);
-            }
-        }
-        else if (m_globalScope.Constants.TryGetValue(token.KeyString, out Value constant)) {
+        if (SpanLookup.TryGetValue(m_globalScope.Constants, token.KeySpan, out var constant)) {
             stack[count++] = constant;
             return OpResult<Value>.Ok(default);
         }
@@ -100,20 +138,11 @@ internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParse
     }
 
     private static OpResult<Value> ProcessVariable(Token token, Value[] stack, ref int count, IDictionary<string, Value>? contextVariables) {
-        var keySpan = token.KeySpan;
-        // Check context overrides
-        if (contextVariables is Dictionary<string, Value> ctxDict) {
-            if (ctxDict.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(keySpan, out Value contextVar)) {
-                stack[count++] = contextVar;
-                return OpResult<Value>.Ok(default);
-            }
-        }
-        else if (contextVariables != null && contextVariables.TryGetValue(token.KeyString, out Value contextVar)) {
+        if (contextVariables != null && SpanLookup.TryGetValue(contextVariables, token.KeySpan, out var contextVar)) {
             stack[count++] = contextVar;
             return OpResult<Value>.Ok(default);
         }
 
-        // DEPRECATED: Fallback to m_env.Variables removed. Variables must be passed in context.
         return OpResult<Value>.Fail(new CalcError(ErrorCode.VariableNotFound, $"Unknown Variable '{token.KeyString}' at position {token.Index}. Ensure it is passed in the context variables.", (int)token.Index, token.Length));
     }
 
@@ -178,13 +207,7 @@ internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParse
             return OpResult<Value>.Fail(new CalcError(ErrorCode.MissingOperand, $"Stack size mismatch for Operator '{token.KeyString}' at position {token.Index}. Expected {2}, available {count}.", (int)token.Index, token.Length));
         }
 
-        Operator op;
-        if (m_globalScope.Operators is FrozenDictionary<string, Operator> frozen) {
-            if (!frozen.GetAlternateLookup<ReadOnlySpan<char>>().TryGetValue(keySpan, out op!)) {
-                return OpResult<Value>.Fail(new CalcError(ErrorCode.UnknownToken, $"Unknown Operator '{token.KeyString}' at position {token.Index}.", (int)token.Index, token.Length));
-            }
-        }
-        else if (!m_globalScope.Operators.TryGetValue(token.KeyString, out op!)) {
+        if (!SpanLookup.TryGetValue(m_globalScope.Operators, keySpan, out var op)) {
             return OpResult<Value>.Fail(new CalcError(ErrorCode.UnknownToken, $"Unknown Operator '{token.KeyString}' at position {token.Index}.", (int)token.Index, token.Length));
         }
 
@@ -209,6 +232,10 @@ internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParse
     internal OpResult<Value> ProcessTernary(Token token, Value[] stack, ref int count, IDictionary<string, Value>? contextVariables) {
         if (count < 1) {
             return OpResult<Value>.Fail(new CalcError(ErrorCode.MissingOperand, $"Stack size mismatch for Ternary Operator '{token.KeyString}' at position {token.Index}. Expected >= {1}, available {count}.", (int)token.Index, token.Length));
+        }
+
+        if (token.OperatorKind is OperatorKind.And or OperatorKind.Or) {
+            return ProcessShortCircuit(token, stack, ref count, contextVariables);
         }
 
         var operand1 = stack[--count];
@@ -237,13 +264,36 @@ internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParse
         return OpResult<Value>.Ok(default);
     }
 
-    private static OpResult<Value> PerformOperation(in Value leftOperand, in Value rightOperand, Token token, Operator op) {
+    private OpResult<Value> ProcessShortCircuit(Token token, Value[] stack, ref int count, IDictionary<string, Value>? contextVariables) {
+        var left = stack[--count];
+        if (left.DataType != DataType.Boolean || left.Bvalue == null) {
+            return OpResult<Value>.Fail(OperationHelper.Error(ErrorCode.TypeMismatch, $"Left operand of '{token.KeyString}' must be Boolean, got {left.DataType} at position {token.Index}.", token));
+        }
+
+        var isAnd = token.OperatorKind == OperatorKind.And;
+        if (left.Bvalue.Value != isAnd) {
+            stack[count++] = left;
+            return OpResult<Value>.Ok(default);
+        }
+
+        var right = EvaluateInternal(token.TernaryBranches!.TrueBranch, contextVariables);
+        if (!right.Success) return right;
+
+        if (right.Value.DataType != DataType.Boolean || right.Value.Bvalue == null) {
+            return OpResult<Value>.Fail(OperationHelper.Error(ErrorCode.TypeMismatch, $"Right operand of '{token.KeyString}' must be Boolean, got {right.Value.DataType} at position {token.Index}.", token));
+        }
+
+        stack[count++] = right.Value;
+        return OpResult<Value>.Ok(default);
+    }
+
+    internal static OpResult<Value> PerformOperation(in Value leftOperand, in Value rightOperand, Token token, Operator op) {
         return op.Category switch {
             Category.Arithmetic => PerformArithmetic(leftOperand, rightOperand, token),
             Category.Comparison => PerformComparison(leftOperand, rightOperand, token),
             Category.Logical => LogicalOperations.PerformLogicalOperationOnBooleans(leftOperand, rightOperand, token),
             Category.Bitwise => BitwiseOperations.PerformBitwiseOperationOnNumbers(leftOperand, rightOperand, token),
-            _ => OpResult<Value>.Fail($"Unexpected operator category '{op.Category}' for token '{token.KeyString}' of type {token.Type} at position {token.Index}")
+            _ => OpResult<Value>.Fail(OperationHelper.NotSupported(token, leftOperand.DataType))
         };
     }
 
@@ -267,7 +317,7 @@ internal class ShuntingYardParser(IGlobalScope globalScope) : IShuntingYardParse
         if (leftOperand.DataType == DataType.Date && rightOperand.DataType == DataType.Date) {
             return ComparisonOperations.PerformComparisonOperationOnDates(leftOperand, rightOperand, token);
         }
-        return OpResult<Value>.Fail(OperationHelper.GetDataTypeMismatchErrorMessage(leftOperand, rightOperand, token));
+        return OpResult<Value>.Fail(OperationHelper.TypeMismatch(leftOperand, rightOperand, token));
     }
     #endregion Private Methods
 }

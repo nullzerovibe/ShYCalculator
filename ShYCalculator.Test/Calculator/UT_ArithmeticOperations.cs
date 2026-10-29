@@ -1,24 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ShYCalculator.Calculator.Operations;
-using ShYCalculator.Classes;
+using ShY.Calculator.Operations;
+using ShY.Classes;
 
-namespace ShYCalculator.Test.Calculator;
+namespace ShY.Test.Calculator;
 
 [TestClass]
 public class UT_ArithmeticOperations {
-    private static void AssertThrows<T>(Action action) where T : Exception {
-        try {
-            action();
-        }
-        catch (T) {
-            return;
-        }
-        catch (Exception ex) {
-            throw new AssertFailedException($"Expected exception of type {typeof(T).Name} but got {ex.GetType().Name}. Message: {ex.Message}");
-        }
-        throw new AssertFailedException($"Expected exception of type {typeof(T).Name} but no exception was thrown");
-    }
-
     #region PerformArithmeticOperationOnNumbers Tests
 
     [TestMethod]
@@ -235,9 +222,10 @@ public class UT_ArithmeticOperations {
         var right = new Value { DataType = DataType.Number, Nvalue = 3 };
         var token = new Token { Key = "==", Type = TokenType.Operator, Index = 2, OperatorKind = OperatorKind.Eq };
 
-        AssertThrows<Exception>(() => {
-            ArithmeticOperations.PerformArithmeticOperationOnNumbers(left, right, token);
-        });
+        var result = ArithmeticOperations.PerformArithmeticOperationOnNumbers(left, right, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     #endregion
@@ -342,9 +330,10 @@ public class UT_ArithmeticOperations {
         var right = new Value { DataType = DataType.String, Svalue = "value" };
         var token = new Token { Key = "-", Type = TokenType.Operator, Index = 4, OperatorKind = OperatorKind.Sub };
 
-        AssertThrows<Exception>(() => {
-            ArithmeticOperations.PerformArithmeticOperationOnStrings(left, right, token);
-        });
+        var result = ArithmeticOperations.PerformArithmeticOperationOnStrings(left, right, token);
+
+        Assert.IsFalse(result.Success);
+        Assert.AreEqual(ErrorCode.OperationNotSupported, result.Errors.First().Code);
     }
 
     [TestMethod]
@@ -369,7 +358,7 @@ public class UT_ArithmeticOperations {
         var result = ArithmeticOperations.PerformArithmeticOperationOnStrings(left, right, token);
 
         Assert.IsTrue(result.Success);
-        Assert.AreEqual(dateVal.ToString() + " is the date", result.Value.Svalue);
+        Assert.AreEqual(dateVal.ToString("o", System.Globalization.CultureInfo.InvariantCulture) + " is the date", result.Value.Svalue);
     }
 
     [TestMethod]

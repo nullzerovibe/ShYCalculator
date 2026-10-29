@@ -3,10 +3,10 @@
 //     Central registry of supported operators, their precedence, and associativity.
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Collections.Frozen;
 
-namespace ShYCalculator.Calculator;
+namespace ShY.Calculator;
 
 /// <summary>
 /// Single source of truth for all operator definitions.
@@ -17,58 +17,59 @@ internal static class OperatorRegistry {
     // SINGLE SOURCE OF TRUTH - Add new operators here
     // ═══════════════════════════════════════════════════════════════════════════
     private static readonly OperatorDef[] AllOperators = [
-        // Logical (precedence 1)
-        new("&&", "Logical AND",      OperatorKind.And,            1, Associativity.Left,  Category.Logical,    DataType.Boolean),
+        // WHY: precedence mirrors C#: || < && < | < xor < & < equality < relational < shift < additive < multiplicative < power.
+        // Logical
         new("||", "Logical OR",       OperatorKind.Or,             1, Associativity.Left,  Category.Logical,    DataType.Boolean),
-        
-        // Bitwise (precedence 2-4)
-        new("|",  "Bitwise OR",       OperatorKind.BitwiseOr,      2, Associativity.Left,  Category.Bitwise,    DataType.Number),
-        new("⊕",  "Bitwise XOR",      OperatorKind.BitwiseXor,     3, Associativity.Left,  Category.Bitwise,    DataType.Number),
-        new("^^", "Bitwise XOR",      OperatorKind.BitwiseXor,     3, Associativity.Left,  Category.Bitwise,    DataType.Number),  // ASCII XOR alias
-        new("&",  "Bitwise AND",      OperatorKind.BitwiseAnd,     4, Associativity.Left,  Category.Bitwise,    DataType.Number),
+        new("&&", "Logical AND",      OperatorKind.And,            2, Associativity.Left,  Category.Logical,    DataType.Boolean),
 
-        // Bitwise Shift (precedence 5 - same as comparison but logically distinct)
-        new("<<", "Bitwise Left Shift", OperatorKind.BitwiseLeftShift, 5, Associativity.Left, Category.Bitwise, DataType.Number),
-        new(">>", "Bitwise Right Shift", OperatorKind.BitwiseRightShift, 5, Associativity.Left, Category.Bitwise, DataType.Number),
-        
-        // Comparison (precedence 5)
-        new("<",  "Less Than",        OperatorKind.Lt,             5, Associativity.Left,  Category.Comparison, DataType.Number | DataType.Date),
-        new(">",  "Greater Than",     OperatorKind.Gt,             5, Associativity.Left,  Category.Comparison, DataType.Number | DataType.Date),
-        new("==", "Equal To",         OperatorKind.Eq,             5, Associativity.Left,  Category.Comparison, DataType.Boolean | DataType.Number | DataType.String | DataType.Date),
-        new("!=", "Not Equal",        OperatorKind.NotEq,          5, Associativity.Left,  Category.Comparison, DataType.Boolean | DataType.Number | DataType.String | DataType.Date),
-        new("<=", "Less or Equal",    OperatorKind.LtEq,           5, Associativity.Left,  Category.Comparison, DataType.Boolean | DataType.Number | DataType.Date),
-        new(">=", "Greater or Equal", OperatorKind.GtEq,           5, Associativity.Left,  Category.Comparison, DataType.Boolean | DataType.Number | DataType.Date),
-        
-        // Arithmetic - Addition/Subtraction (precedence 6)
-        new("+",  "Add",              OperatorKind.Add,            6, Associativity.Left,  Category.Arithmetic, DataType.Number | DataType.String),
-        new("-",  "Subtract",         OperatorKind.Sub,            6, Associativity.Left,  Category.Arithmetic, DataType.Number),
-        new("−",  "Subtract",         OperatorKind.Sub,            6, Associativity.Left,  Category.Arithmetic, DataType.Number),  // U+2212 MINUS SIGN
-        
-        // Arithmetic - Modulo (precedence 7)
-        new("%",  "Modulo",           OperatorKind.Mod,            7, Associativity.Left,  Category.Arithmetic, DataType.Number),
-        
-        // Arithmetic - Multiplication/Division (precedence 8)
-        new("*",  "Multiply",         OperatorKind.Mul,            8, Associativity.Left,  Category.Arithmetic, DataType.Number),
-        new("×",  "Multiply",         OperatorKind.Mul,            8, Associativity.Left,  Category.Arithmetic, DataType.Number),  // U+00D7 MULTIPLICATION SIGN
-        new("/",  "Divide",           OperatorKind.Div,            8, Associativity.Left,  Category.Arithmetic, DataType.Number),
-        new("÷",  "Divide",           OperatorKind.Div,            8, Associativity.Left,  Category.Arithmetic, DataType.Number),  // U+00F7 DIVISION SIGN
-        
-        // Arithmetic - Power (precedence 9, right associative)
-        new("^",  "Power",            OperatorKind.Pow,            9, Associativity.Right, Category.Arithmetic, DataType.Number),
-        
-        // Grouping (precedence 10)
-        new("(",  "Group Start",      OperatorKind.None,          10, Associativity.Left,  Category.Grouping,   DataType.Boolean | DataType.Number | DataType.Date | DataType.String),
-        new(")",  "Group End",        OperatorKind.None,          10, Associativity.Left,  Category.Grouping,   DataType.Boolean | DataType.Number | DataType.Date | DataType.String),
-        
+        // Bitwise
+        new("|",  "Bitwise OR",       OperatorKind.BitwiseOr,      3, Associativity.Left,  Category.Bitwise,    DataType.Number),
+        new("⊕",  "Bitwise XOR",      OperatorKind.BitwiseXor,     4, Associativity.Left,  Category.Bitwise,    DataType.Number),
+        new("^^", "Bitwise XOR",      OperatorKind.BitwiseXor,     4, Associativity.Left,  Category.Bitwise,    DataType.Number),  // ASCII XOR alias
+        new("&",  "Bitwise AND",      OperatorKind.BitwiseAnd,     5, Associativity.Left,  Category.Bitwise,    DataType.Number),
+
+        // Equality
+        new("==", "Equal To",         OperatorKind.Eq,             6, Associativity.Left,  Category.Comparison, DataType.Boolean | DataType.Number | DataType.String | DataType.Date),
+        new("!=", "Not Equal",        OperatorKind.NotEq,          6, Associativity.Left,  Category.Comparison, DataType.Boolean | DataType.Number | DataType.String | DataType.Date),
+
+        // Relational
+        new("<",  "Less Than",        OperatorKind.Lt,             7, Associativity.Left,  Category.Comparison, DataType.Number | DataType.Date),
+        new(">",  "Greater Than",     OperatorKind.Gt,             7, Associativity.Left,  Category.Comparison, DataType.Number | DataType.Date),
+        new("<=", "Less or Equal",    OperatorKind.LtEq,           7, Associativity.Left,  Category.Comparison, DataType.Number | DataType.Date),
+        new(">=", "Greater or Equal", OperatorKind.GtEq,           7, Associativity.Left,  Category.Comparison, DataType.Number | DataType.Date),
+
+        // Bitwise Shift
+        new("<<", "Bitwise Left Shift", OperatorKind.BitwiseLeftShift, 8, Associativity.Left, Category.Bitwise, DataType.Number),
+        new(">>", "Bitwise Right Shift", OperatorKind.BitwiseRightShift, 8, Associativity.Left, Category.Bitwise, DataType.Number),
+
+        // Additive
+        new("+",  "Add",              OperatorKind.Add,            9, Associativity.Left,  Category.Arithmetic, DataType.Number | DataType.String),
+        new("-",  "Subtract",         OperatorKind.Sub,            9, Associativity.Left,  Category.Arithmetic, DataType.Number),
+        new("−",  "Subtract",         OperatorKind.Sub,            9, Associativity.Left,  Category.Arithmetic, DataType.Number),  // U+2212 MINUS SIGN
+
+        // Multiplicative
+        new("*",  "Multiply",         OperatorKind.Mul,           10, Associativity.Left,  Category.Arithmetic, DataType.Number),
+        new("×",  "Multiply",         OperatorKind.Mul,           10, Associativity.Left,  Category.Arithmetic, DataType.Number),  // U+00D7 MULTIPLICATION SIGN
+        new("/",  "Divide",           OperatorKind.Div,           10, Associativity.Left,  Category.Arithmetic, DataType.Number),
+        new("÷",  "Divide",           OperatorKind.Div,           10, Associativity.Left,  Category.Arithmetic, DataType.Number),  // U+00F7 DIVISION SIGN
+        new("%",  "Modulo",           OperatorKind.Mod,           10, Associativity.Left,  Category.Arithmetic, DataType.Number),
+
+        // Power (right associative)
+        new("^",  "Power",            OperatorKind.Pow,           11, Associativity.Right, Category.Arithmetic, DataType.Number),
+
+        // Grouping
+        new("(",  "Group Start",      OperatorKind.None,          13, Associativity.Left,  Category.Grouping,   DataType.Boolean | DataType.Number | DataType.Date | DataType.String),
+        new(")",  "Group End",        OperatorKind.None,          13, Associativity.Left,  Category.Grouping,   DataType.Boolean | DataType.Number | DataType.Date | DataType.String),
+
         // Ternary
         new("?",  "Ternary If",       OperatorKind.TernaryCondition, 0, Associativity.Right, Category.Logical, DataType.Boolean | DataType.Number | DataType.Date | DataType.String),
         new(":",  "Ternary Else",     OperatorKind.TernaryBranch,    0, Associativity.Right, Category.Logical, DataType.Boolean | DataType.Number | DataType.Date | DataType.String),
         
         // Unary prefix operators
-        new("~",  "Bitwise NOT",      OperatorKind.BitwiseNot,     9, Associativity.Right, Category.Unary,      DataType.Number,  IsUnaryPrefix: true),
-        new("√",  "Square Root",      OperatorKind.SquareRoot,     9, Associativity.Right, Category.Unary,      DataType.Number,  IsUnaryPrefix: true),
-        new("!",  "NOT / Factorial",  OperatorKind.Not,            9, Associativity.Right, Category.Unary,      DataType.Boolean, IsUnaryPrefix: true),  // Also postfix factorial
-        new("∑",  "Summation",        OperatorKind.None,           9, Associativity.Right, Category.Unary,      DataType.Number,  IsUnaryPrefix: true),  // Summation (function-like)
+        new("~",  "Bitwise NOT",      OperatorKind.BitwiseNot,    12, Associativity.Right, Category.Unary,      DataType.Number,  IsUnaryPrefix: true),
+        new("√",  "Square Root",      OperatorKind.SquareRoot,    12, Associativity.Right, Category.Unary,      DataType.Number,  IsUnaryPrefix: true),
+        new("!",  "NOT / Factorial",  OperatorKind.Not,           12, Associativity.Right, Category.Unary,      DataType.Boolean, IsUnaryPrefix: true),  // Also postfix factorial
+        new("∑",  "Summation",        OperatorKind.None,          12, Associativity.Right, Category.Unary,      DataType.Number,  IsUnaryPrefix: true),  // Summation (function-like)
     ];
 
     // ═══════════════════════════════════════════════════════════════════════════

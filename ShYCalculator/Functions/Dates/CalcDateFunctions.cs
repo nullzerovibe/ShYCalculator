@@ -3,13 +3,13 @@
 //     Implements date and time functions (now, today, date, year, month, day, add_days, etc.).
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Collections.Frozen;
 using System.Globalization;
 using System.Reflection;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace ShYCalculator.Functions.Dates;
+namespace ShY.Functions.Dates;
 
 /// <summary>
 /// Implements date and time functions (now, today, date, year, month, day, add_days, etc.).
@@ -17,9 +17,10 @@ namespace ShYCalculator.Functions.Dates;
 public class CalcDateFunctions : ICalcFunctionsExtension {
     #region Members
     private readonly FrozenDictionary<string, CalcFunction> m_funcDef;
-    private readonly FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> m_dispatch;
+    private readonly FrozenDictionary<string, FunctionBody> m_dispatch;
     private readonly string m_stringDateFormat;
     private readonly CultureInfo m_culture;
+    private readonly TimeProvider m_time;
     #endregion Members
 
     #region Constructor
@@ -34,10 +35,26 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
     /// </summary>
     /// <param name="stringDateFormat">Date format string for parsing.</param>
     /// <param name="cultureName">Culture name for parsing (e.g. "en-US").</param>
-    public CalcDateFunctions(string? stringDateFormat = null, string? cultureName = null) {
-        var funcList = CalcFunctionsHelper.ReadFunctionsConfiguration(Name, typeof(CalcDateFunctions));
-        CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
-        m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+    public CalcDateFunctions(string? stringDateFormat, string? cultureName) : this(stringDateFormat, cultureName, TimeProvider.System) {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CalcDateFunctions"/> class with a specific date format.
+    /// </summary>
+    /// <param name="stringDateFormat">Date format string for parsing.</param>
+    public CalcDateFunctions(string? stringDateFormat) : this(stringDateFormat, null, TimeProvider.System) {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CalcDateFunctions"/> class with specific settings and clock.
+    /// </summary>
+    /// <param name="stringDateFormat">Date format string for parsing.</param>
+    /// <param name="cultureName">Culture name for parsing (e.g. "en-US").</param>
+    /// <param name="timeProvider">Clock and local time zone for <c>dt_now()</c> and <c>dt_today()</c>.</param>
+    public CalcDateFunctions(string? stringDateFormat, string? cultureName, TimeProvider timeProvider) {
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        m_time = timeProvider;
+        m_funcDef = CalcFunctionsHelper.LoadFunctionDefinitions(Name, typeof(CalcDateFunctions));
 
         if (!string.IsNullOrEmpty(cultureName)) {
             try {
@@ -62,27 +79,27 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
         return m_culture.Name != CultureInfo.InvariantCulture.Name ? m_culture.DateTimeFormat.ShortDatePattern : "dd/MM/yyyy";
     }
 
-    private FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> CreateDispatch() {
-        return new Dictionary<string, Func<ReadOnlySpan<Value>, Value>>(StringComparer.OrdinalIgnoreCase) {
+    private FrozenDictionary<string, FunctionBody> CreateDispatch() {
+        return new Dictionary<string, FunctionBody>(StringComparer.OrdinalIgnoreCase) {
             [FunctionNames.Date] = p => GetDate(p, FunctionNames.Date),
-            [FunctionNames.Now] = _ => GetNow(FunctionNames.Now),
-            [FunctionNames.Today] = _ => GetToday(FunctionNames.Today),
-            [FunctionNames.DayOfYear] = p => GetDayOfYear(p[0].Dvalue, FunctionNames.DayOfYear),
-            [FunctionNames.DayOfWeek] = p => GetDayOfWeek(p[0].Dvalue, FunctionNames.DayOfWeek),
-            [FunctionNames.Year] = p => GetYear(p[0].Dvalue, FunctionNames.Year),
-            [FunctionNames.Month] = p => GetMonth(p[0].Dvalue, FunctionNames.Month),
-            [FunctionNames.Day] = p => GetDay(p[0].Dvalue, FunctionNames.Day),
-            [FunctionNames.Hour] = p => GetHour(p[0].Dvalue, FunctionNames.Hour),
-            [FunctionNames.Minute] = p => GetMinute(p[0].Dvalue, FunctionNames.Minute),
-            [FunctionNames.Second] = p => GetSecond(p[0].Dvalue, FunctionNames.Second),
+            [FunctionNames.Now] = _ => GetNow(),
+            [FunctionNames.Today] = _ => GetToday(),
+            [FunctionNames.DayOfYear] = p => GetDayOfYear(ParseDate(p[0]), FunctionNames.DayOfYear),
+            [FunctionNames.DayOfWeek] = p => GetDayOfWeek(ParseDate(p[0]), FunctionNames.DayOfWeek),
+            [FunctionNames.Year] = p => GetYear(ParseDate(p[0]), FunctionNames.Year),
+            [FunctionNames.Month] = p => GetMonth(ParseDate(p[0]), FunctionNames.Month),
+            [FunctionNames.Day] = p => GetDay(ParseDate(p[0]), FunctionNames.Day),
+            [FunctionNames.Hour] = p => GetHour(ParseDate(p[0]), FunctionNames.Hour),
+            [FunctionNames.Minute] = p => GetMinute(ParseDate(p[0]), FunctionNames.Minute),
+            [FunctionNames.Second] = p => GetSecond(ParseDate(p[0]), FunctionNames.Second),
 
-            [FunctionNames.DateAdd] = p => AddDateInterval(p[0].Dvalue, p[1].Svalue, FunctionNames.DateAdd),
-            [FunctionNames.AddYears] = p => AddYears(p[0].Dvalue, p[1].Nvalue, FunctionNames.AddYears),
-            [FunctionNames.AddMonths] = p => AddMonths(p[0].Dvalue, p[1].Nvalue, FunctionNames.AddMonths),
-            [FunctionNames.AddDays] = p => AddDays(p[0].Dvalue, p[1].Nvalue, FunctionNames.AddDays),
-            [FunctionNames.AddHours] = p => AddHours(p[0].Dvalue, p[1].Nvalue, FunctionNames.AddHours),
-            [FunctionNames.AddMinutes] = p => AddMinutes(p[0].Dvalue, p[1].Nvalue, FunctionNames.AddMinutes),
-            [FunctionNames.AddSeconds] = p => AddSeconds(p[0].Dvalue, p[1].Nvalue, FunctionNames.AddSeconds),
+            [FunctionNames.DateAdd] = p => AddDateInterval(ParseDate(p[0]), p[1].Svalue, FunctionNames.DateAdd),
+            [FunctionNames.AddYears] = p => AddYears(ParseDate(p[0]), p[1].Nvalue, FunctionNames.AddYears),
+            [FunctionNames.AddMonths] = p => AddMonths(ParseDate(p[0]), p[1].Nvalue, FunctionNames.AddMonths),
+            [FunctionNames.AddDays] = p => AddDays(ParseDate(p[0]), p[1].Nvalue, FunctionNames.AddDays),
+            [FunctionNames.AddHours] = p => AddHours(ParseDate(p[0]), p[1].Nvalue, FunctionNames.AddHours),
+            [FunctionNames.AddMinutes] = p => AddMinutes(ParseDate(p[0]), p[1].Nvalue, FunctionNames.AddMinutes),
+            [FunctionNames.AddSeconds] = p => AddSeconds(ParseDate(p[0]), p[1].Nvalue, FunctionNames.AddSeconds),
 
             [FunctionNames.IsBefore] = p => PrecedeDate(p[0], p[1], FunctionNames.IsBefore),
             [FunctionNames.IsAfter] = p => SucceedDate(p[0], p[1], FunctionNames.IsAfter),
@@ -136,21 +153,14 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
         var dateTime = new DateTime(year, month, day, hour, minute, seconds);
         return new Value(DataType.Date, dValue: new DateTimeOffset(dateTime: dateTime));
     }
-    #endregion Private Get Functions
 
-    #region Rest of date functions updated to Span
-    // (Existing methods like GetNow, GetToday etc. don't need span updates if they take no args or single Dvalue?)
-    // Actually, I'll just replace the relevant parts of the file.
+    private Value GetNow() => new(DataType.Date, dValue: m_time.GetLocalNow());
 
-    private static Value GetNow(string _ = FunctionNames.Now) {
-        return new Value(DataType.Date, dValue: DateTimeOffset.Now);
-    }
-
-    private static Value GetToday(string _ = FunctionNames.Today) {
-        var now = DateTimeOffset.Now;
-        // Today is midnight Local
-        var dateTime = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-        return new Value(DataType.Date, dValue: new DateTimeOffset(dateTime: dateTime));
+    private Value GetToday() {
+        var now = m_time.GetLocalNow();
+        // WHY: offset of local midnight itself, which can differ from the current offset on a DST transition day.
+        var midnight = now.Date;
+        return new Value(DataType.Date, dValue: new DateTimeOffset(midnight, m_time.LocalTimeZone.GetUtcOffset(midnight)));
     }
 
     internal static Value GetDayOfYear(DateTimeOffset? date, string functionName = FunctionNames.DayOfYear) {
@@ -373,6 +383,9 @@ public class CalcDateFunctions : ICalcFunctionsExtension {
 
         return message;
     }
+
+    // WHY: 'date' arguments accept strings (see CalcFunctionsHelper.IsValidArgType), so every consumer must parse them.
+    private DateTimeOffset? ParseDate(Value value) => TryParseDateValue(value, out var date) ? date : null;
 
     private bool TryParseDateValue(Value value, out DateTimeOffset? date) {
         date = null;

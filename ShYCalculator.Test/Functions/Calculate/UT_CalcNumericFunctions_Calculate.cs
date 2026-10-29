@@ -1,10 +1,10 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Functions.Text;
-using ShYCalculator.Functions.Logical;
-using Environment = ShYCalculator.Calculator.Environment;
+using ShY.Classes;
+using ShY.Functions.Mathematics;
+using ShY.Functions.Text;
+using ShY.Functions.Logical;
+using Environment = ShY.Calculator.CalculatorEnvironment;
 
-namespace ShYCalculator.Test.Functions.Calculate;
+namespace ShY.Test.Functions.Calculate;
 
 [TestClass]
 public class UT_CalcNumericFunctions_Calculate {

@@ -8,20 +8,19 @@
 //     Tokens can represent operators, operands, parentheses, or other elements of the infix expression.
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
-using System.Text.RegularExpressions;
+using ShY.Classes;
+using ShY.Functions;
 
-namespace ShYCalculator.Calculator;
+namespace ShY.Calculator;
 
-internal class ExpressionTokenizer(IGlobalScope globalScope) : IExpressionTokenizer {
+internal class ExpressionTokenizer(IGlobalScope globalScope, ShYCalculatorOptions? options = null) : IExpressionTokenizer {
     #region Members
     private readonly IGlobalScope m_globalScope = globalScope;
+    private readonly int m_maxLength = options?.MaxExpressionLength ?? 0;
     private static readonly ReadOnlyMemory<char> MinusOneMemory = "-1".AsMemory();
     private static readonly ReadOnlyMemory<char> MultiplyMemory = "*".AsMemory();
 
     #endregion Members
-    #region Constructor
-    #endregion Constructor
 
     #region Methods
     public OpResult<IEnumerable<Token>> Tokenize(string expression) {
@@ -30,14 +29,20 @@ internal class ExpressionTokenizer(IGlobalScope globalScope) : IExpressionTokeni
                 return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.InvalidExpression, "Expression is empty or null"));
             }
 
-            var tokens = new List<Token>(expression.Length / 2); // Heuristic capacity
+            if (m_maxLength > 0 && expression.Length > m_maxLength) {
+                return OpResult<IEnumerable<Token>>.Fail(new CalcError(ErrorCode.LimitExceeded, $"Expression length {expression.Length} exceeds the configured maximum of {m_maxLength} characters", m_maxLength, expression.Length - m_maxLength));
+            }
+
+            // WHY: whitespace characters are tokens too, so token count tracks character count closely.
+            var tokens = new List<Token>(expression.Length);
             var i = 0;
             var expressionMemory = expression.AsMemory();
 
             while (i < expression.Length) {
                 if (TryReadWhiteSpace(expressionMemory, ref i, tokens)) continue;
                 if (TryReadNumber(expressionMemory, ref i, tokens)) continue;
-                if (TryReadString(expressionMemory, ref i, tokens)) continue;
+                if (TryReadString(expressionMemory, ref i, tokens, out var stringError)) continue;
+                if (stringError != null) return OpResult<IEnumerable<Token>>.Fail(stringError);
                 if (TryReadFunctionOrConstant(expressionMemory, ref i, tokens)) continue;
                 if (TryReadVariable(expressionMemory, ref i, tokens)) continue;
                 if (TryReadTernary(expressionMemory, ref i, tokens)) continue;  // Before operator to get correct TokenType
@@ -112,46 +117,78 @@ internal class ExpressionTokenizer(IGlobalScope globalScope) : IExpressionTokeni
         }
 
         var length = i - startIndex;
-        tokens.Add(new Token(startIndex, expression.Slice(startIndex, length), TokenType.Number));
+        var numberMemory = expression.Slice(startIndex, length);
+        var parsed = double.TryParse(numberMemory.Span, System.Globalization.NumberFormatInfo.InvariantInfo, out var number);
+        tokens.Add(new Token(startIndex, numberMemory, TokenType.Number) { ParsedNumber = number, HasParsedNumber = parsed });
         return true;
     }
 
-    private static bool TryReadString(ReadOnlyMemory<char> expression, ref int i, List<Token> tokens) {
+    private static bool TryReadString(ReadOnlyMemory<char> expression, ref int i, List<Token> tokens, out CalcError? error) {
+        error = null;
         var span = expression.Span;
         if (!IsStringStartToken(span[i])) return false;
 
-        var startChar = span[i];
+        var quote = span[i];
         var startIndex = i;
+        var contentStart = startIndex + 1;
+        var hasEscapes = false;
+        var end = contentStart;
 
-        i++; // consume start char
-        while (i < expression.Length) {
-            var ch = span[i];
-            var prevChar = i > startIndex ? span[i - 1] : (char?)null;
-
-            if (IsStringEndToken(ch, startChar, prevChar)) {
-                break;
+        while (end < span.Length && span[end] != quote) {
+            if (span[end] == '\\') {
+                hasEscapes = true;
+                end++;
             }
-
-            i++;
+            end++;
         }
 
-        if (i < expression.Length) {
-            i++; // Consume end char
-        }
-        else {
-            i = startIndex;
+        if (end >= span.Length) {
+            error = new CalcError(ErrorCode.UnterminatedString, $"Unterminated string literal starting at position {startIndex}", startIndex, span.Length - startIndex);
             return false;
         }
 
-        var length = i - startIndex;
-        var contentStart = startIndex + 1;
-        var contentLength = length - 2;
-        if (contentLength < 0) contentLength = 0;
+        var content = expression[contentStart..end];
+        if (hasEscapes) {
+            if (!TryUnescape(content.Span, contentStart, out var unescaped, out error)) return false;
+            content = unescaped.AsMemory();
+        }
 
-        // Regex.Unescape still requires a string. This is a rare allocation for string literals.
-        var stringTokenContent = expression.Slice(contentStart, contentLength).ToString();
+        tokens.Add(new Token(startIndex, content, TokenType.String) { Length = end + 1 - startIndex });
+        i = end + 1;
+        return true;
+    }
 
-        tokens.Add(new Token(startIndex, Regex.Unescape(stringTokenContent).AsMemory(), TokenType.String));
+    private static bool TryUnescape(ReadOnlySpan<char> content, int offset, out string result, out CalcError? error) {
+        var builder = new System.Text.StringBuilder(content.Length);
+        for (var k = 0; k < content.Length; k++) {
+            var ch = content[k];
+            if (ch != '\\') {
+                builder.Append(ch);
+                continue;
+            }
+
+            var escapeIndex = k;
+            var next = content[++k];
+            switch (next) {
+                case '\\' or '"' or '\'' or '`': builder.Append(next); break;
+                case 'n': builder.Append('\n'); break;
+                case 'r': builder.Append('\r'); break;
+                case 't': builder.Append('\t'); break;
+                case '0': builder.Append('\0'); break;
+                case 'u' when k + 4 < content.Length && ushort.TryParse(content.Slice(k + 1, 4), System.Globalization.NumberStyles.AllowHexSpecifier, null, out var code):
+                    builder.Append((char)code);
+                    k += 4;
+                    break;
+                default:
+                    result = "";
+                    var length = next == 'u' ? Math.Min(6, content.Length - escapeIndex) : 2;
+                    error = new CalcError(ErrorCode.InvalidSyntax, $"Invalid escape sequence '{content.Slice(escapeIndex, length)}' at position {offset + escapeIndex}", offset + escapeIndex, length);
+                    return false;
+            }
+        }
+
+        result = builder.ToString();
+        error = null;
         return true;
     }
 
@@ -170,23 +207,15 @@ internal class ExpressionTokenizer(IGlobalScope globalScope) : IExpressionTokeni
         var tokenMemory = expression.Slice(startIndex, length);
         var tokenSpan = tokenMemory.Span;
 
-        // Use AlternateLookup if available, otherwise fallback to ToString limited check
-        if (m_globalScope.Constants is Dictionary<string, Value> constantsDict) {
-            var lookup = constantsDict.GetAlternateLookup<ReadOnlySpan<char>>();
-            if (lookup.TryGetValue(tokenSpan, out _)) {
-                tokens.Add(new Token(startIndex, tokenMemory, TokenType.Constant));
-                i = tempIndex;
-                return true;
-            }
-        }
-        else if (m_globalScope.Constants.ContainsKey(tokenMemory.ToString())) {
+        if (SpanLookup.TryGetValue(m_globalScope.Constants, tokenSpan, out _)) {
             tokens.Add(new Token(startIndex, tokenMemory, TokenType.Constant));
             i = tempIndex;
             return true;
         }
 
-        if (m_globalScope.Functions.TryGetValue(tokenMemory.ToString(), out _)) {
-            tokens.Add(new Token(startIndex, tokenMemory, TokenType.Function, functionInfo: new FunctionInfo()));
+        if (TryGetFunctionName(tokenSpan, out var functionName)) {
+            // WHY: a string-backed key makes Token.KeyString allocation-free on every later evaluation.
+            tokens.Add(new Token(startIndex, functionName.AsMemory(), TokenType.Function, functionInfo: new FunctionInfo()));
             i = tempIndex;
             return true;
         }
@@ -202,6 +231,16 @@ internal class ExpressionTokenizer(IGlobalScope globalScope) : IExpressionTokeni
         tokens.Add(new Token(startIndex, tokenMemory, TokenType.Variable));
         i = tempIndex;
         return true;
+    }
+
+    private bool TryGetFunctionName(ReadOnlySpan<char> name, out string functionName) {
+        if (SpanLookup.TryGetKey(m_globalScope.Functions, name, out var registeredName)) {
+            functionName = name.SequenceEqual(registeredName) ? registeredName : name.ToString();
+            return true;
+        }
+
+        functionName = "";
+        return false;
     }
 
     private static bool TryReadVariable(ReadOnlyMemory<char> expression, ref int i, List<Token> tokens) {
@@ -241,7 +280,7 @@ internal class ExpressionTokenizer(IGlobalScope globalScope) : IExpressionTokeni
 
         // Negative sign check (Unary minus)
         if (length == 1 && IsNegativeSignToken(ch, GetPreviousChar(startIndex, span, true))) {
-            tokens.Add(new Token(startIndex, MinusOneMemory, TokenType.Number, negation: true));
+            tokens.Add(new Token(startIndex, MinusOneMemory, TokenType.Number, negation: true) { ParsedNumber = -1, HasParsedNumber = true });
             tokens.Add(new Token(startIndex, MultiplyMemory, TokenType.Operator, negation: true, functionInfo: new FunctionInfo(), operatorKind: OperatorKind.Mul));
             i++;
             return true;
@@ -333,8 +372,6 @@ internal class ExpressionTokenizer(IGlobalScope globalScope) : IExpressionTokeni
     private static bool IsDigitToken(char? ch) => ch != null && char.IsDigit(ch.Value);
 
     private static bool IsStringStartToken(char? ch) => ch == '"' || ch == '\'' || ch == '`';
-
-    private static bool IsStringEndToken(char? ch, char startChar, char? prevChar) => prevChar != '\\' && startChar == ch;
 
     private static bool IsConstantOrFunctionToken(char? ch) => ch != null && char.IsLetter(ch.Value);
 

@@ -1,11 +1,11 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Dates;
+using ShY.Classes;
+using ShY.Functions.Dates;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ShYCalculator.Test.Functions.Internal;
+namespace ShY.Test.Functions.Internal;
 
 [TestClass]
 public class UT_CalcDateFunctions_Internal {

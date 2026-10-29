@@ -1,7 +1,7 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions;
+using ShY.Classes;
+using ShY.Functions;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_ThreadSafety {
@@ -9,7 +9,7 @@ public class UT_ThreadSafety {
     public void TestThreadSafety_SharedCalculator_SeparateContexts() {
         // Arrange
         // Global scope (functions, constants) is shared and immutable (conceptually)
-        var globalEnv = new global::ShYCalculator.Calculator.Environment();
+        var globalEnv = new global::ShY.Calculator.CalculatorEnvironment();
         // Add a shared function just to be sure
         globalEnv.RegisterFunctions(new TestFunctionExtension());
 

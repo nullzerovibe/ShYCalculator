@@ -1,13 +1,13 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Functions.Dates;
-using ShYCalculator.Functions.Text;
+using ShY.Classes;
+using ShY.Functions.Mathematics;
+using ShY.Functions.Dates;
+using ShY.Functions.Text;
 using System.Reflection;
-using ShYCalculator.Functions;
+using ShY.Functions;
 using System.Collections.Frozen;
-using Environment = ShYCalculator.Calculator.Environment;
+using Environment = ShY.Calculator.CalculatorEnvironment;
 
-namespace ShYCalculator.Test.Functions.Coverage;
+namespace ShY.Test.Functions.Coverage;
 
 [TestClass]
 public class UT_CalcNumericFunctions_Coverage {

@@ -1,7 +1,7 @@
-using ShYCalculator.Classes;
+using ShY.Classes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ShYCalculator.Test.Calculator;
+namespace ShY.Test.Calculator;
 
 [TestClass]
 public class UT_ShYCalculatorOptions {

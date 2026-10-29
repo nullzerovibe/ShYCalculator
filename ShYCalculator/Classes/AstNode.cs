@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace ShYCalculator.Classes;
+namespace ShY.Classes;
 
 /// <summary>
 /// Represents a range in the source string.

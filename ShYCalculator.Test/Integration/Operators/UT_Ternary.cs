@@ -1,7 +1,7 @@
-using ShYCalculator.Classes;
+using ShY.Classes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ShYCalculator.Test.Integration.Operators;
+namespace ShY.Test.Integration.Operators;
 
 [TestClass]
 public class UT_Ternary {

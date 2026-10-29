@@ -1,10 +1,10 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Dates;
-using ShYCalculator.Functions.Mathematics;
-using ShYCalculator.Functions.Text;
-using ShYCalculator.Functions;
+using ShY.Classes;
+using ShY.Functions.Dates;
+using ShY.Functions.Mathematics;
+using ShY.Functions.Text;
+using ShY.Functions;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_Errors {
@@ -159,7 +159,7 @@ public class UT_Errors {
         var error = result.Errors.Count > 0 ? result.Errors[0] : null;
 
         Assert.IsFalse(result.Success);
-        Assert.AreEqual(ErrorCode.UnknownToken, error?.Code);
+        Assert.AreEqual(ErrorCode.UnterminatedString, error?.Code);
     }
 
     [TestMethod]

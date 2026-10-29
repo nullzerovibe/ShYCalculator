@@ -1,7 +1,7 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Mathematics;
+using ShY.Classes;
+using ShY.Functions.Mathematics;
 
-namespace ShYCalculator.Test.SyntaxErrors;
+namespace ShY.Test.SyntaxErrors;
 
 [TestClass]
 public class UT_SyntaxErrors_Parentheses {

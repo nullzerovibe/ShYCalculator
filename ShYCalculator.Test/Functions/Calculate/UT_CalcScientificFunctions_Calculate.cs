@@ -1,8 +1,8 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions.Mathematics;
-using Environment = ShYCalculator.Calculator.Environment;
+using ShY.Classes;
+using ShY.Functions.Mathematics;
+using Environment = ShY.Calculator.CalculatorEnvironment;
 
-namespace ShYCalculator.Test.Functions.Calculate;
+namespace ShY.Test.Functions.Calculate;
 
 [TestClass]
 public class UT_CalcScientificFunctions_Calculate {

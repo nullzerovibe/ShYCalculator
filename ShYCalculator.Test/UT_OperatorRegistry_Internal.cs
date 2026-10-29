@@ -1,7 +1,7 @@
-using ShYCalculator.Calculator;
-using ShYCalculator.Classes;
+using ShY.Calculator;
+using ShY.Classes;
 
-namespace ShYCalculator.Test;
+namespace ShY.Test;
 
 [TestClass]
 public class UT_OperatorRegistry_Internal {

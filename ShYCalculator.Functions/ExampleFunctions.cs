@@ -1,11 +1,14 @@
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Collections.Frozen;
 
-namespace ShYCalculator.Functions;
+namespace ShY.Functions;
 
 public class ExampleFunctions : ICalcFunctionsExtension {
+    // WHY: Func<ReadOnlySpan<Value>, Value> requires .NET 9+; a private delegate keeps the extension portable to net8.0.
+    private delegate Value Body(ReadOnlySpan<Value> parameters);
+
     private readonly FrozenDictionary<string, CalcFunction> m_funcDef;
-    private readonly FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> m_dispatch;
+    private readonly FrozenDictionary<string, Body> m_dispatch;
 
     public ExampleFunctions() {
         // Read configuration using the helper, passing the Type of this class to locate the resource
@@ -13,7 +16,7 @@ public class ExampleFunctions : ICalcFunctionsExtension {
         CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
 
         m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        m_dispatch = new Dictionary<string, Func<ReadOnlySpan<Value>, Value>>(StringComparer.OrdinalIgnoreCase) {
+        m_dispatch = new Dictionary<string, Body>(StringComparer.OrdinalIgnoreCase) {
             ["hello_world"] = _ => new Value(DataType.String, sValue: "Hello World!"),
             ["add_one"] = p => new Value(DataType.Number, nValue: (p[0].Nvalue ?? 0) + 1),
             ["calculateSingleThing"] = p => new Value { Nvalue = 1, DataType = DataType.Number }

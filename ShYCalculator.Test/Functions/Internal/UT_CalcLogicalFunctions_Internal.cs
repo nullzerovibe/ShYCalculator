@@ -1,6 +1,6 @@
-using ShYCalculator.Classes;
-using ShYCalculator.Functions;
-using ShYCalculator.Functions.Logical;
+using ShY.Classes;
+using ShY.Functions;
+using ShY.Functions.Logical;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Frozen;
 using System.Linq;
 
-namespace ShYCalculator.Test.Functions.Internal;
+namespace ShY.Test.Functions.Internal;
 
 [TestClass]
 public class UT_CalcLogicalFunctions_Internal {

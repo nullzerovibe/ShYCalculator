@@ -3,10 +3,10 @@
 //     Implements advanced logical functions (if, switch).
 // </summary>
 // -----------------------------------------------------------------------------
-using ShYCalculator.Classes;
+using ShY.Classes;
 using System.Collections.Frozen;
 
-namespace ShYCalculator.Functions.Logical;
+namespace ShY.Functions.Logical;
 
 /// <summary>
 /// Implements advanced logical functions (any, all, not).
@@ -14,7 +14,7 @@ namespace ShYCalculator.Functions.Logical;
 public class CalcLogicalFunctions : ICalcFunctionsExtension {
     #region Members
     private readonly FrozenDictionary<string, CalcFunction> m_funcDef;
-    private readonly FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> m_dispatch;
+    private readonly FrozenDictionary<string, FunctionBody> m_dispatch;
     #endregion Members
 
     #region Constructor
@@ -22,14 +22,14 @@ public class CalcLogicalFunctions : ICalcFunctionsExtension {
     /// Initializes a new instance of the <see cref="CalcLogicalFunctions"/> class.
     /// </summary>
     public CalcLogicalFunctions() {
-        var funcList = CalcFunctionsHelper.ReadFunctionsConfiguration(Name, typeof(CalcLogicalFunctions));
-        CalcFunctionsHelper.CheckFunctionsConfiguration(funcList);
-        m_funcDef = funcList.ToDictionary(x => x.Name!, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        m_dispatch = CreateDispatch();
+        m_funcDef = CalcFunctionsHelper.LoadFunctionDefinitions(Name, typeof(CalcLogicalFunctions));
+        m_dispatch = SharedDispatch;
     }
 
-    private static FrozenDictionary<string, Func<ReadOnlySpan<Value>, Value>> CreateDispatch() {
-        return new Dictionary<string, Func<ReadOnlySpan<Value>, Value>>(StringComparer.OrdinalIgnoreCase) {
+    private static readonly FrozenDictionary<string, FunctionBody> SharedDispatch = CreateDispatch();
+
+    private static FrozenDictionary<string, FunctionBody> CreateDispatch() {
+        return new Dictionary<string, FunctionBody>(StringComparer.OrdinalIgnoreCase) {
             [FunctionNames.Any] = p => Any(p, FunctionNames.Any),
             [FunctionNames.All] = p => All(p, FunctionNames.All),
             [FunctionNames.Not] = p => Not(p, FunctionNames.Not),
