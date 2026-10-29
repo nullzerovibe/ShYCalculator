@@ -31,6 +31,9 @@ dotnet add package ShYCalculator
 Recommended for Web APIs or shared services.
 
 ```csharp
+using ShY;                       // ShYCalculator, ShYCalculatorBuilder
+using ShY.Classes;               // Value, CalculationResult, options
+
 var calculator = new ShYCalculatorBuilder()
     .WithAllExtensions()
     .Build();
@@ -97,6 +100,20 @@ var nodeType = result.Ast?.Type; // "binary"
 var validation = ShYCalculator.Compile("1 + (2"); 
 if (!validation.Success) Console.WriteLine(validation.Errors[0].Message);
 ```
+
+## Decimal Mode & Limits
+
+```csharp
+var calculator = new ShYCalculatorBuilder()
+    .WithAllExtensions()
+    .WithOptions(o => {
+        o.NumericMode = NumericMode.Decimal;  // exact base-10: 0.1 + 0.2 == 0.3
+        o.MaxNestingDepth = 32;               // default 64; deeper input fails with LimitExceeded
+    })
+    .Build();
+```
+
+Targets .NET 8 and .NET 10; trim- and AOT-compatible.
 
 ## License
 

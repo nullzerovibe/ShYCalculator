@@ -35,10 +35,13 @@
 ## Features
 
 - 🚀 **High Performance**: Optimized for low allocation (Zero-Allocation paths where possible).
-- 🧵 **Thread Safe**: Stateless execution model designed for high-concurrency environments (Web APIs, Services).
-- 🧩 **Extensible**: Add custom functions, operators, and constants.
+- 🧵 **Thread Safe**: Stateless execution model designed for high-concurrency environments (Web APIs, Services). Configure the environment once, then pass per-call data as context variables; mutating the environment while calculating is not thread-safe.
+- 🧩 **Extensible**: Add custom functions and constants. The operator set is fixed; `IOperatorProvider` can re-weight precedence and accepted data types of the built-in operators.
+- 🧱 **Hardened for untrusted input**: Configurable nesting and length limits, and a stack guard that turns pathological input into an error instead of crashing the process.
 - 🏗️ **Builder Pattern**: Fluent API for easy configuration.
 - 🛡️ **Safe**: No `eval()` or dynamic compilation risks; strictly parsed.
+- 🎯 **Decimal Mode**: Opt-in exact base-10 arithmetic for financial calculations.
+- 🎛️ **Targets**: .NET 8 (LTS) and .NET 10 (LTS), trim- and AOT-compatible.
 - 🔁 **Compiled Mode**: Parse once, execute many times for maximum performance.
 - 📅 **Date & Time**: Robust support for date parsing, culture-specific formats, and time adjustments.
 - 🌳 **Deep Nesting**: Supports complex nested expressions (ifs, ternaries, functions).
@@ -57,6 +60,10 @@ dotnet add package ShYCalculator
 Recommended for Web APIs or shared services.
 
 ```csharp
+using ShY;                       // ShYCalculator, ShYCalculatorBuilder
+using ShY.Classes;               // Value, CalculationResult, options
+using ShY.DependencyInjection;   // AddShYCalculator
+
 var calculator = new ShYCalculatorBuilder()
     .WithAllExtensions()
     .Build();
@@ -119,6 +126,68 @@ if (compiled.Success) {
     }
 }
 ```
+
+## Operators
+
+Precedence follows C# conventions, from lowest to highest:
+
+| Precedence | Operators | Notes |
+|---|---|---|
+| 0 | `? :` | Ternary; only the selected branch is evaluated |
+| 1 | `\|\|` | Short-circuit: right side skipped when left is `true` |
+| 2 | `&&` | Short-circuit: right side skipped when left is `false` |
+| 3 | `\|` | Bitwise OR |
+| 4 | `^^` `⊕` | Bitwise XOR |
+| 5 | `&` | Bitwise AND |
+| 6 | `==` `!=` | Equality |
+| 7 | `<` `>` `<=` `>=` | Relational (numbers and dates) |
+| 8 | `<<` `>>` | Shifts (count 0–63) |
+| 9 | `+` `-` `−` | `+` also concatenates strings |
+| 10 | `*` `×` `/` `÷` `%` | `/ 0` and `% 0` fail with `DivisionByZero` |
+| 11 | `^` | Power, right-associative |
+| 12 | `!` `~` `√` (prefix), `!` (postfix factorial) | Unary |
+
+Bitwise operators work on 64-bit integers. `if(cond, a, b)` is lazy like the ternary operator.
+
+String literals use `"`, `'` or `` ` `` and support the escapes `\\` `\"` `\'` `` \` `` `\n` `\r` `\t` `\0` `\uXXXX`.
+
+## Decimal Mode (Financial Precision)
+
+Binary floating point cannot represent most decimal fractions (`0.1 + 0.2 == 0.3` is `false` in double). Opt into exact base-10 arithmetic:
+
+```csharp
+var calculator = new ShYCalculatorBuilder()
+    .WithAllExtensions()
+    .WithOptions(o => o.NumericMode = NumericMode.Decimal)
+    .Build();
+
+calculator.Calculate("0.1 + 0.2 == 0.3").Bvalue;   // true
+calculator.Calculate("19.99 * 3").Mvalue;          // 59.97m (exact)
+calculator.Calculate("round(1.255, 2)").Mvalue;    // 1.26m  (double mode: 1.25)
+```
+
+In decimal mode literals, constants, variables and every operator are exact `decimal`; `abs`, `min`, `max`, `sum`, `avg`, `round`, `floor`, `ceiling`, `trunc`, `sign`, `median` and `mode` compute exactly, while transcendental functions (`sin`, `ln`, `sqrt`, fractional `^`) compute in double and convert back. Results outside the decimal range (~±7.9e28, `28!`, `ln(-1)`) fail with `ErrorCode.ValueOutOfRange`. Read results through `Mvalue` (exact) or `Nvalue` (converted to double). `Value.Number(decimal)` variables are exact in either mode.
+
+## Configuration & Limits
+
+Options can be set through the builder (order in the chain does not matter), the DI registration, or the constructor:
+
+```csharp
+var calculator = new ShYCalculatorBuilder()
+    .WithAllExtensions()
+    .WithOptions(o => {
+        o.MaxNestingDepth = 32;          // ternaries, if(), &&, || (default 64; 0 = no limit)
+        o.MaxExpressionLength = 4_096;   // characters (default 0 = unlimited)
+        o.CultureName = "fr-FR";         // date parsing culture
+        o.DateFormat = "dd MMMM yyyy";
+        o.TimeProvider = timeProvider;   // drives dt_now()/dt_today(); defaults to TimeProvider.System
+    })
+    .Build();
+```
+
+Exceeding a limit, or nesting deeper than the available execution stack allows, fails with `ErrorCode.LimitExceeded`; it never crashes the host process. Plain parentheses are not subject to the nesting limit.
+
+Each `Build()` returns a calculator with its own snapshot of the configuration. With dependency injection, functions, constants and options are shared singletons: configure them at registration time and do not mutate the injected `IEnvironment` afterwards.
 
 ## Advanced Features
 

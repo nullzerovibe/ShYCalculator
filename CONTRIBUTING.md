@@ -5,7 +5,7 @@ Thank you for your interest in contributing! We welcome bug reports, feature req
 ## Getting Started
 1. **Fork** the repository.
 2. **Clone** your fork locally.
-3. Install **.NET 10.0 SDK**.
+3. Install **.NET 10.0 SDK** and the **.NET 8.0 runtime** (tests run on both target frameworks).
 4. Run tests to ensure everything is working: `dotnet test`.
 
 ## The Protocol (Agentic Workflow)
