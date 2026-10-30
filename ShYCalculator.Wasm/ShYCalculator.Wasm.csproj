@@ -23,6 +23,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ShYCalculator\ShYCalculator.csproj" />
+    <!-- WARN: JS interop serializes CalculationResult/CalcError by reflection; trimming the library strips their
+         constructors and parameter names, and every call fails with ConstructorContainsNullParameterNames. -->
+    <TrimmerRootAssembly Include="ShYCalculator" />
   </ItemGroup>
 
   <ItemGroup>
